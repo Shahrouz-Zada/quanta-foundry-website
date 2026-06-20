@@ -1,12 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import FormProvider from './FormProvider';
+import { useState } from 'react';
 import Input from '@/components/ui/Input';
 import GDPRConsent from '@/components/ui/GDPRConsent';
 import Button from '@/components/ui/Button';
-import { FORMSPREE_IDS } from '@/lib/constants';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 interface WorkspaceQFormProps {
   onSuccess: () => void;
@@ -15,32 +13,28 @@ interface WorkspaceQFormProps {
 export default function WorkspaceQForm({ onSuccess }: WorkspaceQFormProps) {
   const [gdprConsent, setGdprConsent] = useState(false);
   const [gdprError, setGdprError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasErrors, setHasErrors] = useState(false);
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!gdprConsent) {
+      setGdprError('You must consent to data processing to register.');
+      return;
+    }
+    setGdprError('');
+    setIsSubmitting(true);
+    setHasErrors(false);
+    
+    // Simulate network request to allow instant access
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onSuccess();
+    }, 800);
+  };
 
   return (
-    <FormProvider formId={FORMSPREE_IDS.workspaceQ}>
-      {({ handleSubmit, isSubmitting, isSuccess, hasErrors }) => {
-        // Trigger onSuccess callback once form submission completes successfully
-        // We do this in a useEffect to avoid setting state during render
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useEffect(() => {
-          if (isSuccess) {
-            onSuccess();
-          }
-        }, [isSuccess]);
-
-        const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-          if (!gdprConsent) {
-            e.preventDefault();
-            setGdprError('You must consent to data processing to register.');
-            return;
-          }
-          setGdprError('');
-          handleSubmit(e);
-        };
-
-        return (
-          <form onSubmit={onSubmit} className="space-y-5">
-            <input type="text" name="_gotcha" className="hidden" tabIndex={-1} autoComplete="_off" />
+    <form onSubmit={onSubmit} className="space-y-5">
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <Input
@@ -98,15 +92,17 @@ export default function WorkspaceQForm({ onSuccess }: WorkspaceQFormProps) {
             <Button
               type="submit"
               disabled={isSubmitting}
-              loading={isSubmitting}
-              className="w-full justify-center"
-              id="workspace-reg-submit"
+              className="w-full"
             >
-              Unlock Workspace Q
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={18} className="animate-spin mr-2" />
+                  Unlocking...
+                </>
+              ) : (
+                'Unlock Workspace Q'
+              )}
             </Button>
           </form>
-        );
-      }}
-    </FormProvider>
   );
 }
