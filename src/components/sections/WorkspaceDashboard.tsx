@@ -101,20 +101,20 @@ export default function WorkspaceDashboard() {
           <div className="relative mb-20">
             {/* Registration Overlay Card */}
             <div className="absolute inset-0 z-20 flex items-start justify-center pt-8 sm:pt-16 px-4">
-              <Card className="p-8 max-w-2xl w-full bg-[#0A1929]/95 backdrop-blur-xl border border-white/10 shadow-2xl relative">
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A90E2] to-[#D4AF37] flex items-center justify-center shadow-lg">
+              <div className="p-8 sm:p-10 max-w-2xl w-full bg-white rounded-2xl shadow-2xl relative mt-6">
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A90E2] to-[#D4AF37] flex items-center justify-center shadow-lg z-30">
                   <Lock size={20} className="text-white" />
                 </div>
                 
-                <div className="text-center mt-4 mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-3">Unlock Workspace Resources</h2>
-                  <p className="text-sm text-gray-400 max-w-md mx-auto">
+                <div className="text-center mt-6 mb-8 relative z-20">
+                  <h2 className="text-2xl font-bold text-[#0A1929] mb-3">Unlock Workspace Resources</h2>
+                  <p className="text-sm text-gray-600 max-w-md mx-auto">
                     This hub is reserved for coursework students and registered self-learners. Complete the quick form below to unlock immediate access.
                   </p>
                 </div>
 
                 <WorkspaceQForm onSuccess={handleRegistrationSuccess} />
-              </Card>
+              </div>
             </div>
 
             {/* Blurred Preview content container */}
