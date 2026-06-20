@@ -53,6 +53,14 @@ export const workspaceTools: WorkspaceQTool[] = [
     icon: 'Settings',
     category: 'coding',
   },
+  {
+    id: 'faculties-ai',
+    name: 'Faculties AI',
+    description: 'Advanced AI-powered platform for academic research and intelligent data analysis.',
+    url: 'https://www.faculties.ai',
+    icon: 'Sparkles',
+    category: 'research',
+  },
 ];
 
 export const workspaceCourses: WorkspaceQCourse[] = [
