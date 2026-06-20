@@ -175,7 +175,7 @@ export default function WorkspaceDashboard() {
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                   <Terminal size={22} className="text-[#4A90E2]" /> Tool Hub
                 </h2>
-                <Badge variant="info">6 Curated Tools</Badge>
+                <Badge variant="info">{workspaceTools.length} Curated Tools</Badge>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
