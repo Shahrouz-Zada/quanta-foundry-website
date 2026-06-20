@@ -1,3 +1,4 @@
+import { Brain } from 'lucide-react';
 import AnimatedNeuralNet from '@/components/effects/AnimatedNeuralNet';
 import AnimatedStochasticCurve from '@/components/effects/AnimatedStochasticCurve';
 import AnimatedBlochSphere from '@/components/effects/AnimatedBlochSphere';
