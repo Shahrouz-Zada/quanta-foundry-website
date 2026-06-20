@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Clock, Users, MapPin, CheckCircle } from 'lucide-react';
+import { Clock, Users, MapPin, CheckCircle, Brain } from 'lucide-react';
 import AnimatedNeuralNet from '@/components/effects/AnimatedNeuralNet';
 import AnimatedStochasticCurve from '@/components/effects/AnimatedStochasticCurve';
 import AnimatedBlochSphere from '@/components/effects/AnimatedBlochSphere';
