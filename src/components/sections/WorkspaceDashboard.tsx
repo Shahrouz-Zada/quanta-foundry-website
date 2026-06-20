@@ -33,6 +33,7 @@ const toolIconMap: Record<string, React.ComponentType<{ size?: number; className
   FileText,
   Layers,
   Settings,
+  Sparkles,
 };
 
 // Icon mapping for Resource library types
