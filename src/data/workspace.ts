@@ -59,7 +59,7 @@ export const workspaceTools: WorkspaceQTool[] = [
     description: 'Advanced AI-powered platform for academic research and intelligent data analysis.',
     url: 'https://www.faculties.ai',
     icon: 'Sparkles',
-    category: 'research',
+    category: 'data',
   },
 ];
 
