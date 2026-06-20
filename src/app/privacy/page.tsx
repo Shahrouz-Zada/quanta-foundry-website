@@ -45,6 +45,7 @@ export default function PrivacyPage() {
             <li><strong>Contact data:</strong> email address, LinkedIn profile URL</li>
             <li><strong>Professional data:</strong> company name, role, professional background</li>
             <li><strong>Application data:</strong> motivation statements, program preferences</li>
+            <li><strong>AI Chat data:</strong> chat logs and interactions (only if explicitly consented)</li>
             <li><strong>Technical data:</strong> IP address, browser type, device information (collected automatically)</li>
             <li><strong>Usage data:</strong> pages visited, time spent, referral source (if analytics are enabled)</li>
           </ul>
@@ -78,6 +79,7 @@ export default function PrivacyPage() {
             <li><strong>Application data:</strong> retained for up to 24 months after the last cohort you applied to</li>
             <li><strong>Newsletter subscribers:</strong> retained until you unsubscribe</li>
             <li><strong>Inquiry data:</strong> retained for up to 12 months</li>
+            <li><strong>AI Chat logs:</strong> retained for up to 90 days (if consent is provided)</li>
             <li><strong>Analytics data:</strong> retained for up to 26 months (if analytics are enabled)</li>
           </ul>
 
@@ -96,7 +98,18 @@ export default function PrivacyPage() {
             We will respond within 30 days. You also have the right to lodge a complaint with the French data protection authority (CNIL).
           </p>
 
-          <h2>8. Cookies</h2>
+          <h2 id="ai-chat">8. AI Chat Assistant</h2>
+          <p>
+            Our website includes an AI Chat Assistant powered by OpenAI. By default, conversations are <strong>not stored</strong> beyond what is technically necessary to instantly generate a response. 
+          </p>
+          <p>
+            If you check the consent toggle in the chat interface, we may store your conversation logs for up to 90 days. This data is used solely to improve our website, understand user needs, and develop future services. It is strictly restricted to administrator access. 
+          </p>
+          <p>
+            <strong>We do not use your chat logs to train AI models</strong> unless explicitly stated and separately consented to. You may request the deletion of your chat logs at any time by contacting us. Please do not share confidential, sensitive, or personal information in the chat.
+          </p>
+
+          <h2>9. Cookies</h2>
           <p>
             Our website may use essential cookies required for the website to function properly. If we implement analytics or tracking tools (e.g., Plausible, Google Analytics), we will provide a cookie consent banner and allow you to opt out. No non-essential cookies are set without your explicit consent.
           </p>
