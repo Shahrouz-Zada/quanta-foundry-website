@@ -143,20 +143,27 @@ export default function ChatAssistant() {
                 <div className="bg-white/5 rounded-lg p-2.5 space-y-2 border border-white/5">
                   <div className="flex items-start gap-2 text-[10px] text-gray-400 leading-tight">
                     <ShieldAlert size={12} className="shrink-0 mt-0.5 text-amber-500" />
-                    <p>
-                      Do not share confidential, sensitive, or personal information. 
-                      By default, conversations are not stored.
-                    </p>
+                    <p className="mb-3">
+                    Do not share confidential, sensitive, or personal information. Chats are not saved unless you give consent below.
+                  </p>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={hasConsent}
-                      onChange={(e) => setHasConsent(e.target.checked)}
-                      className="w-3 h-3 rounded border-gray-600 bg-transparent text-[#4A90E2] focus:ring-[#4A90E2]/50 focus:ring-offset-0"
-                    />
-                    <span className="text-[10px] text-gray-400 group-hover:text-gray-300 transition-colors">
-                      Allow saving this chat to improve future services.
+                  
+                  <label className="flex items-start gap-2 cursor-pointer group">
+                    <div className="relative flex items-center mt-0.5">
+                      <input
+                        type="checkbox"
+                        className="peer sr-only"
+                        checked={hasConsent}
+                        onChange={(e) => setHasConsent(e.target.checked)}
+                      />
+                      <div className="w-4 h-4 rounded border border-[#4A90E2]/30 bg-[#0A1929] peer-checked:bg-[#4A90E2] peer-checked:border-[#4A90E2] transition-colors flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-gray-500 group-hover:text-gray-400 transition-colors leading-tight flex-1">
+                      I agree that Quanta Foundry may save this chat to improve the website, understand user needs, and develop future services.
                     </span>
                   </label>
                 </div>
