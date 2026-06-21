@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Target, Wrench, Sparkles, BarChart3, Award } from 'lucide-react';
+import { Award } from 'lucide-react';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -11,12 +11,7 @@ export const metadata: Metadata = {
     "Learn about Quanta Foundry's mission to bridge academia and industry through applied AI, quantitative finance, and project-based learning.",
 };
 
-const pillars = [
-  { icon: Target, title: 'Rigor', description: 'We engage seriously with original papers, technical articles, mathematical ideas, and source material.' },
-  { icon: Wrench, title: 'Application', description: 'Ideas are explored through notebooks, datasets, simulations, technical notes, and project-based collaboration.' },
-  { icon: Sparkles, title: 'Innovation', description: 'We explore emerging methods in AI, quantitative finance, neuroscience, market systems, and future deep-tech fields.' },
-  { icon: BarChart3, title: 'Impact', description: 'We aim to transform technical curiosity into shared understanding, practical outputs, and meaningful collaboration.' },
-];
+
 
 export default function AboutPage() {
   return (
@@ -49,18 +44,25 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Methodology */}
+      {/* Our Path */}
       <section className="py-20 bg-white">
         <div className="mx-auto max-w-7xl px-6">
-          <SectionHeading title="Our Approach" subtitle="Four principles that guide the Quanta Foundry ecosystem." />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {pillars.map((pillar) => (
-              <div key={pillar.title} className="text-center p-6 rounded-xl border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300" id={`about-pillar-${pillar.title.toLowerCase()}`}>
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-[#4A90E2]/10 mb-4">
-                  <pillar.icon className="text-[#4A90E2]" size={26} />
-                </div>
-                <h3 className="text-lg font-bold text-[#0A1929] mb-2">{pillar.title}</h3>
-                <p className="text-sm text-[#2C3E50]">{pillar.description}</p>
+          <SectionHeading title="Our Path" />
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <p className="text-[#2C3E50] leading-relaxed">
+              Quanta Foundry begins with rigorous reading and technical discussion, then moves toward notebooks, simulations, project briefs, and selected applied collaborations. Our goal is to create a complementary environment where motivated students, researchers, and professionals can connect advanced ideas to practical experimentation.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { num: '1', title: 'Read', desc: 'Research papers, technical articles, and serious source material.' },
+              { num: '2', title: 'Discuss', desc: 'Bi-weekly reading sessions and structured technical conversations.' },
+              { num: '3', title: 'Experiment', desc: 'Notebooks, simulations, datasets, and prototype workflows.' },
+              { num: '4', title: 'Document', desc: 'Technical notes, project briefs, research summaries, and shared outputs.' }
+            ].map((step) => (
+              <div key={step.num} className="bg-[#F5F7FA] p-6 rounded-xl border border-gray-100">
+                <div className="text-[#4A90E2] font-bold text-xl mb-2">{step.num}. {step.title}</div>
+                <p className="text-sm text-[#2C3E50]">{step.desc}</p>
               </div>
             ))}
           </div>

@@ -42,7 +42,7 @@ export default function ModelSection() {
       <div className="relative mx-auto max-w-7xl px-6">
         <SectionHeading
           title="The Quanta Foundry Model"
-          subtitle="Our model combines technical reading, applied research, project-based collaboration, and selected partner use cases to help motivated contributors move from advanced ideas to practical understanding."
+          subtitle="Research-driven and hype-aware, the Quanta Foundry model combines technical reading, applied experimentation, project-based collaboration, and selected partner use cases to help motivated contributors move from advanced ideas to practical understanding."
           light
           accentColor="gold"
         />
