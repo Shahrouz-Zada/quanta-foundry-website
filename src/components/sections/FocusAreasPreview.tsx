@@ -55,7 +55,7 @@ export default function FocusAreasPreview() {
                     {area.shortTitle}
                   </h3>
                   <p className={`text-[15px] leading-relaxed mb-6 flex-1 ${isComingSoon ? 'text-gray-400' : 'text-[#2C3E50]'}`}>
-                    {area.description.slice(0, 150)}…
+                    {area.description}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-8">
                     {area.tags.slice(0, 4).map((tag) => (
