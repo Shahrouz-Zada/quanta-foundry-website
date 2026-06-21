@@ -42,6 +42,9 @@ export default function CommunityPage() {
           <SectionHeading title="The Reading Club" subtitle="Bi-weekly discussions around research papers, technical articles, and applied ideas in AI, quantitative finance, neuroscience, market behavior, and complex systems." accentColor="electric" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             <div>
+              <p className="text-[#2C3E50] leading-relaxed font-medium mb-6">
+                Quanta Foundry is built on the belief that serious technical learning should not be limited to passive content consumption. Through the Reading Club and Workspace Q, we aim to create a complementary learning space where motivated contributors can read, discuss, experiment, and build understanding together.
+              </p>
               <p className="text-[#2C3E50] leading-relaxed mb-6">
                 The Quanta Foundry Reading Club is a bi-weekly gathering where we discuss research papers, technical articles, and emerging ideas across AI, machine learning, quantitative finance, neuroscience, market behavior, and complex systems. Each session is structured around one or two selected readings, with a facilitator guiding the discussion and participants contributing their perspectives.
               </p>

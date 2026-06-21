@@ -109,6 +109,24 @@ export type InsightCategory =
   | 'research';
 
 // ---------------------------------------------------------------------------
+// Project & Note (future CMS collection: 'projects_notes')
+// ---------------------------------------------------------------------------
+export type ProjectNoteStatus = 'Draft' | 'Internal' | 'Public' | 'In Progress';
+
+export interface ProjectNote {
+  id: string;
+  slug: string;
+  title: string;
+  shortDescription: string;
+  domain: InsightCategory | string;
+  status: ProjectNoteStatus;
+  tags: string[];
+  githubUrl?: string;
+  articleUrl?: string;
+  notebookUrl?: string;
+}
+
+// ---------------------------------------------------------------------------
 // Team Member (future CMS collection: 'team')
 // ---------------------------------------------------------------------------
 export interface TeamMember {
