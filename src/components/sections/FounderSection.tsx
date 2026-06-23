@@ -2,6 +2,7 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import Badge from '@/components/ui/Badge';
 import { founder } from '@/data/team';
 import { Award } from 'lucide-react';
+import Image from 'next/image';
 
 export default function FounderSection() {
   return (
@@ -11,16 +12,29 @@ export default function FounderSection() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           {/* Photo Area */}
           <div className="lg:col-span-2 flex justify-center">
-            <div className="w-64 h-64 rounded-2xl bg-gradient-to-br from-[#4A90E2]/20 to-[#D4AF37]/10 border border-white/10 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-[#4A90E2]/20 border border-[#4A90E2]/30 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-3xl font-bold text-[#4A90E2]">
-                    {founder.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500">Photo coming soon</p>
+            {founder.imageUrl ? (
+              <div className="relative w-64 h-64 rounded-2xl overflow-hidden border border-white/10 shadow-xl group">
+                <Image
+                  src={founder.imageUrl}
+                  alt={founder.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 768px) 256px, 256px"
+                  priority
+                />
               </div>
-            </div>
+            ) : (
+              <div className="w-64 h-64 rounded-2xl bg-gradient-to-br from-[#4A90E2]/20 to-[#D4AF37]/10 border border-white/10 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-[#4A90E2]/20 border border-[#4A90E2]/30 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-3xl font-bold text-[#4A90E2]">
+                      {founder.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">Photo coming soon</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Bio Content */}
