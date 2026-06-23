@@ -111,19 +111,130 @@ export type InsightCategory =
 // ---------------------------------------------------------------------------
 // Project & Note (future CMS collection: 'projects_notes')
 // ---------------------------------------------------------------------------
-export type ProjectNoteStatus = 'Draft' | 'Internal' | 'Public' | 'In Progress';
+
+/**
+ * Visibility semantics:
+ * - 'draft'      → visible only to project owner/admin
+ * - 'internal'   → visible inside Workspace Q to registered/invited members
+ * - 'reviewed'   → approved internally but NOT yet on public web
+ * - 'public-web' → visible on /projects and shareable externally (CV, LinkedIn)
+ * - 'archived'   → hidden from all normal display, retained for records
+ */
+export type ProjectApprovalStatus =
+  | 'draft'
+  | 'internal'
+  | 'reviewed'
+  | 'public-web'
+  | 'archived';
+
+export type ProjectOutputType =
+  | 'curated-project'
+  | 'technical-note'
+  | 'prototype-notebook'
+  | 'applied-research-summary'
+  | 'workspace-q-output';
+
+export type CodeVisibility = 'private' | 'internal' | 'public';
+export type DataSensitivity = 'none' | 'low' | 'high';
 
 export interface ProjectNote {
+  // --- Identity ---
   id: string;
   slug: string;
   title: string;
   shortDescription: string;
+  longDescription?: string;
+
+  // --- Classification ---
   domain: InsightCategory | string;
-  status: ProjectNoteStatus;
+  outputType: ProjectOutputType;
   tags: string[];
+
+  // --- Approval & Visibility ---
+  approvalStatus: ProjectApprovalStatus;
+  publishedAt?: string;       // ISO date — set when status becomes 'public-web'
+  reviewedBy?: string;        // Admin/mentor identifier, internal only
+
+  // --- Contributors ---
+  contributorIds?: string[];  // References Contributor.id — never display without consent check
+
+  // --- External Links ---
   githubUrl?: string;
   articleUrl?: string;
   notebookUrl?: string;
+
+  // --- Sensitivity ---
+  codeVisibility: CodeVisibility;
+  dataSensitivity: DataSensitivity;
+
+  // --- Licensing ---
+  license?: string;           // e.g. 'MIT', 'CC BY 4.0', 'Internal Use Only'
+
+  // --- CMS-ready metadata ---
+  createdAt?: string;         // ISO date
+  updatedAt?: string;         // ISO date
+}
+
+// ---------------------------------------------------------------------------
+// Contributor (future CMS collection: 'contributors')
+// Privacy-first: private by default, never display personal data without consent
+// ---------------------------------------------------------------------------
+
+export type ContributorTier =
+  | 'observer'
+  | 'contributor'
+  | 'core-contributor'
+  | 'founding-contributor';
+
+export type ProfileVisibility = 'private' | 'limited' | 'public';
+
+export interface Contributor {
+  // --- Identity (admin-only fields) ---
+  id: string;
+
+  // --- Display (always safe to show) ---
+  displayName: string;              // Alias e.g. 'QF Contributor 01' — never a real name unless consent
+
+  // --- Public consent ---
+  isPublic: boolean;                // false by default
+  publicConsentAt?: string;         // ISO date — only set if consent was explicitly given
+  profileVisibility: ProfileVisibility; // 'private' by default
+
+  // --- Tier & role ---
+  tier: ContributorTier;
+  contributorRole?: string;         // e.g. 'Applied AI', 'Quant Research'
+  badges: string[];                 // Badge identifiers e.g. ['first-submission', 'peer-reviewer']
+
+  // --- Activity (internal tracking only — never shown publicly as totals) ---
+  joinedDate: string;               // ISO date
+  internalPoints?: number;          // INTERNAL ONLY — never shown publicly
+
+  // --- CMS-ready metadata ---
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Activity (future CMS collection: 'activities')
+// Feed entries must be written in neutral, non-personal language
+// ---------------------------------------------------------------------------
+
+export type ActivityType =
+  | 'submission'
+  | 'review'
+  | 'note'
+  | 'dataset'
+  | 'revision'
+  | 'milestone';
+
+export interface Activity {
+  id: string;
+  contributorId?: string;     // Optional — omit if activity should be fully anonymous
+  projectId?: string;         // Optional — link to a project
+  type: ActivityType;
+  description: string;        // Neutral language: 'A new notebook was submitted to Applied AI track.'
+  date: string;               // ISO date
+  internalPoints?: number;    // INTERNAL ONLY — never shown publicly
 }
 
 // ---------------------------------------------------------------------------
