@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { workspaceTools, workspaceCourses } from '@/data/workspace';
 import WorkspaceQForm from '@/components/forms/WorkspaceQForm';
+import ContributionBoard from '@/components/sections/ContributionBoard';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -403,6 +404,12 @@ export default function WorkspaceDashboard() {
                 </div>
               </div>
             </section>
+
+            {/* Community Contribution Board — visible to registered members only */}
+            <div className="pt-6 border-t border-white/5">
+              <ContributionBoard />
+            </div>
+
           </div>
         )}
       </div>
