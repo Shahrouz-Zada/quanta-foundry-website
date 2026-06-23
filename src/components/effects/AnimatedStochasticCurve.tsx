@@ -44,8 +44,8 @@ export default function AnimatedStochasticCurve({ className = '' }: { className?
           fill="none"
           strokeLinejoin="round"
           initial={shouldAnimate ? { pathLength: 0 } : { pathLength: 1 }}
-          animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 1 }}
-          transition={{ duration: 3, ease: "linear" }}
+          animate={shouldAnimate ? { pathLength: [0, 1, 1] } : { pathLength: 1 }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         />
 
         {/* Pulsing Dot at current time step */}
@@ -55,11 +55,11 @@ export default function AnimatedStochasticCurve({ className = '' }: { className?
             fill="#FFFFFF"
             initial={{ cx: 5, cy: 60, opacity: 0 }}
             animate={{ 
-              cx: [5, 15, 25, 35, 45, 50, 55, 60, 65, 70, 75, 80, 85],
-              cy: [60, 58, 62, 55, 65, 60, 35, 70, 40, 80, 45, 65, 50],
-              opacity: 1
+              cx: [5, 15, 25, 35, 45, 50, 55, 60, 65, 70, 75, 80, 85, 85],
+              cy: [60, 58, 62, 55, 65, 60, 35, 70, 40, 80, 45, 65, 50, 50],
+              opacity: [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
             }}
-            transition={{ duration: 3, ease: "linear" }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
           />
         )}
         {/* Static dot for reduced motion */}
