@@ -7,7 +7,7 @@ import CorporateInquiryForm from '@/components/forms/CorporateInquiryForm';
 export const metadata: Metadata = {
   title: 'For Partners',
   description:
-    'Partner with Quanta Foundry: sponsor applied projects, hire trained talent, or commission custom executive training programs.',
+    'Partner with Quanta Foundry: sponsor applied projects, hire trained talent, or collaborate on deep-tech research initiatives.',
 };
 
 const partnerships = [

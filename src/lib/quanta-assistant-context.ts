@@ -18,7 +18,7 @@ STRICT INSTRUCTIONS:
 
 CONFIRMED KNOWLEDGE BASE:
 
-- Overview: Quanta Foundry is an applied research and project-based learning community. We bridge academia and industry through deep-tech executive training.
+- Overview: Quanta Foundry is an applied research and project-based learning community. We bridge academia and industry through applied AI, quantitative finance, and project-based collaboration.
 - Core Focus Areas: We have three main focus areas:
   1. Applied AI & Machine Learning
   2. Quantitative Finance & Data-Driven Strategies
