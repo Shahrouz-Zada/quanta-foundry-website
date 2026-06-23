@@ -5,7 +5,7 @@
 export const SITE_NAME = 'Quanta Foundry';
 export const SITE_URL = 'https://quantafoundry.com';
 export const SITE_DESCRIPTION =
-  'Executive certificate programs bridging academia and industry through Applied AI, Quantitative Finance, and Quantum Software. Project-based learning with AI-enhanced educational tools.';
+  'An independent applied research and project-based learning community bridging academia and industry through Applied AI, Quantitative Finance, and Quantum Software.';
 export const SITE_TAGLINE =
   'Where Deep Tech Meets Applied Learning';
 

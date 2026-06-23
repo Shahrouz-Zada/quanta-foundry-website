@@ -10,7 +10,7 @@ export const faqs: FAQ[] = [
     id: 'faq-1',
     question: 'Who are Quanta Foundry programs designed for?',
     answer:
-      'Our programs target professionals and executives with technical backgrounds who want to deepen their expertise in applied AI, quantitative finance, or quantum software. Typical participants include software engineers, data scientists, analysts, researchers, and technical managers with 3–15 years of experience.',
+      'Our programs target professionals, researchers, and students with technical backgrounds who want to deepen their expertise in applied AI, quantitative finance, or quantum software. Typical participants include software engineers, data scientists, analysts, and researchers.',
     category: 'general',
     order: 1,
   },
@@ -72,9 +72,9 @@ export const faqs: FAQ[] = [
   },
   {
     id: 'faq-9',
-    question: 'Do you offer certificates upon completion?',
+    question: 'Do you offer certificates?',
     answer:
-      'Yes. Participants who successfully complete a program — including all assignments and the capstone project — receive an executive certificate from Quanta Foundry. Our certificates are designed to signal applied competence to employers and industry partners.',
+      'Quanta Foundry focuses on proof-of-work rather than traditional certificates. Participants who successfully complete a project can showcase their work on our public Projects & Notes board, which serves as a verifiable portfolio item for employers and industry partners.',
     category: 'focus-areas',
     order: 9,
   },

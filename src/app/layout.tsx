@@ -14,17 +14,17 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://quantafoundry.com'),
   title: {
-    default: 'Quanta Foundry | Deep-Tech Executive Training in AI, Quantitative Finance & Quantum Software',
+    default: 'Quanta Foundry | Applied Research & Project-Based Learning Community',
     template: '%s | Quanta Foundry',
   },
   description:
-    'Executive certificate programs bridging academia and industry through Applied AI, Quantitative Finance, and Quantum Software. Project-based learning with AI-enhanced educational tools.',
+    'An independent applied research and project-based learning community bridging academia and industry through Applied AI, Quantitative Finance, and Quantum Software.',
   keywords: [
     'AI training',
     'machine learning',
     'quantitative finance',
     'quantum computing',
-    'executive education',
+    'project-based learning',
     'deep tech',
     'applied research',
     'Paris',
@@ -35,16 +35,16 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://quantafoundry.com',
     siteName: 'Quanta Foundry',
-    title: 'Quanta Foundry | Deep-Tech Executive Training',
+    title: 'Quanta Foundry | Applied Research & Project-Based Learning',
     description:
-      'Executive certificate programs in Applied AI, Quantitative Finance, and Quantum Software.',
+      'An independent applied research and project-based learning community in Applied AI, Quantitative Finance, and Quantum Software.',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Quanta Foundry | Deep-Tech Executive Training',
+    title: 'Quanta Foundry | Applied Research & Project-Based Learning',
     description:
-      'Executive certificate programs in Applied AI, Quantitative Finance, and Quantum Software.',
+      'An independent applied research and project-based learning community in Applied AI, Quantitative Finance, and Quantum Software.',
     images: ['/og-image.png'],
   },
   robots: {

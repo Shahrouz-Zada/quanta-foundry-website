@@ -82,7 +82,7 @@ export default function ChatAssistant() {
                     </div>
                     <h4 className="text-white font-medium">How can I help you?</h4>
                     <p className="text-xs text-gray-400 max-w-[250px]">
-                      Ask me anything about Quanta Foundry&apos;s executive programs, Workspace Q, or community.
+                      Ask me anything about Quanta Foundry&apos;s research projects, Workspace Q, or community.
                     </p>
                   </div>
                 ) : (
