@@ -30,12 +30,12 @@ export const workspaceTools: WorkspaceQTool[] = [
     category: 'coding',
   },
   {
-    id: 'overleaf',
-    name: 'Overleaf / LaTeX',
-    description: 'Collaborative cloud-based LaTeX editor for writing professional research papers.',
-    url: 'https://www.overleaf.com',
-    icon: 'FileText',
-    category: 'writing',
+    id: 'faculties-ai',
+    name: 'Faculties AI',
+    description: 'Advanced AI-powered platform for academic research and intelligent data analysis.',
+    url: 'https://www.faculties.ai',
+    icon: 'Sparkles',
+    category: 'data',
   },
   {
     id: 'streamlit',
@@ -54,12 +54,12 @@ export const workspaceTools: WorkspaceQTool[] = [
     category: 'coding',
   },
   {
-    id: 'faculties-ai',
-    name: 'Faculties AI',
-    description: 'Advanced AI-powered platform for academic research and intelligent data analysis.',
-    url: 'https://www.faculties.ai',
-    icon: 'Sparkles',
-    category: 'data',
+    id: 'overleaf',
+    name: 'Overleaf / LaTeX',
+    description: 'Collaborative cloud-based LaTeX editor for writing professional research papers.',
+    url: 'https://www.overleaf.com',
+    icon: 'FileText',
+    category: 'writing',
   },
 ];
 
