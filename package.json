@@ -12,6 +12,7 @@
     "@ai-sdk/openai": "^0.0.38",
     "@ai-sdk/react": "^3.0.210",
     "@formspree/react": "^2.5.1",
+    "@vercel/analytics": "^2.0.1",
     "ai": "^3.4.33",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
