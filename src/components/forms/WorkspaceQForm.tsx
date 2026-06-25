@@ -124,10 +124,8 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
     if (!email.trim())         errs.email        = 'Email is required.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
                                errs.email        = 'Please enter a valid email.';
-    if (!affiliation.trim())   errs.affiliation  = 'Affiliation is required.';
     if (!mainInterest)         errs.mainInterest = 'Please select a main interest.';
-    if (!motivation.trim())    errs.motivation   = 'Please share a short motivation.';
-    else if (motivation.trim().length > 300)
+    if (motivation.trim().length > 300)
                                errs.motivation   = 'Maximum 300 characters.';
     if (!gdprConsent)          errs.gdpr         = 'You must agree to proceed.';
     if (linkedinGithub && !/^https?:\/\/.+/i.test(linkedinGithub))
@@ -219,8 +217,8 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
       {/* Row 2: Affiliation + Main Interest */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <Label htmlFor="ws-affiliation" required>Affiliation</Label>
-          <FieldInput id="ws-affiliation" name="affiliation" placeholder="Sorbonne / Company / Independent" required value={affiliation} onChange={setAffiliation} />
+          <Label htmlFor="ws-affiliation">Affiliation <span className="text-gray-400 font-normal text-xs">(optional)</span></Label>
+          <FieldInput id="ws-affiliation" name="affiliation" placeholder="Sorbonne / Company / Independent" value={affiliation} onChange={setAffiliation} />
           {err('affiliation')}
         </div>
         <div>
@@ -247,12 +245,11 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
 
       {/* Motivation */}
       <div>
-        <Label htmlFor="ws-motivation" required>Short Motivation</Label>
+        <Label htmlFor="ws-motivation">Short Motivation <span className="text-gray-400 font-normal text-xs">(optional)</span></Label>
         <FieldTextarea
           id="ws-motivation"
           name="motivation"
-          placeholder="Tell us briefly what brings you to Workspace Q and what you hope to explore or build here."
-          required
+          placeholder="Tell us briefly what you hope to explore or build in Workspace Q."
           value={motivation}
           onChange={setMotivation}
           maxLength={300}

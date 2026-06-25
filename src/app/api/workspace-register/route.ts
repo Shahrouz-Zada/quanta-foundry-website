@@ -6,10 +6,10 @@ import { NextResponse } from 'next/server';
 interface RegistrationBody {
   fullName: string;
   email: string;
-  affiliation: string;
+  affiliation?: string;
   linkedinGithub?: string;
   mainInterest: string;
-  motivation: string;
+  motivation?: string;
   gdprConsent: boolean;
   // Honeypot — must be empty
   website?: string;
@@ -34,12 +34,10 @@ function validate(body: RegistrationBody): string | null {
   if (!body.fullName?.trim())          return 'Full name is required.';
   if (!body.email?.trim())             return 'Email is required.';
   if (!EMAIL_RE.test(body.email))      return 'Please enter a valid email address.';
-  if (!body.affiliation?.trim())       return 'Affiliation is required.';
   if (!body.mainInterest?.trim())      return 'Please select a main interest.';
   if (!VALID_INTERESTS.includes(body.mainInterest))
                                        return 'Invalid interest selection.';
-  if (!body.motivation?.trim())        return 'Please share a short motivation.';
-  if (body.motivation.trim().length > 300)
+  if (body.motivation && body.motivation.trim().length > 300)
                                        return 'Motivation must be 300 characters or fewer.';
   if (!body.gdprConsent)               return 'GDPR consent is required.';
   if (body.linkedinGithub && !URL_RE.test(body.linkedinGithub))
@@ -90,10 +88,10 @@ async function createAirtableRecord(body: RegistrationBody): Promise<void> {
     fields: {
       'Full Name':        body.fullName.trim(),
       'Email':            body.email.trim().toLowerCase(),
-      'Affiliation':      body.affiliation.trim(),
+      'Affiliation':      body.affiliation?.trim() || '',
       'LinkedIn / GitHub': body.linkedinGithub?.trim() || '',
       'Main Interest':    body.mainInterest,
-      'Motivation':       body.motivation.trim(),
+      'Motivation':       body.motivation?.trim() || '',
       'GDPR Consent':     true,
       'Status':           'Pending Review',
       'Registered At':    new Date().toISOString(),
