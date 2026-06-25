@@ -8,7 +8,7 @@ import { CheckCircle2, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
 // =============================================================================
 function Label({ htmlFor, children, required }: { htmlFor: string; children: React.ReactNode; required?: boolean }) {
   return (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-300 mb-1.5">
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1.5">
       {children}
       {required && <span className="text-[#D4AF37] ml-0.5">*</span>}
     </label>
@@ -31,7 +31,7 @@ function FieldInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       maxLength={maxLength}
-      className="w-full px-4 py-2.5 rounded-lg bg-white/[0.05] border border-white/[0.12] text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/50 focus:border-[#4A90E2]/50 transition-colors"
+      className="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/50 focus:border-[#4A90E2]/50 transition-colors"
     />
   );
 }
@@ -49,7 +49,7 @@ function FieldSelect({
       required={required}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-4 py-2.5 rounded-lg bg-[#0A1929] border border-white/[0.12] text-sm focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/50 focus:border-[#4A90E2]/50 transition-colors text-white"
+      className="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/50 focus:border-[#4A90E2]/50 transition-colors text-gray-900"
     >
       <option value="" disabled>{placeholder}</option>
       {options.map((o) => (
@@ -75,7 +75,7 @@ function FieldTextarea({
       onChange={(e) => onChange(e.target.value)}
       maxLength={maxLength}
       rows={3}
-      className="w-full px-4 py-2.5 rounded-lg bg-white/[0.05] border border-white/[0.12] text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/50 focus:border-[#4A90E2]/50 transition-colors resize-none"
+      className="w-full px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A90E2]/50 focus:border-[#4A90E2]/50 transition-colors resize-none"
     />
   );
 }
@@ -240,7 +240,7 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
 
       {/* LinkedIn / GitHub (optional) */}
       <div>
-        <Label htmlFor="ws-linkedin">LinkedIn or GitHub <span className="text-gray-500 font-normal text-xs">(optional)</span></Label>
+        <Label htmlFor="ws-linkedin">LinkedIn or GitHub <span className="text-gray-400 font-normal text-xs">(optional)</span></Label>
         <FieldInput id="ws-linkedin" name="linkedinGithub" type="url" placeholder="https://linkedin.com/in/yourprofile" value={linkedinGithub} onChange={setLinkedinGithub} />
         {err('linkedinGithub')}
       </div>
@@ -257,15 +257,15 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
           onChange={setMotivation}
           maxLength={300}
         />
-        <p className="text-xs text-gray-600 mt-1 text-right">
+        <p className="text-xs text-gray-500 mt-1 text-right">
           {motivation.length}/300
         </p>
         {err('motivation')}
       </div>
 
       {/* Privacy Notice */}
-      <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-xs text-gray-400 leading-relaxed">
-        <p className="mb-2 font-semibold text-gray-300">Privacy Notice</p>
+      <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-600 leading-relaxed">
+        <p className="mb-2 font-semibold text-gray-900">Privacy Notice</p>
         <p>
           Your information will be used to manage Workspace Q access, understand participant interests, and contact you about relevant Quanta Foundry activities. Your data will not be publicly displayed or shared with third parties without your consent.
         </p>
@@ -295,7 +295,7 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
               className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                 gdprConsent
                   ? 'bg-[#4A90E2] border-[#4A90E2]'
-                  : 'border-white/30 bg-transparent group-hover:border-white/50'
+                  : 'border-gray-300 bg-white group-hover:border-gray-400'
               }`}
             >
               {gdprConsent && (
@@ -305,7 +305,7 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
               )}
             </div>
           </div>
-          <span className="text-xs text-gray-400 leading-relaxed">
+          <span className="text-xs text-gray-600 leading-relaxed">
             I agree that Quanta Foundry may process my registration information for Workspace Q access and related communications.{' '}
             <span className="text-[#D4AF37]">*</span>
           </span>
@@ -315,7 +315,7 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
 
       {/* Server error */}
       {serverError && (
-        <div className="flex items-start gap-2 text-red-400 text-sm p-3 rounded-lg bg-red-900/10 border border-red-500/20" role="alert" id="ws-server-error">
+        <div className="flex items-start gap-2 text-red-600 text-sm p-3 rounded-lg bg-red-50 border border-red-200" role="alert" id="ws-server-error">
           <AlertCircle size={16} className="shrink-0 mt-0.5" />
           <span>{serverError}</span>
         </div>

@@ -24,14 +24,15 @@ export default function Navbar() {
   }, [isMobileOpen]);
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        isScrolled
-          ? 'bg-[#0A1929]/90 backdrop-blur-xl shadow-lg shadow-black/10'
-          : 'bg-transparent'
-      )}
-    >
+    <>
+      <header
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          isScrolled
+            ? 'bg-[#0A1929]/90 backdrop-blur-xl shadow-lg shadow-black/10'
+            : 'bg-transparent'
+        )}
+      >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4" aria-label="Main navigation">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group" id="nav-logo">
@@ -80,11 +81,12 @@ export default function Navbar() {
           {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </nav>
+      </header>
 
       {/* Mobile Menu Overlay */}
       <div
         className={cn(
-          'fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
+          'fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden z-[60]',
           isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         onClick={() => setIsMobileOpen(false)}
@@ -94,7 +96,7 @@ export default function Navbar() {
       {/* Mobile Menu Drawer */}
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-[#0A1929] border-l border-white/10 transition-transform duration-300 ease-out lg:hidden z-50',
+          'fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-[#0A1929] border-l border-white/10 transition-transform duration-300 ease-out lg:hidden z-[70]',
           isMobileOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
@@ -125,6 +127,6 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-    </header>
+    </>
   );
 }
