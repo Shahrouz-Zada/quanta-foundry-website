@@ -79,7 +79,7 @@ export default function WorkspaceDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1929] text-white pt-24 pb-20 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0A1929] text-white pt-24 pb-20 relative overflow-x-hidden">
       {/* Background Glow effects */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#4A90E2]/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[120px] pointer-events-none" />
