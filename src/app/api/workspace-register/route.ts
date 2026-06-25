@@ -100,6 +100,7 @@ async function createAirtableRecord(body: RegistrationBody): Promise<void> {
       'Invitation Code':  '',
       'Notes':            '',
     },
+    typecast: true,
   };
 
   const res = await fetch(url, {
@@ -179,8 +180,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        error:
-          'We could not save your registration due to a server error. Please try again or contact us directly.',
+        error: `Server Error: ${message}`,
       },
       { status: 500 }
     );
