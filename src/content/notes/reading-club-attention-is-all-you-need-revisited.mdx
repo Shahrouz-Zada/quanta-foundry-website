@@ -1,0 +1,79 @@
+# Reading Club Notes: "Attention Is All You Need" — Revisited
+
+Seven years after the original transformer paper reshaped the field of AI, we revisited its core ideas through the lens of everything that followed — from GPT to multimodal architectures. These are our notes from the May 2026 reading session.
+
+---
+
+## Why We Revisited This Paper
+
+When Vaswani et al. published *"Attention Is All You Need"* in 2017, the paper's title was simultaneously a provocation and a prediction. It claimed — correctly — that the dominant architecture of the day (LSTMs and their variants) could be replaced entirely by a mechanism based on attention.
+
+Seven years later, every major AI system runs on transformers or transformer variants. The question worth asking in 2026 is not *"was the paper right?"* — it clearly was — but *"what did the authors understand, and what couldn't they have predicted?"*
+
+---
+
+## The Core Mechanism
+
+The transformer's central innovation is **scaled dot-product attention**:
+
+```text
+Attention(Q, K, V) = softmax(QK^T / sqrt(d_k))V
+```
+
+Where Q (queries), K (keys), and V (values) are linear projections of the input. The softmax over the scaled dot products produces a weight distribution over all positions in the sequence, which is then applied to the values.
+
+What makes this powerful is that every token can attend to every other token in a single step — there's no sequential bottleneck as in an RNN.
+
+---
+
+## What the Authors Got Right
+
+**1. The parallelization argument.** The paper's claim that transformers parallelize better than RNNs during training turned out to be the key to scaling. Without efficient parallelization, we couldn't have trained GPT-3, let alone GPT-4.
+
+**2. Multi-head attention is genuinely important.** The intuition that different attention heads capture different types of relationships (syntactic, semantic, positional) has held up well in later interpretability work.
+
+**3. The architecture is general.** The paper applied transformers to translation, but the architecture works across language, vision, audio, and structured data — a generality the authors couldn't have predicted.
+
+---
+
+## What They Couldn't Have Predicted
+
+**1. Emergent capabilities at scale.** Kaplan et al.'s 2020 scaling laws, and subsequent work on emergent abilities, were not on the radar in 2017. The idea that scaling up transformers predictably along a power law would produce qualitatively new capabilities was genuinely unexpected.
+
+**2. In-context learning.** The discovery that large language models can learn new tasks from a few examples in the prompt — without gradient updates — was not predicted by the architecture. It emerged from scale.
+
+**3. The attention bottleneck at very long contexts.** The `O(n²)` complexity of full attention becomes prohibitive for very long sequences. This led to an entire subfield of efficient attention variants (Longformer, FlashAttention, etc.) that the original paper didn't anticipate needing.
+
+---
+
+## Discussion Highlights
+
+The session's richest debate centered on a question one participant raised early:
+
+> *"Is the transformer's success a vindication of the attention mechanism specifically, or of scale plus good engineering?"*
+
+The consensus was that it's inseparable. Attention is efficient to parallelize at scale, and scale reveals properties that you can't see at smaller parameter counts. Neither the mechanism alone nor the scale alone explains the phenomenon — it's the interaction.
+
+Another point that generated disagreement: whether the transformer is a *fundamental* architecture or simply the current local optimum that happens to scale well. Several participants pointed to recent work on state-space models (Mamba) and alternatives to softmax attention as evidence that the search is not over.
+
+---
+
+## Key Takeaways
+
+1. The transformer paper succeeded not just because attention is powerful, but because it removed the sequential bottleneck that made RNNs hard to scale.
+2. The architecture's generality — from text to images to time series — was a property that emerged after the paper, not something designed in.
+3. The scaling laws that define modern AI were not predictable from the 2017 paper. They required empirical discovery at a scale that wasn't computationally feasible in 2017.
+4. The debate about what comes after transformers is active and unresolved.
+
+---
+
+## Further Reading
+
+- Kaplan et al., *Scaling Laws for Neural Language Models* (2020)
+- Wei et al., *Emergent Abilities of Large Language Models* (2022)
+- Schaeffer et al., *Are Emergent Abilities of Large Language Models a Mirage?* (2023)
+- Dao et al., *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness* (2022)
+
+---
+
+*These notes were compiled from our May 2026 reading session. They represent a synthesis of the discussion rather than a comprehensive survey of the literature.*
