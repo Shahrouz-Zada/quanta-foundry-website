@@ -160,13 +160,8 @@ export async function POST(req: Request) {
     // 4. Duplicate check
     const isDuplicate = await checkDuplicate(body.email.trim().toLowerCase());
     if (isDuplicate) {
-      return NextResponse.json(
-        {
-          error:
-            'This email address is already registered. If you believe this is an error, please contact us.',
-        },
-        { status: 409 }
-      );
+      // Return success to avoid blocking users on new devices and prevent email enumeration.
+      return NextResponse.json({ success: true, message: 'Already registered' });
     }
 
     // 5. Create record
