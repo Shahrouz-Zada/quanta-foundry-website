@@ -218,7 +218,7 @@ export default function WorkspaceQForm({ onSuccess }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <Label htmlFor="ws-affiliation">Affiliation <span className="text-gray-400 font-normal text-xs">(optional)</span></Label>
-          <FieldInput id="ws-affiliation" name="affiliation" placeholder="Sorbonne / Company / Independent" value={affiliation} onChange={setAffiliation} />
+          <FieldInput id="ws-affiliation" name="affiliation" placeholder="University / Company / Independent" value={affiliation} onChange={setAffiliation} />
           {err('affiliation')}
         </div>
         <div>
