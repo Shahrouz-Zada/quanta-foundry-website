@@ -32,8 +32,8 @@ function validate(body: InquiryBody): string | null {
   if (!EMAIL_RE.test(body.email)) return 'Please enter a valid email address.';
   if (!body.collaborationInterest?.trim()) return 'Please select a collaboration interest.';
   
-  // Validate collaboration interest against predefined types (allow some flexibility if it's not strictly typed)
-  if (!COLLABORATION_TYPES.includes(body.collaborationInterest as any)) {
+  // Validate collaboration interest against predefined types
+  if (!(COLLABORATION_TYPES as readonly string[]).includes(body.collaborationInterest)) {
     return 'Invalid collaboration interest selection.';
   }
 
@@ -121,9 +121,9 @@ export async function POST(request: Request) {
     // 4. Save to Airtable
     try {
       await createAirtableRecord(body);
-    } catch (dbError: any) {
-      console.error('Database Error:', dbError.message);
-      // Fallback/log logic could go here
+    } catch (dbError: unknown) {
+      const message = dbError instanceof Error ? dbError.message : 'Unknown error';
+      console.error('Database Error:', message);
       return NextResponse.json(
         { error: 'Internal server error while saving data.' },
         { status: 500 }
@@ -131,8 +131,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error('Registration handler error:', err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Registration handler error:', message);
     return NextResponse.json(
       { error: 'An unexpected error occurred. Please try again later.' },
       { status: 500 }
