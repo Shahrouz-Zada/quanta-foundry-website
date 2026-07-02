@@ -1,9 +1,11 @@
+import type { Metadata } from 'next';
 import StudentApplicationForm from '@/components/forms/StudentApplicationForm';
 import SectionHeading from '@/components/ui/SectionHeading';
 
-export const metadata = {
-  title: 'Quanta Fellowships | Quanta Foundry',
+export const metadata: Metadata = {
+  title: 'Quanta Fellowships',
   description: 'Apply for the highly selective Quanta Fellowship program.',
+  robots: { index: false, follow: true },
 };
 
 export default function FellowshipsPage() {

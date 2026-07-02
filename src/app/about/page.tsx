@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: 'About',
   description:
     "Learn about Quanta Foundry's mission to bridge academia and industry through applied AI, quantitative finance, and project-based learning.",
+  alternates: { canonical: 'https://www.quantafoundry.com/about' },
 };
 
 

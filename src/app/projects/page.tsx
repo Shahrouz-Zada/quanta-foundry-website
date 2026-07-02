@@ -4,14 +4,15 @@ import { projectsAndNotes } from '@/data/projects';
 import { isPublicWebProject, getOutputTypeLabel } from '@/lib/project-utils';
 
 export const metadata: Metadata = {
-  title: 'Projects & Notes | Quanta Foundry',
+  title: 'Projects & Notes',
   description:
     'Curated technical projects, research notes, prototype notebooks, and applied work from the Quanta Foundry ecosystem.',
+  alternates: { canonical: 'https://www.quantafoundry.com/projects' },
   openGraph: {
-    title: 'Projects & Notes | Quanta Foundry',
+    title: 'Projects & Notes',
     description:
       'Curated technical projects, research notes, prototype notebooks, and applied work from the Quanta Foundry ecosystem.',
-    url: 'https://quantafoundry.com/projects',
+    url: 'https://www.quantafoundry.com/projects',
     siteName: 'Quanta Foundry',
     type: 'website',
   },

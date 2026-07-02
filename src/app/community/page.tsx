@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   title: 'Reading Club',
   description:
     'Quanta Reading Club — a multi-track technical reading community exploring Applied AI, Quantitative Finance, Neuroscience & Markets, and Quantum Software through structured biweekly sessions.',
+  alternates: { canonical: 'https://www.quantafoundry.com/community' },
 };
 
 // Community values

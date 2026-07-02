@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: 'Focus Areas & R&D',
   description:
     'Explore our active R&D focus areas in Applied AI & Machine Learning, Quantitative Finance, and Quantum Software Engineering.',
+  alternates: { canonical: 'https://www.quantafoundry.com/focus-areas' },
 };
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {

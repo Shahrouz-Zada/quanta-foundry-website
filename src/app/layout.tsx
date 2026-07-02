@@ -13,33 +13,39 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://quantafoundry.com'),
+  metadataBase: new URL('https://www.quantafoundry.com'),
   title: {
-    default: 'Quanta Foundry | Applied Research & Project-Based Learning Community',
+    default: 'Quanta Foundry | Applied Research & Project-Based Learning',
     template: '%s | Quanta Foundry',
   },
   description:
     'An independent applied research and project-based learning community bridging academia and industry through Applied AI, Quantitative Finance, and Quantum Software.',
   keywords: [
-    'AI training',
-    'machine learning',
-    'quantitative finance',
-    'quantum computing',
+    'applied research community',
     'project-based learning',
+    'quantitative finance',
+    'applied AI',
+    'quantum software',
+    'reading club',
     'deep tech',
-    'applied research',
     'Paris',
   ],
   authors: [{ name: 'Quanta Foundry' }],
+  alternates: { canonical: 'https://www.quantafoundry.com' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://quantafoundry.com',
+    url: 'https://www.quantafoundry.com',
     siteName: 'Quanta Foundry',
     title: 'Quanta Foundry | Applied Research & Project-Based Learning',
     description:
       'An independent applied research and project-based learning community in Applied AI, Quantitative Finance, and Quantum Software.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Quanta Foundry — Applied Research & Project-Based Learning',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -65,21 +71,29 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Organization',
-              name: 'Quanta Foundry',
-              url: 'https://quantafoundry.com',
-              logo: 'https://quantafoundry.com/images/logo.jpg',
-              description:
-                'Deep-tech talent foundry bridging academia and industry through applied AI, quantitative finance, project-based learning, and proprietary educational tools.',
-              address: {
-                '@type': 'PostalAddress',
-                addressLocality: 'Paris',
-                addressCountry: 'FR',
+            __html: JSON.stringify([
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'Quanta Foundry',
+                url: 'https://www.quantafoundry.com',
+                logo: 'https://www.quantafoundry.com/images/logo.jpg',
+                description:
+                  'An independent applied research and project-based learning community bridging academia and industry through Applied AI, Quantitative Finance, and Quantum Software.',
+                address: {
+                  '@type': 'PostalAddress',
+                  addressLocality: 'Paris',
+                  addressCountry: 'FR',
+                },
+                sameAs: [],
               },
-              sameAs: [],
-            }),
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'Quanta Foundry',
+                url: 'https://www.quantafoundry.com',
+              },
+            ]),
           }}
         />
       </head>
