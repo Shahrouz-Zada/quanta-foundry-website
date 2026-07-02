@@ -1,3 +1,8 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  alternates: { canonical: 'https://www.quantafoundry.com' },
+};
 import Hero from '@/components/sections/Hero';
 import ProblemSection from '@/components/sections/ProblemSection';
 import ModelSection from '@/components/sections/ModelSection';

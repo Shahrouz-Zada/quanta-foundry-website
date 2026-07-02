@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy',
   description:
     'Quanta Foundry privacy policy. How we collect, use, and protect your personal data in compliance with GDPR.',
+  alternates: { canonical: 'https://www.quantafoundry.com/privacy' },
 };
 
 export default function PrivacyPage() {

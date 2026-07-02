@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'Research & Insights',
   description:
     'Technical essays, reading notes, and field observations on AI, quantitative finance, neuroscience, market behavior, and emerging deep-tech ideas from Quanta Foundry.',
+  alternates: { canonical: 'https://www.quantafoundry.com/insights' },
 };
 
 const categories: { key: string; label: string }[] = [

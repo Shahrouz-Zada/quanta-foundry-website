@@ -31,17 +31,18 @@ export async function generateMetadata({
 
   if (!project || !isPublicWebProject(project)) {
     return {
-      title: 'Project Not Found | Quanta Foundry',
+      title: 'Project Not Found',
     };
   }
 
   return {
-    title: `${project.title} | Projects & Notes | Quanta Foundry`,
+    title: project.title,
     description: project.shortDescription,
+    alternates: { canonical: `https://www.quantafoundry.com/projects/${project.slug}` },
     openGraph: {
-      title: `${project.title} | Quanta Foundry`,
+      title: project.title,
       description: project.shortDescription,
-      url: `https://quantafoundry.com/projects/${project.slug}`,
+      url: `https://www.quantafoundry.com/projects/${project.slug}`,
       siteName: 'Quanta Foundry',
       type: 'article',
     },
@@ -101,6 +102,20 @@ export default async function ProjectDetailPage({
       className="min-h-screen bg-[#0A1929] text-white pt-24 pb-20 relative overflow-hidden"
       aria-label={project.title}
     >
+      {/* BreadcrumbList structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Projects', item: 'https://www.quantafoundry.com/projects' },
+              { '@type': 'ListItem', position: 2, name: project.title },
+            ],
+          }),
+        }}
+      />
       {/* Background glows */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#4A90E2]/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[120px] pointer-events-none" />

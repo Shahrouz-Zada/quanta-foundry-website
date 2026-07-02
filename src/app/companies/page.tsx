@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'For Partners',
   description:
     'Partner with Quanta Foundry: sponsor applied projects, hire trained talent, or collaborate on deep-tech research initiatives.',
+  alternates: { canonical: 'https://www.quantafoundry.com/companies' },
 };
 
 const partnerships = [

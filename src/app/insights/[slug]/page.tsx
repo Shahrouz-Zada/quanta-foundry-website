@@ -47,6 +47,7 @@ export async function generateMetadata({
   return {
     title: article.title,
     description: article.excerpt,
+    alternates: { canonical: `https://www.quantafoundry.com/insights/${slug}` },
     openGraph: {
       title: article.title,
       description: article.excerpt,
@@ -93,6 +94,30 @@ export default async function ArticlePage({
 
   return (
     <>
+      {/* Article JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: article.title,
+            description: article.excerpt,
+            author: {
+              '@type': 'Organization',
+              name: article.author,
+              url: 'https://www.quantafoundry.com',
+            },
+            datePublished: article.date,
+            publisher: {
+              '@type': 'Organization',
+              name: 'Quanta Foundry',
+              url: 'https://www.quantafoundry.com',
+            },
+            url: `https://www.quantafoundry.com/insights/${slug}`,
+          }),
+        }}
+      />
       {/* Article Hero */}
       <section className="pt-32 pb-12 bg-[#0A1929]">
         <div className="mx-auto max-w-3xl px-6">

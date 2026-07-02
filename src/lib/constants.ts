@@ -3,7 +3,7 @@
 // =============================================================================
 
 export const SITE_NAME = 'Quanta Foundry';
-export const SITE_URL = 'https://quantafoundry.com';
+export const SITE_URL = 'https://www.quantafoundry.com';
 export const SITE_DESCRIPTION =
   'An independent applied research and project-based learning community bridging academia and industry through Applied AI, Quantitative Finance, and Quantum Software.';
 export const SITE_TAGLINE =
