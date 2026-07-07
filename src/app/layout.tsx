@@ -31,7 +31,6 @@ export const metadata: Metadata = {
     'Paris',
   ],
   authors: [{ name: 'Quanta Foundry' }],
-  alternates: { canonical: 'https://www.quantafoundry.com' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
