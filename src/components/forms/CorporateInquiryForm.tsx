@@ -142,7 +142,7 @@ export default function CorporateInquiryForm() {
           label="Email"
           name="email"
           type="email"
-          placeholder="you@company.com"
+          placeholder="your.email@example.com"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -153,7 +153,7 @@ export default function CorporateInquiryForm() {
       <Input
         label="Collaboration Interest"
         name="collaborationType"
-        options={['', ...COLLABORATION_TYPES]}
+        options={COLLABORATION_TYPES}
         required
         value={collaborationInterest}
         onChange={(e) => setCollaborationInterest(e.target.value)}
