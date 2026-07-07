@@ -28,6 +28,9 @@ export default function Hero() {
             APPLIED AI · QUANT FINANCE · RESEARCH COMMUNITY
           </p>
           <h1 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-6 tracking-tight">
+            <span className="block text-2xl sm:text-3xl font-semibold text-[#4A90E2] mb-2 tracking-wide">
+              Quanta Foundry
+            </span>
             Where Applied Research Meets{' '}
             <span className="bg-gradient-to-r from-[#4A90E2] via-[#6BA4E8] to-[#D4AF37] bg-clip-text text-transparent">
               Project-Based Learning

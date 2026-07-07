@@ -19,8 +19,22 @@ import ReadingTracksPanel from '@/components/community/ReadingTracksPanel';
 export const metadata: Metadata = {
   title: 'Reading Club',
   description:
-    'Quanta Reading Club — a multi-track technical reading community exploring Applied AI, Quantitative Finance, Neuroscience & Markets, and Quantum Software through structured biweekly sessions.',
+    'Quanta Reading Club — a multi-track technical reading community at Quanta Foundry exploring Applied AI, Quantitative Finance, Neuroscience & Markets, and Quantum Software through structured biweekly sessions.',
   alternates: { canonical: 'https://www.quantafoundry.com/community' },
+  openGraph: {
+    type: 'website',
+    url: 'https://www.quantafoundry.com/community',
+    siteName: 'Quanta Foundry',
+    title: 'Reading Club | Quanta Foundry',
+    description:
+      'A multi-track technical reading community exploring Applied AI, Quantitative Finance, Neuroscience & Markets, and Quantum Software through structured biweekly sessions.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Reading Club | Quanta Foundry',
+    description:
+      'A multi-track technical reading community exploring Applied AI, Quantitative Finance, and Quantum Software.',
+  },
 };
 
 // Community values
