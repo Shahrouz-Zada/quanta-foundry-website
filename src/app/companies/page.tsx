@@ -110,9 +110,9 @@ export default function CompaniesPage() {
       </section>
 
       {/* Contact Form */}
-      <section className="py-20 bg-[#F5F7FA]" id="corporate-contact">
+      <section className="py-20 bg-[#F5F7FA]" id="contact">
         <div className="mx-auto max-w-2xl px-6">
-          <SectionHeading title="Get in Touch" subtitle="Tell us about your organization, idea, or use case and how you would like to collaborate." accentColor="electric" />
+          <SectionHeading title="Get in Touch" subtitle="Whether you have a partnership proposal, a research idea, a general question, or just want to learn more — we would love to hear from you." accentColor="electric" />
           <Card className="p-8">
             <CorporateInquiryForm />
           </Card>

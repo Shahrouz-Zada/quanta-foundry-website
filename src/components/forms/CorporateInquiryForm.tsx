@@ -86,9 +86,9 @@ export default function CorporateInquiryForm() {
     return (
       <div className="text-center py-12 px-6">
         <CheckCircle className="mx-auto text-emerald-500 mb-4" size={48} />
-        <h3 className="text-xl font-bold text-[#0A1929] mb-2">Inquiry Received</h3>
+        <h3 className="text-xl font-bold text-[#0A1929] mb-2">Message Received</h3>
         <p className="text-[#2C3E50]">
-          Thank you for your interest in partnering with Quanta Foundry. Our team will reach out within 3 business days.
+          Thank you for reaching out to Quanta Foundry. We will get back to you within 3 business days.
         </p>
       </div>
     );
