@@ -28,7 +28,7 @@ export const footerSections: FooterSection[] = [
       { label: 'About Us', href: '/about' },
       { label: 'For Partners', href: '/companies' },
       { label: 'Workspace Q', href: '/workspace-q' },
-      { label: 'Contact', href: '/companies' },
+      { label: 'Contact', href: '/companies#contact' },
     ],
   },
   {
