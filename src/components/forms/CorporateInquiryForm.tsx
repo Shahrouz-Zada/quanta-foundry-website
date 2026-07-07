@@ -118,9 +118,9 @@ export default function CorporateInquiryForm() {
           error={errors.fullName}
         />
         <Input
-          label="Organization / Company"
+          label="Company / University / Organization"
           name="company"
-          placeholder="Organization or company name"
+          placeholder="Your company, university, or organization"
           required
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
