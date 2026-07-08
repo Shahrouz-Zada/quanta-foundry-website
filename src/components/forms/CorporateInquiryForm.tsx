@@ -120,7 +120,7 @@ export default function CorporateInquiryForm() {
         <Input
           label="Company / University / Organization"
           name="company"
-          placeholder="Your company, university, or organization"
+          placeholder="Name of your organization"
           required
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
