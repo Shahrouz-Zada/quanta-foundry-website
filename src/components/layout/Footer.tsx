@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Linkedin, Twitter, Mail, Github } from 'lucide-react';
+import { Linkedin, Mail, Github } from 'lucide-react';
 import { footerSections } from '@/data/navigation';
 import { SITE_NAME, CONTACT_EMAIL, SOCIAL_LINKS } from '@/lib/constants';
 
@@ -37,15 +37,7 @@ export default function Footer() {
               >
                 <Linkedin size={20} />
               </a>
-              <a
-                href={SOCIAL_LINKS.twitter}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Twitter"
-                className="text-gray-500 hover:text-[#4A90E2] transition-colors"
-              >
-                <Twitter size={20} />
-              </a>
+
               <a
                 href={SOCIAL_LINKS.github}
                 target="_blank"
