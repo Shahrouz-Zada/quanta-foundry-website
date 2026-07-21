@@ -90,6 +90,7 @@ export default function RootLayout({
                 '@context': 'https://schema.org',
                 '@type': 'WebSite',
                 name: 'Quanta Foundry',
+                alternateName: ["QuantaFoundry", "quantafoundry.com"],
                 url: 'https://www.quantafoundry.com',
               },
             ]),
