@@ -23,7 +23,7 @@ const STATUS_LABELS = {
 
 export default function SessionHeader({ session }: Props) {
   return (
-    <header className="relative bg-[#0A1929] border-b border-white/10 overflow-hidden">
+    <header className="relative bg-[#022c22] border-b border-white/10 overflow-hidden">
       {/* Subtle background gradient */}
       <div
         aria-hidden="true"
