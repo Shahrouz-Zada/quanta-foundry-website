@@ -64,7 +64,7 @@ export default function SessionWorkflowNav({ stages }: Props) {
     <nav
       aria-label="Session workflow navigation"
       className={cn(
-        'sticky top-16 z-40 bg-[#064e3b]/95 backdrop-blur-md border-b border-white/10 transition-shadow duration-300',
+        'sticky top-16 z-40 bg-[#0A1929]/95 backdrop-blur-md border-b border-white/10 transition-shadow duration-300',
         isScrolled && 'shadow-lg shadow-black/30'
       )}
     >

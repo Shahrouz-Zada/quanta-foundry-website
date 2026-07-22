@@ -48,10 +48,10 @@ export default function EmbeddedDeck({ src, title }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full rounded-xl border border-white/10 bg-[#022c22] overflow-hidden"
+      className="relative w-full rounded-xl border border-white/10 bg-[#011510] overflow-hidden"
     >
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#065f46] border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#0A1929] border-b border-white/10">
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <Presentation size={13} className="text-[#D4AF37]" />
           <span className="text-gray-300 font-medium">{title}</span>
@@ -86,7 +86,7 @@ export default function EmbeddedDeck({ src, title }: Props) {
           />
         ) : (
           /* Placeholder / error state */
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#022c22]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#011510]">
             <div className="w-16 h-16 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
               {hasError ? (
                 <AlertCircle size={28} className="text-amber-400" />
