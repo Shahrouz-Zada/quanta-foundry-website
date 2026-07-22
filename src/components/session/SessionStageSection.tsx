@@ -29,7 +29,7 @@ export default function SessionStageSection({
       aria-label={title}
       className={cn(
         'py-20 scroll-mt-32',
-        variant === 'dark' ? 'bg-[#064e3b]' : 'bg-[#065f46]'
+        variant === 'dark' ? 'bg-[#022c22]' : 'bg-[#011510]'
       )}
     >
       <div className="mx-auto max-w-7xl px-6">
