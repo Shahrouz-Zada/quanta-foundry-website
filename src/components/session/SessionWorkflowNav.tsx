@@ -64,7 +64,7 @@ export default function SessionWorkflowNav({ stages }: Props) {
     <nav
       aria-label="Session workflow navigation"
       className={cn(
-        'sticky top-16 z-40 bg-[#0A1929]/95 backdrop-blur-md border-b border-white/10 transition-shadow duration-300',
+        'sticky top-16 z-40 bg-[#064e3b]/95 backdrop-blur-md border-b border-white/10 transition-shadow duration-300',
         isScrolled && 'shadow-lg shadow-black/30'
       )}
     >
@@ -97,7 +97,7 @@ export default function SessionWorkflowNav({ stages }: Props) {
                       'w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[10px] sm:text-xs font-bold',
                       'flex items-center justify-center shrink-0 transition-all duration-300',
                       isActive
-                        ? 'bg-emerald-400 text-[#0A1929] shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                        ? 'bg-emerald-400 text-[#064e3b] shadow-[0_0_8px_rgba(52,211,153,0.6)]'
                         : isPast
                         ? 'bg-[#D4AF37]/15 text-[#D4AF37]'
                         : 'bg-white/8 text-gray-500'
