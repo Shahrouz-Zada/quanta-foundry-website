@@ -84,9 +84,9 @@ export default function SessionWorkflowNav({ stages }: Props) {
                   className={cn(
                     'flex items-center gap-2 px-3 sm:px-4 py-4 text-xs sm:text-sm font-medium',
                     'transition-all duration-300 border-b-2 whitespace-nowrap focus-visible:outline-none',
-                    'focus-visible:ring-2 focus-visible:ring-[#4A90E2] focus-visible:ring-inset',
+                    'focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-inset',
                     isActive
-                      ? 'border-[#4A90E2] text-white'
+                      ? 'border-emerald-400 text-white'
                       : isPast
                       ? 'border-[#D4AF37]/30 text-[#D4AF37]/60 hover:text-[#D4AF37] hover:border-[#D4AF37]/50'
                       : 'border-transparent text-gray-600 hover:text-gray-300 hover:border-gray-600'
@@ -97,7 +97,7 @@ export default function SessionWorkflowNav({ stages }: Props) {
                       'w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[10px] sm:text-xs font-bold',
                       'flex items-center justify-center shrink-0 transition-all duration-300',
                       isActive
-                        ? 'bg-[#4A90E2] text-white shadow-[0_0_8px_rgba(74,144,226,0.6)]'
+                        ? 'bg-emerald-400 text-[#0A1929] shadow-[0_0_8px_rgba(52,211,153,0.6)]'
                         : isPast
                         ? 'bg-[#D4AF37]/15 text-[#D4AF37]'
                         : 'bg-white/8 text-gray-500'
