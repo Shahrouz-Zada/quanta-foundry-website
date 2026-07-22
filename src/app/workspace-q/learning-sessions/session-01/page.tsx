@@ -55,7 +55,7 @@ export default function LearningSession01Page() {
   const deckResource = exploreStage.resources?.find((r) => r.type === 'deck');
 
   return (
-    <div className="min-h-screen bg-[#0A1929]">
+    <div className="min-h-screen bg-[#064e3b]">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <SessionHeader session={session} />
 
@@ -218,7 +218,7 @@ export default function LearningSession01Page() {
       </SessionStageSection>
 
       {/* ── Footer note ─────────────────────────────────────────────────────── */}
-      <div className="bg-[#060F1A] border-t border-white/5 py-8">
+      <div className="bg-[#022c22] border-t border-white/5 py-8">
         <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <p className="text-xs text-gray-700">
             Finance, Data &amp; AI · Session 01 · Prototype — not indexed, not linked from navigation.
