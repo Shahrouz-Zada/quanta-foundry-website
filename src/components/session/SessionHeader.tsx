@@ -24,17 +24,20 @@ const STATUS_LABELS = {
 export default function SessionHeader({ session }: Props) {
   return (
     <header className="relative bg-[#022c22] border-b border-white/10 overflow-hidden">
+      {/* Navy background block to sit behind the global transparent Navbar */}
+      <div className="absolute top-0 left-0 right-0 h-[88px] bg-[#0A1929]" aria-hidden="true" />
+      
       {/* Subtle background gradient */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none mt-[88px]"
         style={{
           background:
             'radial-gradient(ellipse 80% 60% at 60% -10%, rgba(74,144,226,0.10) 0%, transparent 70%)',
         }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-20">
+      <div className="relative mx-auto max-w-7xl px-6 pt-32 pb-16 sm:pb-20">
         {/* Breadcrumb */}
         <p className="text-xs font-semibold text-[#4A90E2] uppercase tracking-[0.15em] mb-4">
           {session.track} · Session {String(session.sessionNumber).padStart(2, '0')}
