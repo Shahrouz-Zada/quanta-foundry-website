@@ -1,7 +1,9 @@
 'use client';
 // =============================================================================
 // SessionWorkflowNav — Learning Sessions Prototype
-// Client component: IntersectionObserver-based active stage tracking
+// Chrome: deep navy-teal (#08212C) — matches header and global Navbar
+// Active indicator: interactive emerald (#2F8174)
+// Past stages: gold tint (milestone feel)
 // =============================================================================
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,7 +14,7 @@ interface Props {
   stages: LearningStage[];
 }
 
-const STAGE_ICONS: Record<StageId, string> = {
+const STAGE_NUMBERS: Record<StageId, string> = {
   prepare:    '01',
   explore:    '02',
   experiment: '03',
@@ -64,58 +66,62 @@ export default function SessionWorkflowNav({ stages }: Props) {
     <nav
       aria-label="Session workflow navigation"
       className={cn(
-        'sticky top-16 z-40 bg-[#0A1929]/95 backdrop-blur-md border-b border-white/10 transition-shadow duration-300',
-        isScrolled && 'shadow-lg shadow-black/30'
+        'sticky top-16 z-40 bg-[#08212C] border-b border-white/8 transition-shadow duration-300',
+        isScrolled && 'shadow-lg shadow-black/40'
       )}
     >
+      {/* Active progress bar */}
+      <div
+        aria-hidden="true"
+        className="absolute bottom-0 left-0 h-[2px] bg-[#2F8174] transition-all duration-500 ease-out"
+        style={{ width: `${((activeIndex + 1) / stages.length) * 100}%` }}
+      />
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex items-stretch overflow-x-auto scrollbar-none">
           {stages.map((stage, index) => {
             const isActive = stage.id === activeStage;
-            const isPast = index < activeIndex;
-            const isLast = index === stages.length - 1;
+            const isPast   = index < activeIndex;
 
             return (
-              <div key={stage.id} className="flex items-center shrink-0">
-                <button
-                  onClick={() => scrollToStage(stage.id)}
-                  aria-label={`Jump to ${stage.title}`}
-                  aria-current={isActive ? 'step' : undefined}
+              <button
+                key={stage.id}
+                onClick={() => scrollToStage(stage.id)}
+                aria-label={`Jump to ${stage.title}`}
+                aria-current={isActive ? 'step' : undefined}
+                className={cn(
+                  'flex items-center gap-2 px-3 sm:px-4 py-4 text-xs sm:text-sm font-medium shrink-0',
+                  'transition-all duration-200 whitespace-nowrap focus-visible:outline-none',
+                  'focus-visible:ring-2 focus-visible:ring-[#2F8174] focus-visible:ring-inset',
+                  isActive
+                    ? 'text-white'
+                    : isPast
+                    ? 'text-[#D4AF37]/50 hover:text-[#D4AF37]/80'
+                    : 'text-white/30 hover:text-white/60'
+                )}
+              >
+                {/* Stage number dot */}
+                <span
                   className={cn(
-                    'flex items-center gap-2 px-3 sm:px-4 py-4 text-xs sm:text-sm font-medium',
-                    'transition-all duration-300 border-b-2 whitespace-nowrap focus-visible:outline-none',
-                    'focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-inset',
+                    'w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[10px] sm:text-xs font-bold',
+                    'flex items-center justify-center shrink-0 transition-all duration-300',
                     isActive
-                      ? 'border-emerald-400 text-white'
+                      ? 'bg-[#2F8174] text-white shadow-[0_0_10px_rgba(47,129,116,0.5)]'
                       : isPast
-                      ? 'border-[#D4AF37]/30 text-[#D4AF37]/60 hover:text-[#D4AF37] hover:border-[#D4AF37]/50'
-                      : 'border-transparent text-gray-600 hover:text-gray-300 hover:border-gray-600'
+                      ? 'bg-[#D4AF37]/15 text-[#D4AF37]/70'
+                      : 'bg-white/8 text-white/30'
                   )}
                 >
-                  <span
-                    className={cn(
-                      'w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[10px] sm:text-xs font-bold',
-                      'flex items-center justify-center shrink-0 transition-all duration-300',
-                      isActive
-                        ? 'bg-emerald-400 text-[#064e3b] shadow-[0_0_8px_rgba(52,211,153,0.6)]'
-                        : isPast
-                        ? 'bg-[#D4AF37]/15 text-[#D4AF37]'
-                        : 'bg-white/8 text-gray-500'
-                    )}
-                  >
-                    {STAGE_ICONS[stage.id]}
-                  </span>
-                  <span className="hidden sm:inline">{stage.title}</span>
-                  <span className="sm:hidden">{stage.title.slice(0, 4)}</span>
-                </button>
+                  {STAGE_NUMBERS[stage.id]}
+                </span>
+                <span className="hidden sm:inline">{stage.title}</span>
+                <span className="sm:hidden">{stage.title.slice(0, 4)}</span>
 
-                {/* Arrow separator */}
-                {!isLast && (
-                  <span aria-hidden="true" className="text-gray-700 text-xs px-0.5 select-none">
-                    →
-                  </span>
+                {/* Separator dot */}
+                {index < stages.length - 1 && (
+                  <span aria-hidden="true" className="text-white/15 text-xs ml-1 select-none">·</span>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
