@@ -5,6 +5,7 @@ import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ChatAssistant from '@/components/ui/ChatAssistant';
+import RouteAwareShell from '@/components/layout/RouteAwareShell';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -98,10 +99,19 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} antialiased bg-white text-[#0A1929]`}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <ChatAssistant />
+        {/*
+          RouteAwareShell conditionally renders Navbar, Footer, and ChatAssistant.
+          On /workspace-q/learning-sessions routes these are fully absent from
+          the DOM — not just visually hidden — so they remain keyboard-inaccessible.
+          The public pages continue to render the full site chrome as before.
+        */}
+        <RouteAwareShell
+          navbar={<Navbar />}
+          footer={<Footer />}
+          chat={<ChatAssistant />}
+        >
+          {children}
+        </RouteAwareShell>
         <Analytics />
       </body>
     </html>
