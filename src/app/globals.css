@@ -144,3 +144,77 @@ html {
   outline: 2px solid #4A90E2;
   outline-offset: 2px;
 }
+
+/* =============================================================================
+   Workspace Q — Learning Sessions Theme Tokens
+   Applied via data-wq-theme on the session layout wrapper.
+   Components use var(--wq-*) in Tailwind arbitrary values: bg-[var(--wq-canvas)]
+   ============================================================================= */
+
+/* ── Shared layout constant ─────────────────────────────────────────────────── */
+:root {
+  --wq-header-h: 3.5rem; /* 56 px — used for fixed header offset and sticky sidebar top */
+}
+
+/* ── Focus Light (default — emerald shell, warm cream canvas) ──────────────── */
+[data-wq-theme="focus-light"] {
+  /* Shell (header + sidebar) */
+  --wq-shell:        #08212C;
+  --wq-shell-alt:    #0E3B35;
+  --wq-shell-border: rgba(255, 255, 255, 0.08);
+  --wq-shell-text:   rgba(255, 255, 255, 0.60);
+  --wq-shell-label:  rgba(255, 255, 255, 0.30);
+
+  /* Canvas (main content area) */
+  --wq-canvas:       #F4F1E8;
+  --wq-canvas-alt:   #EAE7DC;
+  --wq-card:         #FFFFFF;
+  --wq-card-surface: #FAF8F2;
+  --wq-border:       rgba(24, 36, 43, 0.10);
+  --wq-border-hover: rgba(24, 36, 43, 0.18);
+
+  /* Typography */
+  --wq-text:         #18242B;
+  --wq-text-muted:   #5F6B70;
+  --wq-text-subtle:  rgba(24, 36, 43, 0.45);
+
+  /* Interactive */
+  --wq-accent:       #2F8174;
+  --wq-accent-hover: #266B62;
+  --wq-accent-glow:  rgba(47, 129, 116, 0.40);
+  --wq-quanta-blue:  #4A90E2;
+  --wq-gold:         #D4AF37;
+  --wq-gold-muted:   rgba(212, 175, 55, 0.12);
+}
+
+/* ── Quanta Dark (navy blue shell + canvas — full Quanta design language) ──── */
+[data-wq-theme="quanta-dark"] {
+  /* Shell (header + sidebar) — slightly darker than canvas for depth */
+  --wq-shell:        #071320;
+  --wq-shell-alt:    #0A1929;
+  --wq-shell-border: rgba(255, 255, 255, 0.08);
+  --wq-shell-text:   rgba(255, 255, 255, 0.60);
+  --wq-shell-label:  rgba(255, 255, 255, 0.28);
+
+  /* Canvas */
+  --wq-canvas:       #0A1929;
+  --wq-canvas-alt:   #0D2035;
+  --wq-card:         #0D2035;
+  --wq-card-surface: #102840;
+  --wq-border:       rgba(255, 255, 255, 0.08);
+  --wq-border-hover: rgba(255, 255, 255, 0.14);
+
+  /* Typography */
+  --wq-text:         #D4E6F5;
+  --wq-text-muted:   #7A9BB5;
+  --wq-text-subtle:  rgba(212, 230, 245, 0.40);
+
+  /* Interactive — Quanta blue palette */
+  --wq-accent:       #4A90E2;
+  --wq-accent-hover: #6BA4E8;
+  --wq-accent-glow:  rgba(74, 144, 226, 0.35);
+  --wq-quanta-blue:  #4A90E2;
+  --wq-gold:         #D4AF37;
+  --wq-gold-muted:   rgba(212, 175, 55, 0.10);
+}
+
