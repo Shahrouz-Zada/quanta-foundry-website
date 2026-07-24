@@ -123,32 +123,29 @@ export default function StageContent({
     <div className="min-h-full flex flex-col bg-[var(--wq-canvas)]">
 
       {/* ── Stage heading ─────────────────────────────────────────────── */}
-      <div className="bg-[var(--wq-canvas-alt)] border-b border-[var(--wq-border)] px-6 sm:px-10 py-4">
+      <div className="bg-[var(--wq-canvas-alt)] border-b border-[var(--wq-border)] px-6 sm:px-10 py-3">
         {isOverview ? (
           <div className="flex items-center gap-3">
             <span aria-hidden="true" className="text-[var(--wq-accent)] text-lg">≡</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--wq-text)]">{t('stage.overview')}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-[var(--wq-text)]">{t('stage.overview')}</h2>
           </div>
         ) : stage ? (
-          <div className="flex items-start gap-4 max-w-3xl">
-            <span aria-hidden="true" className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-[var(--wq-shell)] text-[var(--wq-shell-text)] text-sm font-bold mt-0.5">
+          <div className="flex items-start gap-3 max-w-3xl">
+            <span aria-hidden="true" className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-[var(--wq-shell)] text-[var(--wq-shell-text)] text-sm font-bold mt-0.5">
               {String(stageIndex + 1).padStart(2, '0')}
             </span>
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--wq-text)] mb-1.5 leading-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-[var(--wq-text)] mb-1 leading-tight">
                 {t(`stage.${stage.id}` as MessageKey)}
               </h2>
-              <p className="text-[var(--wq-text-muted)] text-base leading-relaxed">{stage.description}</p>
+              <p className="text-[var(--wq-text-muted)] text-sm leading-relaxed">{stage.description}</p>
             </div>
           </div>
         ) : null}
-        {!isOverview && (
-          <div aria-hidden="true" className="w-8 h-0.5 rounded-full mt-6 ml-14" style={{ background: 'linear-gradient(90deg, var(--wq-gold), #E0C35C)' }} />
-        )}
       </div>
 
       {/* ── Body ──────────────────────────────────────────────────────── */}
-      <div className="flex-1 px-6 sm:px-10 py-10">
+      <div className="flex-1 px-6 sm:px-10 py-6">
         {isOverview && <OverviewBody session={session} t={t} />}
 
         {!isOverview && stage && activeItem === 'prepare' && (
