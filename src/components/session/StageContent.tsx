@@ -123,22 +123,22 @@ export default function StageContent({
     <div className="min-h-full flex flex-col bg-[var(--wq-canvas)]">
 
       {/* ── Stage heading ─────────────────────────────────────────────── */}
-      <div className="bg-[var(--wq-canvas-alt)] border-b border-[var(--wq-border)] px-6 sm:px-10 py-3">
+      <div className="bg-[var(--wq-canvas-alt)] border-b border-[var(--wq-border)] px-6 sm:px-10 py-2.5">
         {isOverview ? (
-          <div className="flex items-center gap-3">
-            <span aria-hidden="true" className="text-[var(--wq-accent)] text-lg">≡</span>
-            <h2 className="text-xl sm:text-2xl font-bold text-[var(--wq-text)]">{t('stage.overview')}</h2>
+          <div className="flex items-center gap-2.5">
+            <span aria-hidden="true" className="text-[var(--wq-accent)] text-base">≡</span>
+            <h2 className="text-lg font-semibold text-[var(--wq-text)]">{t('stage.overview')}</h2>
           </div>
         ) : stage ? (
-          <div className="flex items-start gap-3 max-w-3xl">
-            <span aria-hidden="true" className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-[var(--wq-shell)] text-[var(--wq-shell-text)] text-sm font-bold mt-0.5">
+          <div className="flex items-start gap-2.5 max-w-3xl">
+            <span aria-hidden="true" className="shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-[var(--wq-shell)] text-[var(--wq-shell-text)] text-xs font-bold mt-0.5">
               {String(stageIndex + 1).padStart(2, '0')}
             </span>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-[var(--wq-text)] mb-1 leading-tight">
+              <h2 className="text-lg font-semibold text-[var(--wq-text)] mb-0.5 leading-tight">
                 {t(`stage.${stage.id}` as MessageKey)}
               </h2>
-              <p className="text-[var(--wq-text-muted)] text-sm leading-relaxed">{stage.description}</p>
+              <p className="text-[var(--wq-text-muted)] text-xs leading-relaxed">{stage.description}</p>
             </div>
           </div>
         ) : null}
