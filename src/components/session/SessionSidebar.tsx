@@ -44,7 +44,7 @@ export default function SessionSidebar({
         'flex flex-col overflow-y-auto overflow-x-hidden shrink-0',
         'bg-[var(--wq-shell)] border-r border-[var(--wq-shell-border)]',
         'transition-[width] duration-300 ease-in-out motion-reduce:transition-none',
-        isExpanded ? 'w-56' : 'w-16'
+        isExpanded ? 'w-44' : 'w-16'
       )}
       aria-label={t('nav.learningPath')}
     >

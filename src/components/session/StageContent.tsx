@@ -123,7 +123,7 @@ export default function StageContent({
     <div className="min-h-full flex flex-col bg-[var(--wq-canvas)]">
 
       {/* ── Stage heading ─────────────────────────────────────────────── */}
-      <div className="bg-[var(--wq-canvas-alt)] border-b border-[var(--wq-border)] px-6 sm:px-10 py-7">
+      <div className="bg-[var(--wq-canvas-alt)] border-b border-[var(--wq-border)] px-6 sm:px-10 py-4">
         {isOverview ? (
           <div className="flex items-center gap-3">
             <span aria-hidden="true" className="text-[var(--wq-accent)] text-lg">≡</span>
