@@ -1,7 +1,7 @@
 // =============================================================================
 // Completion Rules — per-stage minimum requirements for the prototype
-// A checkmark in the sidebar means the learner has met real criteria,
-// not merely opened a stage.
+// A checkmark = the learner met real criteria AND clicked confirm.
+// Opening a stage never creates a checkmark.
 // =============================================================================
 
 import type { StageId } from '@/types/learning-session';
@@ -9,24 +9,36 @@ import type { StageId } from '@/types/learning-session';
 // ── State required by the completion checks ───────────────────────────────────
 
 export interface CompletionState {
-  prepareReadingAcknowledged: boolean;
+  // Prepare
   prepareAnswers:    string[];
+
+  // Explore
   exploreConfirmed:  boolean;
+  deckAvailable:     boolean;   // false until deck.html is deployed
+
+  // Experiment
   experimentConfirmed: boolean;
-  experimentUrl:     string;
+  experimentUrl:       string;
+  experimentResourceAvailable: boolean; // false until at least one URL is set
+
+  // Interpret
   interpretAnswers:  string[];
+
+  // Build
   buildConfirmed:    boolean;
+
+  // Reflect
   reflectAnswers:    string[];
 }
 
-// Minimum meaningful answer length (trimmed)
-export const MIN_ANSWER_LEN = 20;
-export const MIN_PREPARE_LEN = 20;
+// ── Minimum meaningful answer length (trimmed) ────────────────────────────────
 
-// ── Requirement descriptors (keys → i18n message keys) ───────────────────────
+export const MIN_ANSWER_LEN = 20;
+
+// ── Requirement descriptors ───────────────────────────────────────────────────
 
 export interface Requirement {
-  key:   string; // i18n message key for the label
+  key:   string;  // i18n message key for the label
   isMet: (state: CompletionState) => boolean;
 }
 
@@ -36,56 +48,59 @@ export interface StageCompletionRule {
   stageId:      StageId;
   mode:         CompletionMode;
   requirements: Requirement[];
-  /** Returns true only when ALL requirements pass */
   canComplete:  (state: CompletionState) => boolean;
 }
 
 // ── Rules ─────────────────────────────────────────────────────────────────────
 
 export const COMPLETION_RULES: Record<StageId, StageCompletionRule> = {
+
+  // Prepare — one meaningful pre-session answer (≥ 20 trimmed chars)
+  // Reading resources are not yet active, so acknowledgement is NOT required.
   prepare: {
     stageId: 'prepare',
     mode:    'hybrid',
     requirements: [
       {
-        key:   'req.prepare.reading',
-        isMet: (s) => s.prepareReadingAcknowledged,
-      },
-      {
         key:   'req.prepare.answer',
         isMet: (s) =>
-          s.prepareAnswers.some((a) => a.trim().length >= MIN_PREPARE_LEN),
+          s.prepareAnswers.some((a) => a.trim().length >= MIN_ANSWER_LEN),
       },
     ],
     canComplete: (s) =>
-      s.prepareReadingAcknowledged &&
-      s.prepareAnswers.some((a) => a.trim().length >= MIN_PREPARE_LEN),
+      s.prepareAnswers.some((a) => a.trim().length >= MIN_ANSWER_LEN),
   },
 
+  // Explore — teaching deck must be available AND the learner confirms review.
+  // When deck is unavailable, confirmation is disabled.
   explore: {
     stageId: 'explore',
-    mode:    'manual',
+    mode:    'hybrid',
     requirements: [
       {
         key:   'req.explore.manual',
-        isMet: (s) => s.exploreConfirmed,
+        // Not met when deck is unavailable (regardless of exploreConfirmed)
+        isMet: (s) => s.deckAvailable && s.exploreConfirmed,
       },
     ],
-    canComplete: (s) => s.exploreConfirmed,
+    canComplete: (s) => s.deckAvailable && s.exploreConfirmed,
   },
 
+  // Experiment — at least one real resource must be available before any
+  // confirmation or completion is permitted.
   experiment: {
     stageId: 'experiment',
     mode:    'hybrid',
     requirements: [
       {
         key:   'req.experiment.confirm',
-        isMet: (s) => s.experimentConfirmed,
+        isMet: (s) => s.experimentResourceAvailable && s.experimentConfirmed,
       },
     ],
-    canComplete: (s) => s.experimentConfirmed,
+    canComplete: (s) => s.experimentResourceAvailable && s.experimentConfirmed,
   },
 
+  // Interpret — every prompt answered with ≥ 20 trimmed chars + intentional action.
   interpret: {
     stageId: 'interpret',
     mode:    'hybrid',
@@ -102,6 +117,7 @@ export const COMPLETION_RULES: Record<StageId, StageCompletionRule> = {
       s.interpretAnswers.every((a) => a.trim().length >= MIN_ANSWER_LEN),
   },
 
+  // Build — learner acknowledges reviewing the Brief structure.
   build: {
     stageId: 'build',
     mode:    'manual',
@@ -114,6 +130,7 @@ export const COMPLETION_RULES: Record<StageId, StageCompletionRule> = {
     canComplete: (s) => s.buildConfirmed,
   },
 
+  // Reflect — every prompt answered with ≥ 20 trimmed chars + intentional action.
   reflect: {
     stageId: 'reflect',
     mode:    'hybrid',
@@ -130,18 +147,18 @@ export const COMPLETION_RULES: Record<StageId, StageCompletionRule> = {
       s.reflectAnswers.every((a) => a.trim().length >= MIN_ANSWER_LEN),
   },
 
-  // Publish is optional — tracked separately, not counted in 6/6 progress
+  // Publish — optional, tracked separately. Never contributes to 6-stage count.
   publish: {
     stageId: 'publish',
     mode:    'manual',
     requirements: [],
-    canComplete: () => false, // controlled via publishState in SessionLayout
+    canComplete:  () => false, // Controlled via publishState in SessionLayout
   },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** The 6 core stages that count toward progress */
+/** The 6 core stages that count toward progress. Publish is excluded. */
 export const CORE_STAGE_IDS: StageId[] = [
   'prepare', 'explore', 'experiment', 'interpret', 'build', 'reflect',
 ];

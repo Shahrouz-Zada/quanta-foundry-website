@@ -61,7 +61,7 @@ export const SESSION_01: LearningSession = {
           title: 'Session 01 — Interactive Teaching Deck',
           description:
             'Covers prediction target definition, data labelling, benchmark choice, and evaluation metric selection.',
-          url: '/courses/finance-data-ai/session-01/deck.html',
+          url: undefined, // Set to '/courses/finance-data-ai/session-01/deck.html' when deployed
         },
       ],
     },

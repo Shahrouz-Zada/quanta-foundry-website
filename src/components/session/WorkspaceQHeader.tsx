@@ -15,26 +15,28 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Sun, Moon, ChevronDown, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTranslation, type Lang } from '@/lib/i18n';
+import { useTranslation, type Lang, type MessageKey } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
 import { useBreadcrumb } from '@/lib/breadcrumb-context';
 import ReportProblemModal from './ReportProblemModal';
 
-// ── Profile menu definition ───────────────────────────────────────────────────
+// ── Profile menu items — defined once as a module constant ────────────────────
+// Sign Out is excluded until an authentication layer exists.
+// Privacy is active and links to the Quanta Foundry privacy page.
 
-const useProfileMenu = () => {
-  const { t } = useTranslation();
-  return [
-    { id: 'my-profile',  labelKey: 'header.myProfile'   as const, disabled: true },
-    { id: 'my-progress', labelKey: 'header.myProgress'  as const, disabled: true },
-    { id: 'preferences', labelKey: 'header.preferences' as const, disabled: true },
-    { id: 'divider-1',   labelKey: null, disabled: false },
-    { id: 'report',      labelKey: 'header.reportProblem' as const, disabled: false },
-    { id: 'privacy',     labelKey: 'header.privacy'     as const, disabled: true },
-    { id: 'divider-2',   labelKey: null, disabled: false },
-    { id: 'sign-out',    labelKey: 'header.signOut'     as const, disabled: true },
-  ] as const;
-};
+type ProfileMenuItem =
+  | { id: string; labelKey: MessageKey; disabled: false; href: string | undefined; isReport?: boolean }
+  | { id: string; labelKey: MessageKey; disabled: true;  href: undefined }
+  | { id: string; labelKey: null;       disabled: false; href: undefined };
+
+const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
+  { id: 'my-profile',  labelKey: 'header.myProfile',    disabled: true,  href: undefined },
+  { id: 'my-progress', labelKey: 'header.myProgress',   disabled: true,  href: undefined },
+  { id: 'preferences', labelKey: 'header.preferences',  disabled: true,  href: undefined },
+  { id: 'divider-1',   labelKey: null,                  disabled: false, href: undefined },
+  { id: 'report',      labelKey: 'header.reportProblem',disabled: false, href: undefined, isReport: true },
+  { id: 'privacy',     labelKey: 'header.privacy',      disabled: false, href: 'https://www.quantafoundry.com/privacy' },
+];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -46,7 +48,7 @@ export default function WorkspaceQHeader() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [reportOpen,  setReportOpen]  = useState(false);
 
-  const profileBtnRef = useRef<HTMLButtonElement>(null);
+  const profileBtnRef  = useRef<HTMLButtonElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Close profile menu on outside click or Escape
@@ -76,7 +78,7 @@ export default function WorkspaceQHeader() {
   useEffect(() => {
     if (!profileOpen) return;
     const first = profileMenuRef.current?.querySelector<HTMLElement>(
-      'button:not([disabled]), [href]'
+      'button:not([disabled]), a[href]'
     );
     first?.focus();
   }, [profileOpen]);
@@ -89,7 +91,6 @@ export default function WorkspaceQHeader() {
     if (e.key === 'Escape') setProfileOpen(false);
   }, []);
 
-  const profileItems = useProfileMenu();
   const isDark = theme === 'quanta-dark';
 
   return (
@@ -128,7 +129,7 @@ export default function WorkspaceQHeader() {
           {/* Separator */}
           <span className="text-white/15 text-sm select-none" aria-hidden="true">/</span>
 
-          {/* Workspace Q → dashboard */}
+          {/* Workspace Q → dashboard (product name, not translated) */}
           <Link
             href="/workspace-q"
             className="text-xs font-semibold text-white/80 hover:text-white transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wq-accent)] rounded"
@@ -206,7 +207,7 @@ export default function WorkspaceQHeader() {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            aria-label={t('header.switchTheme') + ': ' + (isDark ? t('header.focusLight') : t('header.quantaDark'))}
+            aria-label={`${t('header.switchTheme')}: ${isDark ? t('header.focusLight') : t('header.quantaDark')}`}
             title={isDark ? t('header.focusLight') : t('header.quantaDark')}
             className={cn(
               'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white/45',
@@ -238,7 +239,6 @@ export default function WorkspaceQHeader() {
                 profileOpen ? 'bg-white/10 text-white' : 'text-white/45 hover:text-white hover:bg-white/8'
               )}
             >
-              {/* Avatar circle */}
               <span
                 aria-hidden="true"
                 className="w-6 h-6 rounded-full bg-[var(--wq-accent)] flex items-center justify-center text-white text-[10px] font-bold"
@@ -267,15 +267,17 @@ export default function WorkspaceQHeader() {
                   'bg-[var(--wq-shell)] py-1.5 overflow-hidden',
                 )}
               >
-                {profileItems.map((item) => {
+                {PROFILE_MENU_ITEMS.map((item) => {
+                  // Divider
                   if (item.labelKey === null) {
                     return (
                       <div key={item.id} className="h-px mx-2 my-1 bg-white/8" role="separator" />
                     );
                   }
-                  const label = t(item.labelKey);
-                  const isReport = item.id === 'report';
 
+                  const label = t(item.labelKey as MessageKey);
+
+                  // Disabled future feature
                   if (item.disabled) {
                     return (
                       <div
@@ -286,19 +288,41 @@ export default function WorkspaceQHeader() {
                       >
                         <span>{label}</span>
                         <span className="text-[10px] font-semibold text-[var(--wq-accent)]/50 uppercase tracking-wide border border-[var(--wq-accent)]/20 px-1.5 py-0.5 rounded">
-                          {t('header.phaseLabel')}
+                          {t('header.comingLater')}
                         </span>
                       </div>
                     );
                   }
 
+                  // External / internal link (Privacy)
+                  if (item.href) {
+                    return (
+                      <a
+                        key={item.id}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        role="menuitem"
+                        onClick={() => setProfileOpen(false)}
+                        className={cn(
+                          'block px-4 py-2.5 text-sm transition-colors duration-100',
+                          'focus-visible:outline-none focus-visible:bg-white/8',
+                          'text-white/70 hover:text-white hover:bg-white/8',
+                        )}
+                      >
+                        {label}
+                      </a>
+                    );
+                  }
+
+                  // Active action (Report a Problem)
                   return (
                     <button
                       key={item.id}
                       role="menuitem"
                       onClick={() => {
                         setProfileOpen(false);
-                        if (isReport) setReportOpen(true);
+                        if ((item as { isReport?: boolean }).isReport) setReportOpen(true);
                       }}
                       className={cn(
                         'w-full text-left px-4 py-2.5 text-sm transition-colors duration-100',

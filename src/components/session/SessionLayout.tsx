@@ -5,7 +5,7 @@
 // drawer, lifted textarea answers, prev/next navigation, breadcrumb sync.
 // =============================================================================
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LearningSession, StageId } from '@/types/learning-session';
@@ -18,6 +18,8 @@ import SessionSidebar from './SessionSidebar';
 import StageContent from './StageContent';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
+
+export type PublishState = 'none' | 'drafting' | 'review-requested' | 'published';
 
 const STAGE_IDS: StageId[] = [
   'prepare', 'explore', 'experiment', 'interpret', 'build', 'reflect', 'publish',
@@ -41,32 +43,55 @@ export default function SessionLayout({ session }: Props) {
 
   // ── Completed stages (checkmark = truly completed, not just visited) ──────
   const [completedStages, setCompletedStages] = useState<Set<StageId>>(new Set());
-  const [publishState, setPublishState] = useState<'none' | 'drafting' | 'submitted'>('none');
+
+  // Publish state — 4 phases, tracked separately from core 6-stage progress
+  const [publishState, setPublishState] = useState<PublishState>('none');
 
   // ── Mobile drawer ─────────────────────────────────────────────────────────
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // ── Lifted textarea & confirmation state ──────────────────────────────────
-  const prepareCount    = session.stages.find((s) => s.id === 'prepare')?.prompts?.length ?? 0;
-  const interpretCount  = session.stages.find((s) => s.id === 'interpret')?.prompts?.length ?? 0;
-  const reflectCount    = session.stages.find((s) => s.id === 'reflect')?.prompts?.length ?? 0;
+  const prepareCount   = session.stages.find((s) => s.id === 'prepare')?.prompts?.length ?? 0;
+  const interpretCount = session.stages.find((s) => s.id === 'interpret')?.prompts?.length ?? 0;
+  const reflectCount   = session.stages.find((s) => s.id === 'reflect')?.prompts?.length ?? 0;
 
-  const [prepareAnswers,             setPrepareAnswers]             = useState<string[]>(() => Array(prepareCount).fill(''));
-  const [prepareReadingAcknowledged, setPrepareReadingAcknowledged] = useState(false);
-  const [exploreConfirmed,           setExploreConfirmed]           = useState(false);
-  const [experimentConfirmed,        setExperimentConfirmed]        = useState(false);
-  const [experimentUrl,              setExperimentUrl]              = useState('');
-  const [interpretAnswers,           setInterpretAnswers]           = useState<string[]>(() => Array(interpretCount).fill(''));
-  const [buildConfirmed,             setBuildConfirmed]             = useState(false);
-  const [reflectAnswers,             setReflectAnswers]             = useState<string[]>(() => Array(reflectCount).fill(''));
+  const [prepareAnswers,      setPrepareAnswers]      = useState<string[]>(() => Array(prepareCount).fill(''));
+  const [exploreConfirmed,    setExploreConfirmed]    = useState(false);
+  const [experimentConfirmed, setExperimentConfirmed] = useState(false);
+  const [experimentUrl,       setExperimentUrl]       = useState('');
+  const [interpretAnswers,    setInterpretAnswers]    = useState<string[]>(() => Array(interpretCount).fill(''));
+  const [buildConfirmed,      setBuildConfirmed]      = useState(false);
+  const [reflectAnswers,      setReflectAnswers]      = useState<string[]>(() => Array(reflectCount).fill(''));
+
+  // ── Resource availability (derived from session data, stable) ────────────
+  // deckAvailable: true only when the deck file URL is non-null and non-empty
+  const deckAvailable = useMemo(() => {
+    const exploreStage = session.stages.find((s) => s.id === 'explore');
+    return (
+      exploreStage?.resources?.some(
+        (r) => r.type === 'deck' && r.url != null && r.url.trim() !== ''
+      ) ?? false
+    );
+  }, [session.stages]);
+
+  // experimentResourceAvailable: true when at least one resource has a real URL
+  const experimentResourceAvailable = useMemo(() => {
+    const expStage = session.stages.find((s) => s.id === 'experiment');
+    return (
+      expStage?.resources?.some(
+        (r) => r.url != null && r.url.trim() !== ''
+      ) ?? false
+    );
+  }, [session.stages]);
 
   // ── Build CompletionState ─────────────────────────────────────────────────
   const completionState: CompletionState = {
-    prepareReadingAcknowledged,
     prepareAnswers,
     exploreConfirmed,
+    deckAvailable,
     experimentConfirmed,
     experimentUrl,
+    experimentResourceAvailable,
     interpretAnswers,
     buildConfirmed,
     reflectAnswers,
@@ -105,17 +130,28 @@ export default function SessionLayout({ session }: Props) {
   }, []);
 
   const activeIndex = ALL_NAV_ITEMS.indexOf(activeItem);
+
+  const prevItem = activeIndex > 0 ? ALL_NAV_ITEMS[activeIndex - 1] : null;
+  const nextItem = activeIndex < ALL_NAV_ITEMS.length - 1 ? ALL_NAV_ITEMS[activeIndex + 1] : null;
+
+  const prevStageLabel = prevItem ? t(`stage.${prevItem}` as MessageKey) : '';
+  const nextStageLabel = nextItem ? t(`stage.${nextItem}` as MessageKey) : '';
+
   const goToPrev = useCallback(() => {
-    if (activeIndex > 0) navigateTo(ALL_NAV_ITEMS[activeIndex - 1]);
-  }, [activeIndex, navigateTo]);
+    if (prevItem) navigateTo(prevItem);
+  }, [prevItem, navigateTo]);
+
   const goToNext = useCallback(() => {
-    if (activeIndex < ALL_NAV_ITEMS.length - 1) navigateTo(ALL_NAV_ITEMS[activeIndex + 1]);
-  }, [activeIndex, navigateTo]);
+    if (nextItem) navigateTo(nextItem);
+  }, [nextItem, navigateTo]);
 
   // ── Completion handlers ───────────────────────────────────────────────────
   const handleStageComplete = useCallback((stageId: StageId) => {
+    // Guard: publish is never added to completedStages
+    if (stageId === 'publish') return;
     setCompletedStages((prev) => new Set([...prev, stageId]));
   }, []);
+
   const handleUndoComplete = useCallback((stageId: StageId) => {
     setCompletedStages((prev) => {
       const next = new Set(prev);
@@ -255,8 +291,6 @@ export default function SessionLayout({ session }: Props) {
             // Answer state
             prepareAnswers={prepareAnswers}
             onPrepareAnswerChange={handlePrepareAnswerChange}
-            prepareReadingAcknowledged={prepareReadingAcknowledged}
-            onPrepareReadingAcknowledge={setPrepareReadingAcknowledged}
             exploreConfirmed={exploreConfirmed}
             onExploreConfirm={() => setExploreConfirmed(true)}
             experimentConfirmed={experimentConfirmed}
@@ -272,9 +306,13 @@ export default function SessionLayout({ session }: Props) {
             // Completion
             onStageComplete={handleStageComplete}
             onUndoStageComplete={handleUndoComplete}
-            // Navigation
-            hasPrev={activeIndex > 0}
-            hasNext={activeIndex < ALL_NAV_ITEMS.length - 1}
+            // Navigation — with stage labels for prev/next buttons
+            hasPrev={prevItem !== null}
+            hasNext={nextItem !== null}
+            prevStageLabel={prevStageLabel}
+            nextStageLabel={nextStageLabel}
+            isOverview={activeItem === 'overview'}
+            isLastStage={activeItem === 'publish'}
             onPrev={goToPrev}
             onNext={goToNext}
           />
