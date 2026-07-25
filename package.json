@@ -11,7 +11,10 @@
   "dependencies": {
     "@ai-sdk/openai": "^0.0.38",
     "@ai-sdk/react": "^3.0.210",
+    "@auth/prisma-adapter": "^2.11.3",
     "@formspree/react": "^2.5.1",
+    "@prisma/adapter-pg": "^7.9.0",
+    "@prisma/client": "^7.9.0",
     "@tailwindcss/typography": "^0.5.20",
     "@vercel/analytics": "^2.0.1",
     "ai": "^3.4.33",
@@ -20,7 +23,10 @@
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.460.0",
     "next": "^15.3.3",
+    "next-auth": "^5.0.0-beta.32",
     "next-mdx-remote": "^6.0.0",
+    "nodemailer": "^9.0.3",
+    "pg": "^8.22.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^4.4.3"
@@ -28,10 +34,12 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.8",
     "@types/node": "^22.15.0",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.3.3",
+    "prisma": "^7.9.0",
     "tailwindcss": "^4.1.8",
     "typescript": "^5.8.0"
   }

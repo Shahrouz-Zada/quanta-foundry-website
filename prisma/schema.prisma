@@ -1,0 +1,356 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum GlobalRole {
+  USER
+  ADMIN
+}
+
+enum EnrollmentRole {
+  LEARNER
+  INSTRUCTOR
+  OBSERVER
+}
+
+enum Visibility {
+  PUBLIC
+  COMMUNITY
+  COHORT
+}
+
+enum Audience {
+  COHORT
+  COMMUNITY
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProgressState {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+}
+
+enum LockState {
+  DRAFT
+  LOCKED
+  REOPENED
+  VOIDED
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  globalRole    GlobalRole   @default(USER)
+  
+  accounts      Account[]
+  enrollments   Enrollment[]
+  responses     Response[]
+  progress      Progress[]
+  ownedProjects Project[]    @relation("ProjectOwner")
+  memberships   ProjectMember[]
+  evaluations   Evaluation[]
+  audits        PredictionLockAudit[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Track {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  title       String
+  description String?
+  domain      String       // quant-finance | applied-ai
+  visibility  Visibility
+  sessions    Session[]
+  offerings   Offering[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Session {
+  id                       String           @id @default(cuid())
+  trackId                  String
+  slug                     String           @unique
+  title                    String
+  latestPublishedVersionId String?
+  
+  track                    Track            @relation(fields: [trackId], references: [id])
+  versions                 SessionVersion[]
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+
+  @@index([trackId])
+}
+
+model SessionVersion {
+  id               String            @id @default(cuid())
+  sessionId        String
+  version          Int
+  status           Status            @default(DRAFT)
+  contentHash      String            // To detect changes
+  schemaVersion    String            // e.g., "1.0.0"
+  content          Json              // Validated JSON snapshot
+  
+  publishedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  
+  session          Session           @relation(fields: [sessionId], references: [id])
+  offeringSessions OfferingSession[]
+
+  @@unique([sessionId, version])
+  @@index([sessionId])
+}
+
+model Offering {
+  id               String            @id @default(cuid())
+  trackId          String?
+  name             String
+  audience         Audience
+  visibility       Visibility
+  gradingEnabled   Boolean           @default(false)
+  startsAt         DateTime?
+  endsAt           DateTime?
+  
+  track            Track?            @relation(fields: [trackId], references: [id])
+  enrollments      Enrollment[]
+  offeringSessions OfferingSession[]
+  milestones       Milestone[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model Enrollment {
+  id         String         @id @default(cuid())
+  offeringId String
+  userId     String
+  role       EnrollmentRole @default(LEARNER)
+  
+  offering   Offering       @relation(fields: [offeringId], references: [id])
+  user       User           @relation(fields: [userId], references: [id])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([offeringId, userId])
+  @@index([userId])
+}
+
+model OfferingSession {
+  id                   String         @id @default(cuid())
+  offeringId           String
+  sessionVersionId     String
+  order                Int
+  opensAt              DateTime?
+  dueAt                DateTime?
+  placementOverrides   Json?
+  requirementOverrides Json?
+  
+  offering             Offering       @relation(fields: [offeringId], references: [id])
+  sessionVersion       SessionVersion @relation(fields: [sessionVersionId], references: [id])
+  progress             Progress[]
+  responses            Response[]
+  artifacts            Artifact[]
+  
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@index([offeringId])
+  @@index([sessionVersionId])
+}
+
+model Progress {
+  id                String          @id @default(cuid())
+  userId            String
+  offeringSessionId String
+  stageId           String
+  state             ProgressState   @default(NOT_STARTED)
+  
+  user              User            @relation(fields: [userId], references: [id])
+  offeringSession   OfferingSession @relation(fields: [offeringSessionId], references: [id])
+  completedAt       DateTime?
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([userId, offeringSessionId, stageId])
+  @@index([offeringSessionId])
+}
+
+model Response {
+  id                String          @id @default(cuid())
+  userId            String
+  offeringSessionId String
+  blockId           String
+  value             Json
+  lockState         LockState       @default(DRAFT)
+  
+  user              User            @relation(fields: [userId], references: [id])
+  offeringSession   OfferingSession @relation(fields: [offeringSessionId], references: [id])
+  lockedAt          DateTime?
+  updatedAt         DateTime        @updatedAt
+  
+  audits            PredictionLockAudit[]
+
+  @@unique([userId, offeringSessionId, blockId])
+  @@index([offeringSessionId])
+}
+
+model PredictionLockAudit {
+  id         String    @id @default(cuid())
+  responseId String
+  actorId    String
+  action     LockState
+  reason     String?
+  
+  response   Response  @relation(fields: [responseId], references: [id])
+  actor      User      @relation(fields: [actorId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@index([responseId])
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  ownerId     String
+  title       String
+  description String?
+  visibility  Visibility      @default(COHORT)
+  
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members     ProjectMember[]
+  artifacts   Artifact[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([ownerId])
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   // OWNER, COLLABORATOR, REVIEWER
+  
+  project   Project  @relation(fields: [projectId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId])
+}
+
+model Artifact {
+  id                           String            @id @default(cuid())
+  projectId                    String
+  type                         String
+  title                        String
+  createdFromOfferingSessionId String?
+  currentVersionId             String?
+  
+  project                      Project           @relation(fields: [projectId], references: [id])
+  offeringSession              OfferingSession?  @relation(fields: [createdFromOfferingSessionId], references: [id])
+  versions                     ArtifactVersion[]
+  createdAt                    DateTime          @default(now())
+  updatedAt                    DateTime          @updatedAt
+
+  @@index([projectId])
+}
+
+model ArtifactVersion {
+  id         String   @id @default(cuid())
+  artifactId String
+  version    Int
+  content    Json
+  
+  artifact   Artifact @relation(fields: [artifactId], references: [id])
+  createdAt  DateTime @default(now())
+  createdBy  String   // User ID
+
+  @@unique([artifactId, version])
+}
+
+model Milestone {
+  id                    String    @id @default(cuid())
+  offeringId            String
+  name                  String
+  dueAt                 DateTime?
+  requiredArtifactTypes String[]  // JSON array of strings
+  
+  offering              Offering  @relation(fields: [offeringId], references: [id])
+  submissions           Submission[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([offeringId])
+}
+
+model Submission {
+  id                String       @id @default(cuid())
+  artifactVersionId String
+  milestoneId       String
+  state             String       // SUBMITTED, RETURNED, ACCEPTED
+  
+  milestone         Milestone    @relation(fields: [milestoneId], references: [id])
+  evaluations       Evaluation[]
+  submittedAt       DateTime     @default(now())
+  
+  @@index([milestoneId])
+  @@index([artifactVersionId])
+}
+
+model Evaluation {
+  id             String     @id @default(cuid())
+  submissionId   String
+  evaluatorId    String
+  scores         Json?
+  comments       Json?
+  overallComment String?
+  
+  submission     Submission @relation(fields: [submissionId], references: [id])
+  evaluator      User       @relation(fields: [evaluatorId], references: [id])
+  returnedAt     DateTime?
+  createdAt      DateTime   @default(now())
+
+  @@index([submissionId])
+}
+
+// ─── Auth.js Required Models ────────────────────────────────────────────────
+// Note: We omit the NextAuth Session model to avoid collision with Learning Sessions,
+// and because we will use the JWT session strategy.
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
