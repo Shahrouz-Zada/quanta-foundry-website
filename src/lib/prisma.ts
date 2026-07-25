@@ -1,12 +1,14 @@
 import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import ws from 'ws';
 
-// Setup connection pool for Vercel Postgres / Local Prisma Dev
+// Setup connection pool for Neon Serverless Postgres
+neonConfig.webSocketConstructor = ws;
 const connectionString = process.env.DATABASE_URL;
 
 const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaNeon(pool);
 
 // Prevent multiple instances of Prisma Client in development
 const globalForPrisma = globalThis as unknown as {
