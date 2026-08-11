@@ -86,7 +86,6 @@ export default function StageContent({
   completionState, completedStages, publishState, onPublishStateChange,
   prepareAnswers, onPrepareAnswerChange,
   exploreConfirmed, onExploreConfirm,
-  experimentConfirmed, onExperimentConfirm,
   experimentUrl, onExperimentUrlChange,
   interpretAnswers, onInterpretAnswerChange,
   buildConfirmed, onBuildConfirm,
@@ -191,7 +190,6 @@ export default function StageContent({
               onUndoComplete={onUndoStageComplete}
               experimentUrl={experimentUrl}
               onExperimentUrlChange={onExperimentUrlChange}
-              onExperimentConfirm={onExperimentConfirm}
             />
           </>
         )}

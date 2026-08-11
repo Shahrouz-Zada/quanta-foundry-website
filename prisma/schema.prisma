@@ -117,6 +117,7 @@ model SessionVersion {
 model Offering {
   id               String            @id @default(cuid())
   trackId          String?
+  slug             String            @unique // Stable identifier for idempotent seed upserts
   name             String
   audience         Audience
   visibility       Visibility
@@ -166,6 +167,7 @@ model OfferingSession {
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
+  @@unique([offeringId, sessionVersionId]) // Ensures connectOrCreate is genuinely idempotent
   @@index([offeringId])
   @@index([sessionVersionId])
 }

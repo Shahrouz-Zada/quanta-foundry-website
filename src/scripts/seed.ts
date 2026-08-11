@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'dotenv/config';
 import { Visibility, Audience, Status } from '@prisma/client';
 import { createHash } from 'crypto';
@@ -9,9 +10,15 @@ function hashContent(content: any) {
 }
 
 async function main() {
-  console.log('Seeding Database...');
+  // Production guard: Never run in production unless explicitly overridden.
+  if (process.env.NODE_ENV === 'production' && !process.env.DANGEROUS_ALLOW_PROD_SEED) {
+    console.error('Seed script aborted: Refusing to run in production without DANGEROUS_ALLOW_PROD_SEED.');
+    process.exit(1);
+  }
 
-  // 1. Create a platform Admin and a Learner
+  console.log('Seeding Database (idempotent)...');
+
+  // 1. Users — upsert on email (already idempotent)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@quantafoundry.com' },
     update: {},
@@ -31,7 +38,7 @@ async function main() {
     },
   });
 
-  // 2. Create Track
+  // 2. Track — upsert on slug (already idempotent)
   const track = await prisma.track.upsert({
     where: { slug: 'applied-finance' },
     update: {},
@@ -44,7 +51,7 @@ async function main() {
     },
   });
 
-  // 3. Create Session Identity
+  // 3. Session Identity — upsert on slug (already idempotent)
   const session = await prisma.session.upsert({
     where: { slug: session01.slug },
     update: {},
@@ -56,7 +63,7 @@ async function main() {
     },
   });
 
-  // 4. Publish SessionVersion if content changed
+  // 4. Publish SessionVersion only if content has changed (content-hash gate)
   const currentHash = hashContent(session01);
   const latestVersion = await prisma.sessionVersion.findFirst({
     where: { sessionId: session.id },
@@ -68,7 +75,7 @@ async function main() {
   if (!latestVersion || latestVersion.contentHash !== currentHash) {
     const newVersionNumber = (latestVersion?.version || 0) + 1;
     console.log(`Publishing v${newVersionNumber} of ${session01.slug}...`);
-    
+
     const newVersion = await prisma.sessionVersion.create({
       data: {
         sessionId: session.id,
@@ -80,61 +87,86 @@ async function main() {
         publishedAt: new Date(),
       }
     });
-    
+
     await prisma.session.update({
       where: { id: session.id },
       data: { latestPublishedVersionId: newVersion.id },
     });
-    
+
     activeVersionId = newVersion.id;
+  } else {
+    console.log(`SessionVersion hash unchanged — skipping publish of ${session01.slug}.`);
   }
 
-  // 5. Create Offerings (Cohort & Community)
-  const cohortOffering = await prisma.offering.create({
-    data: {
+  // 5. Cohort Offering — upsert on slug (idempotent via schema @@unique)
+  const cohortOffering = await prisma.offering.upsert({
+    where: { slug: 'esdes-m2-fall-2026' },
+    update: {},
+    create: {
+      slug: 'esdes-m2-fall-2026',
       trackId: track.id,
       name: 'ESDES M2 — Fall 2026',
       audience: Audience.COHORT,
       visibility: Visibility.COHORT,
       gradingEnabled: true,
-      offeringSessions: {
-        create: {
-          sessionVersionId: activeVersionId!,
-          order: 1,
-        }
-      },
-      enrollments: {
-        create: {
-          userId: learner.id,
-          role: 'LEARNER'
-        }
-      }
-    }
+    },
   });
 
-  const communityOffering = await prisma.offering.create({
-    data: {
+  // 6. Community Offering — upsert on slug (idempotent via schema @@unique)
+  const communityOffering = await prisma.offering.upsert({
+    where: { slug: 'qf-reading-club-open' },
+    update: {},
+    create: {
+      slug: 'qf-reading-club-open',
       trackId: track.id,
       name: 'QF Reading Club — Open',
       audience: Audience.COMMUNITY,
       visibility: Visibility.COMMUNITY,
       gradingEnabled: false,
-      offeringSessions: {
-        create: {
-          sessionVersionId: activeVersionId!,
-          order: 1,
-        }
-      },
-      enrollments: {
-        create: {
-          userId: learner.id,
-          role: 'LEARNER'
-        }
-      }
-    }
+    },
   });
 
-  console.log('Seed completed successfully!');
+  // 7. OfferingSessions — connectOrCreate on @@unique([offeringId, sessionVersionId])
+  for (const offering of [cohortOffering, communityOffering]) {
+    await prisma.offeringSession.upsert({
+      where: {
+        offeringId_sessionVersionId: {
+          offeringId: offering.id,
+          sessionVersionId: activeVersionId!,
+        },
+      },
+      update: {},
+      create: {
+        offeringId: offering.id,
+        sessionVersionId: activeVersionId!,
+        order: 1,
+      },
+    });
+  }
+
+  // 8. Enrollments — upsert on @@unique([offeringId, userId])
+  for (const offering of [cohortOffering, communityOffering]) {
+    await prisma.enrollment.upsert({
+      where: {
+        offeringId_userId: {
+          offeringId: offering.id,
+          userId: learner.id,
+        },
+      },
+      update: {},
+      create: {
+        offeringId: offering.id,
+        userId: learner.id,
+        role: 'LEARNER',
+      },
+    });
+  }
+
+  console.log('Seed completed successfully (idempotent run).');
+  console.log(`  Admin: ${admin.email}`);
+  console.log(`  Learner: ${learner.email}`);
+  console.log(`  Cohort Offering: ${cohortOffering.slug}`);
+  console.log(`  Community Offering: ${communityOffering.slug}`);
 }
 
 main()
@@ -145,3 +177,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

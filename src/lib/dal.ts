@@ -1,4 +1,3 @@
-import 'server-only';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { EnrollmentRole, GlobalRole } from '@prisma/client';
@@ -61,6 +60,39 @@ export const requireOfferingRole = cache(
 );
 
 /**
+ * GET: Retrieve all offerings a user is enrolled in (or all public/community offerings)
+ */
+export async function getEnrolledOfferings() {
+  const user = await requireAuth();
+
+  return prisma.offering.findMany({
+    where: {
+      OR: [
+        { enrollments: { some: { userId: user.id } } },
+        { visibility: 'COMMUNITY' },
+      ]
+    },
+    include: {
+      track: true,
+      offeringSessions: {
+        orderBy: { order: 'asc' },
+        include: {
+          sessionVersion: {
+            select: {
+              session: {
+                select: { title: true, slug: true }
+              },
+              content: true // Needed to show summary on cards
+            }
+          }
+        }
+      }
+    },
+    orderBy: { startsAt: 'desc' },
+  });
+}
+
+/**
  * GET: Retrieve the full state of a Learning Session for a learner
  */
 export async function getLearnerSessionState(offeringSessionId: string) {
@@ -97,11 +129,8 @@ export async function getLearnerSessionState(offeringSessionId: string) {
 /**
  * MUTATION: Save a Block Response
  */
-export async function saveBlockResponse(
-  offeringSessionId: string, 
-  blockId: string, 
-  value: any
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function saveLearnerResponse(offeringSessionId: string, blockId: string, value: any) {
   const user = await requireAuth();
   await requireOfferingRole(offeringSessionId, [EnrollmentRole.LEARNER]);
 

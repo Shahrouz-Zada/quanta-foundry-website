@@ -9,6 +9,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   // Cast prisma to any to bypass the missing session model type error,
   // since we omitted the NextAuth Session model in favor of the JWT strategy.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma as any),
   providers: [
     Google({
@@ -16,8 +17,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     Nodemailer({
-      server: process.env.EMAIL_SERVER,
-      from: process.env.EMAIL_FROM,
+      server: process.env.EMAIL_SERVER || 'smtp://localhost:25',
+      from: process.env.EMAIL_FROM || 'no-reply@example.com',
     }),
   ],
 });
