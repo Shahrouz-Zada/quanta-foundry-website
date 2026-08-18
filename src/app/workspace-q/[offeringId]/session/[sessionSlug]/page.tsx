@@ -28,18 +28,27 @@ export default async function LearningSessionPage(
 ) {
   const { offeringId, sessionSlug } = await props.params;
 
-  // 1. Validate that the user is allowed to access this offering
+  // 1. Resolve the Offering from the URL slug
+  const offering = await prisma.offering.findUnique({
+    where: { slug: offeringId }
+  });
+
+  if (!offering) {
+    notFound();
+  }
+
+  // 2. Authorize
   try {
-    await requireOfferingRole(offeringId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
+    await requireOfferingRole(offering.id, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
   } catch (err) {
     // If not enrolled or unauthenticated, Next.js will handle via Error boundary or redirect
     throw err;
   }
 
-  // 2. Resolve the OfferingSession from the URL slugs
+  // 3. Resolve the OfferingSession
   const offeringSession = await prisma.offeringSession.findFirst({
     where: {
-      offeringId,
+      offeringId: offering.id,
       sessionVersion: {
         session: { slug: sessionSlug }
       }
