@@ -16,6 +16,8 @@ import { CORE_STAGE_IDS, countCoreCompleted } from '@/lib/completion-rules';
 import type { CompletionState } from '@/lib/completion-rules';
 import SessionSidebar from './SessionSidebar';
 import StageContent from './StageContent';
+import { saveResponseAction, saveProgressAction } from '../../app/workspace-q/actions';
+import type { Progress, Response } from '@prisma/client';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -32,9 +34,14 @@ function isValidNavItem(s: string | null): s is NavItem {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-interface Props { session: LearningSession; }
+interface Props { 
+  session: LearningSession;
+  offeringSessionId: string;
+  initialProgress: Progress[];
+  initialResponses: Response[];
+}
 
-export default function SessionLayout({ session }: Props) {
+export default function SessionLayout({ session, offeringSessionId, initialProgress, initialResponses }: Props) {
   const { t } = useTranslation();
   const { setBreadcrumb } = useBreadcrumb();
 
@@ -55,13 +62,33 @@ export default function SessionLayout({ session }: Props) {
   const interpretCount = session.stages.find((s) => s.id === 'interpret')?.prompts?.length ?? 0;
   const reflectCount   = session.stages.find((s) => s.id === 'reflect')?.prompts?.length ?? 0;
 
-  const [prepareAnswers,      setPrepareAnswers]      = useState<string[]>(() => Array(prepareCount).fill(''));
-  const [exploreConfirmed,    setExploreConfirmed]    = useState(false);
-  const [experimentConfirmed, setExperimentConfirmed] = useState(false);
+  // Hydrate answers from initialResponses
+  const getInitialAnswers = (stageId: string, count: number) => {
+    const answers = Array(count).fill('');
+    initialResponses.forEach(r => {
+      if (r.blockId.startsWith(`${stageId}-`)) {
+        const idx = parseInt(r.blockId.split('-')[1], 10);
+        if (!isNaN(idx) && idx < count) {
+          answers[idx] = (r.value as any)?.text || '';
+        }
+      }
+    });
+    return answers;
+  };
+
+  const [prepareAnswers,      setPrepareAnswers]      = useState<string[]>(() => getInitialAnswers('prepare', prepareCount));
+  const [exploreConfirmed,    setExploreConfirmed]    = useState(() => initialProgress.some(p => p.stageId === 'explore' && p.state === 'COMPLETE'));
+  const [experimentConfirmed, setExperimentConfirmed] = useState(() => initialProgress.some(p => p.stageId === 'experiment' && p.state === 'COMPLETE'));
   const [experimentUrl,       setExperimentUrl]       = useState('');
-  const [interpretAnswers,    setInterpretAnswers]    = useState<string[]>(() => Array(interpretCount).fill(''));
-  const [buildConfirmed,      setBuildConfirmed]      = useState(false);
-  const [reflectAnswers,      setReflectAnswers]      = useState<string[]>(() => Array(reflectCount).fill(''));
+  const [interpretAnswers,    setInterpretAnswers]    = useState<string[]>(() => getInitialAnswers('interpret', interpretCount));
+  const [buildConfirmed,      setBuildConfirmed]      = useState(() => initialProgress.some(p => p.stageId === 'build' && p.state === 'COMPLETE'));
+  const [reflectAnswers,      setReflectAnswers]      = useState<string[]>(() => getInitialAnswers('reflect', reflectCount));
+
+  // Hydrate completed stages from initialProgress
+  useEffect(() => {
+    const completed = new Set(initialProgress.filter(p => p.state === 'COMPLETE').map(p => p.stageId as StageId));
+    setCompletedStages(completed);
+  }, [initialProgress]);
 
   // ── Resource availability (derived from session data, stable) ────────────
   // deckAvailable: true only when the deck file URL is non-null and non-empty
@@ -150,7 +177,8 @@ export default function SessionLayout({ session }: Props) {
     // Guard: publish is never added to completedStages
     if (stageId === 'publish') return;
     setCompletedStages((prev) => new Set([...prev, stageId]));
-  }, []);
+    saveProgressAction(offeringSessionId, stageId, 'COMPLETE').catch(console.error);
+  }, [offeringSessionId]);
 
   const handleUndoComplete = useCallback((stageId: StageId) => {
     setCompletedStages((prev) => {
@@ -158,18 +186,23 @@ export default function SessionLayout({ session }: Props) {
       next.delete(stageId);
       return next;
     });
-  }, []);
+    saveProgressAction(offeringSessionId, stageId, 'IN_PROGRESS').catch(console.error);
+  }, [offeringSessionId]);
 
   // ── Answer change handlers ────────────────────────────────────────────────
+  // In a production app, wrap these saveResponseAction calls in useDebounceCallback
   const handlePrepareAnswerChange = useCallback((i: number, v: string) => {
     setPrepareAnswers((p) => { const n = [...p]; n[i] = v; return n; });
-  }, []);
+    saveResponseAction(offeringSessionId, `prepare-${i}`, { text: v }).catch(console.error);
+  }, [offeringSessionId]);
   const handleInterpretChange = useCallback((i: number, v: string) => {
     setInterpretAnswers((p) => { const n = [...p]; n[i] = v; return n; });
-  }, []);
+    saveResponseAction(offeringSessionId, `interpret-${i}`, { text: v }).catch(console.error);
+  }, [offeringSessionId]);
   const handleReflectChange = useCallback((i: number, v: string) => {
     setReflectAnswers((p) => { const n = [...p]; n[i] = v; return n; });
-  }, []);
+    saveResponseAction(offeringSessionId, `reflect-${i}`, { text: v }).catch(console.error);
+  }, [offeringSessionId]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const activeStage  = session.stages.find((s) => s.id === activeItem);
@@ -292,15 +325,24 @@ export default function SessionLayout({ session }: Props) {
             prepareAnswers={prepareAnswers}
             onPrepareAnswerChange={handlePrepareAnswerChange}
             exploreConfirmed={exploreConfirmed}
-            onExploreConfirm={() => setExploreConfirmed(true)}
+            onExploreConfirm={() => {
+              setExploreConfirmed(true);
+              saveProgressAction(offeringSessionId, 'explore', 'COMPLETE').catch(console.error);
+            }}
             experimentConfirmed={experimentConfirmed}
-            onExperimentConfirm={() => setExperimentConfirmed(true)}
+            onExperimentConfirm={() => {
+              setExperimentConfirmed(true);
+              saveProgressAction(offeringSessionId, 'experiment', 'COMPLETE').catch(console.error);
+            }}
             experimentUrl={experimentUrl}
             onExperimentUrlChange={setExperimentUrl}
             interpretAnswers={interpretAnswers}
             onInterpretAnswerChange={handleInterpretChange}
             buildConfirmed={buildConfirmed}
-            onBuildConfirm={() => setBuildConfirmed(true)}
+            onBuildConfirm={() => {
+              setBuildConfirmed(true);
+              saveProgressAction(offeringSessionId, 'build', 'COMPLETE').catch(console.error);
+            }}
             reflectAnswers={reflectAnswers}
             onReflectAnswerChange={handleReflectChange}
             // Completion

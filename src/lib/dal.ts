@@ -93,10 +93,24 @@ export async function getEnrolledOfferings() {
 }
 
 /**
+ * Helper to require a role on an OfferingSession
+ */
+export const requireOfferingSessionRole = cache(
+  async (offeringSessionId: string, allowedRoles: EnrollmentRole[]) => {
+    const os = await prisma.offeringSession.findUnique({
+      where: { id: offeringSessionId },
+      select: { offeringId: true },
+    });
+    if (!os) throw new Error('OfferingSession not found.');
+    return requireOfferingRole(os.offeringId, allowedRoles);
+  }
+);
+
+/**
  * GET: Retrieve the full state of a Learning Session for a learner
  */
 export async function getLearnerSessionState(offeringSessionId: string) {
-  await requireOfferingRole(offeringSessionId, [EnrollmentRole.LEARNER]);
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER]);
   
   // A learner can only fetch their own progress, responses, and artifacts
   const user = await requireAuth();
@@ -132,7 +146,7 @@ export async function getLearnerSessionState(offeringSessionId: string) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function saveLearnerResponse(offeringSessionId: string, blockId: string, value: any) {
   const user = await requireAuth();
-  await requireOfferingRole(offeringSessionId, [EnrollmentRole.LEARNER]);
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER]);
 
   // Upsert the response
   return prisma.response.upsert({
@@ -151,6 +165,37 @@ export async function saveLearnerResponse(offeringSessionId: string, blockId: st
       offeringSessionId,
       blockId,
       value,
+    }
+  });
+}
+
+/**
+ * MUTATION: Save Stage Progress
+ */
+import { ProgressState } from '@prisma/client';
+
+export async function saveLearnerProgress(offeringSessionId: string, stageId: string, state: ProgressState) {
+  const user = await requireAuth();
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER]);
+
+  return prisma.progress.upsert({
+    where: {
+      userId_offeringSessionId_stageId: {
+        userId: user.id,
+        offeringSessionId,
+        stageId,
+      }
+    },
+    update: {
+      state,
+      completedAt: state === 'COMPLETE' ? new Date() : null,
+    },
+    create: {
+      userId: user.id,
+      offeringSessionId,
+      stageId,
+      state,
+      completedAt: state === 'COMPLETE' ? new Date() : null,
     }
   });
 }
