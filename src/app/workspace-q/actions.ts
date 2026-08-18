@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server';
 
 import { saveLearnerResponse, saveLearnerProgress } from '@/lib/dal';

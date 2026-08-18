@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({ path: '.env.local', override: true });
+
 import { Visibility, Audience, Status } from '@prisma/client';
 import { createHash } from 'crypto';
 import { session01 } from '../content/sessions/session-01';

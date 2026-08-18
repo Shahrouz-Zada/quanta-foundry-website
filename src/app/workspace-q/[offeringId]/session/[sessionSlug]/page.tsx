@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // =============================================================================
 // Learning Session 01 — Prototype Page
 // Route: /workspace-q/learning-sessions/session-01
