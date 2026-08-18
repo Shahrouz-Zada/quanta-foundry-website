@@ -10,12 +10,13 @@
 //   • Do NOT merge to main until reviewed and approved via Vercel Preview
 // =============================================================================
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getLearnerSessionState, requireOfferingRole } from '@/lib/dal';
 import { prisma } from '@/lib/prisma';
 import SessionLayout from '@/components/session/SessionLayout';
 import { EnrollmentRole } from '@prisma/client';
+import { auth } from '@/auth';
 
 export const metadata: Metadata = {
   title: 'Workspace Q — Learning Session',
@@ -37,12 +38,17 @@ export default async function LearningSessionPage(
     notFound();
   }
 
-  // 2. Authorize
+  // 2. Check if user is logged in; redirect to sign-in if not
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect('/api/auth/signin');
+  }
+
+  // 3. Authorize — redirect to workspace dashboard if not enrolled
   try {
     await requireOfferingRole(offering.id, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
-  } catch (err) {
-    // If not enrolled or unauthenticated, Next.js will handle via Error boundary or redirect
-    throw err;
+  } catch {
+    redirect('/workspace-q');
   }
 
   // 3. Resolve the OfferingSession
