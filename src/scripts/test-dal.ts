@@ -120,16 +120,16 @@ async function runTests() {
 
     // ── Test 6: Response / Progress / Artifact isolation (Cohort) ──────────
     // Create Response, Progress, and Project+Artifact owned by learner1
-    const l1Response = await prisma.response.create({
+    await prisma.response.create({
       data: { userId: learner1.id, offeringSessionId: cohortOfferingSession.id, blockId: 'block-1', value: { text: 'L1 answer' } }
     });
-    const l1Progress = await prisma.progress.create({
+    await prisma.progress.create({
       data: { userId: learner1.id, offeringSessionId: cohortOfferingSession.id, stageId: 'stage-1', state: 'IN_PROGRESS' }
     });
     const l1Project = await prisma.project.create({
       data: { ownerId: learner1.id, title: 'L1 Project', visibility: Visibility.COHORT }
     });
-    const l1Artifact = await prisma.artifact.create({
+    await prisma.artifact.create({
       data: {
         projectId: l1Project.id,
         type: 'notebook',
@@ -158,9 +158,9 @@ async function runTests() {
     // Learner1 fetches their state — must NOT see learner2's data
     mockAuth(learner1.id);
     const l1State = await getLearnerSessionState(cohortOfferingSession.id);
-    assert.ok(l1State.responses.every(r => r.userId === learner1.id), 'Responses must only belong to learner1');
-    assert.ok(l1State.progress.every(p => p.userId === learner1.id), 'Progress must only belong to learner1');
-    assert.ok(l1State.artifacts.every(a => a.project.ownerId === learner1.id), 'Artifacts must only belong to learner1');
+    assert.ok(l1State.responses.every((r: any) => r.userId === learner1.id), 'Responses must only belong to learner1');
+    assert.ok(l1State.progress.every((p: any) => p.userId === learner1.id), 'Progress must only belong to learner1');
+    assert.ok(l1State.artifacts.every((a: any) => a.project.ownerId === learner1.id), 'Artifacts must only belong to learner1');
     assert.strictEqual(l1State.responses.length, 1);
     assert.strictEqual(l1State.progress.length, 1);
     console.log('✅ Test 6: Cohort offering — learner sees only their own Response/Progress/Artifact data.');
@@ -177,7 +177,7 @@ async function runTests() {
     // Learner1 fetches state — must NOT see learner2's community response
     mockAuth(learner1.id);
     const communityState = await getLearnerSessionState(communityOfferingSession.id);
-    assert.ok(communityState.responses.every(r => r.userId === learner1.id), 'Community responses must be isolated per learner');
+    assert.ok(communityState.responses.every((r: any) => r.userId === learner1.id), 'Community responses must be isolated per learner');
     assert.strictEqual(communityState.responses.length, 1);
     console.log('✅ Test 7: Community offering — learner2\'s private work is never exposed to learner1.');
 
