@@ -38,17 +38,25 @@ export default async function LearningSessionPage(
     notFound();
   }
 
-  // 2. Check if user is logged in; redirect to sign-in if not
+  // The URL the user actually asked for — must survive the sign-in round trip.
+  const requestedPath = `/workspace-q/${offeringId}/session/${sessionSlug}`;
+
+  // 2. Check if user is logged in; redirect to sign-in if not, preserving
+  //    the destination via callbackUrl so Google OAuth returns here instead
+  //    of dropping the user on the dashboard.
   const session = await auth();
   if (!session?.user?.id) {
-    redirect('/api/auth/signin');
+    redirect(`/workspace-q/signin?callbackUrl=${encodeURIComponent(requestedPath)}`);
   }
 
-  // 3. Authorize — redirect to workspace dashboard if not enrolled
+  // 3. Authorize — redirect to workspace dashboard if not enrolled.
+  //    (Logged in but not enrolled is a different failure mode than "not
+  //    logged in", so this intentionally does NOT go through sign-in again —
+  //    but it does tell the dashboard why, instead of silently bouncing.)
   try {
     await requireOfferingRole(offering.id, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
   } catch {
-    redirect('/workspace-q');
+    redirect('/workspace-q?error=not-enrolled');
   }
 
   // 3. Resolve the OfferingSession

@@ -2,7 +2,12 @@ import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   pages: {
-    signIn: '/workspace-q', // Redirect back to workspace dashboard for login
+    // A real sign-in page that reads `callbackUrl` and forwards it into
+    // signIn('google', { callbackUrl }) — see src/app/workspace-q/signin/page.tsx.
+    // This used to point at '/workspace-q' (the plain dashboard), which has
+    // no sign-in UI and doesn't read callbackUrl, so the deep-linked
+    // destination was silently dropped on every login.
+    signIn: '/workspace-q/signin',
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
