@@ -76,6 +76,7 @@ export default async function LearningSessionPage(
 
   // 3. Fetch the full state (content + user progress + user responses)
   const state = await getLearnerSessionState(offeringSession.id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessionContent = state.sessionVersion.content as any;
 
   return (
