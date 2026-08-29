@@ -110,9 +110,9 @@ export const requireOfferingSessionRole = cache(
  * GET: Retrieve the full state of a Learning Session for a learner
  */
 export async function getLearnerSessionState(offeringSessionId: string) {
-  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER]);
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
   
-  // A learner can only fetch their own progress, responses, and artifacts
+  // A learner (or instructor previewing) can only fetch their own progress, responses, and artifacts
   const user = await requireAuth();
 
   const offeringSession = await prisma.offeringSession.findUnique({
@@ -146,7 +146,7 @@ export async function getLearnerSessionState(offeringSessionId: string) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function saveLearnerResponse(offeringSessionId: string, blockId: string, value: any) {
   const user = await requireAuth();
-  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER]);
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
 
   // Upsert the response
   return prisma.response.upsert({
@@ -176,7 +176,7 @@ import { ProgressState } from '@prisma/client';
 
 export async function saveLearnerProgress(offeringSessionId: string, stageId: string, state: ProgressState) {
   const user = await requireAuth();
-  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER]);
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
 
   return prisma.progress.upsert({
     where: {
