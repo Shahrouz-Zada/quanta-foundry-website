@@ -15,6 +15,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Allow linking a Google sign-in to an existing user record that was
+      // created by a script or another provider (e.g. the admin enrollment
+      // script). Without this, NextAuth throws OAuthAccountNotLinked.
+      allowDangerousEmailAccountLinking: true,
     }),
     Nodemailer({
       server: process.env.EMAIL_SERVER || 'smtp://localhost:25',
