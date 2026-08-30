@@ -23,6 +23,43 @@ if (!googleClientId || !googleClientSecret) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Startup diagnostics for the two environment mistakes that make Auth.js show
+// the generic "There is a problem with the server configuration" page.
+//
+// Auth.js checks its config in a fixed order and returns the FIRST failure
+// (see @auth/core/src/lib/utils/assert.ts). Both failures below render that
+// same unhelpful page, so we surface them explicitly instead.
+// ---------------------------------------------------------------------------
+
+// 1. AUTH_SECRET. Auth.js returns `MissingSecret` -> Configuration page when
+//    this is unset or empty. It is NOT auto-generated in production.
+if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    'Missing AUTH_SECRET. Generate one with `npx auth secret` and set it in ' +
+    'the environment (and in Vercel -> Settings -> Environment Variables). ' +
+    'Without it Auth.js fails with a generic "server configuration" error.'
+  );
+}
+
+// 2. AUTH_URL. When set, Auth.js/next-auth rewrite every request origin to it
+//    and build Google's redirect_uri from it, ignoring the real request host.
+//    A localhost value (as shipped in .env.example for local dev) therefore
+//    breaks production: the OAuth redirect and the PKCE cookie end up scoped
+//    to different origins, producing "PKCE code_verifier cookie was missing".
+//    On Vercel, AUTH_URL should simply be UNSET so the host is auto-detected.
+if (process.env.NODE_ENV === 'production' && process.env.AUTH_URL) {
+  const authUrl = process.env.AUTH_URL;
+  if (/^http:\/\/(localhost|127\.0\.0\.1)/i.test(authUrl)) {
+    throw new Error(
+      `AUTH_URL is set to "${authUrl}" in a production build. This forces all ` +
+      'OAuth redirects and auth cookies onto localhost and will break sign-in. ' +
+      'Remove AUTH_URL from the production environment (Vercel auto-detects the ' +
+      'host), or set it to the real canonical https:// origin.'
+    );
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   // Cast prisma to any to bypass the missing session model type error,
@@ -44,4 +81,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 });
-
