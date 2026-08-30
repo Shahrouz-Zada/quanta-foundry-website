@@ -1,6 +1,20 @@
 import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
+  // Vercel serves this app on more than one host (the stable custom domain,
+  // e.g. www.quantafoundry.com, and the auto-generated *.vercel.app
+  // deployment URL). Without trustHost, Auth.js builds the Google
+  // redirect_uri and the callback URL from a single fixed AUTH_URL, which
+  // can end up pointing at a different host than whichever one the user
+  // actually started the sign-in flow on. The PKCE cookie set during
+  // /api/auth/signin is scoped to that first host, so when Google's
+  // redirect lands on a different host, the cookie never arrives —
+  // exactly the "PKCE code_verifier cookie was missing" (InvalidCheck)
+  // error seen in production. trustHost tells Auth.js to build both the
+  // cookie and the redirect_uri from whatever host the request actually
+  // came in on, so they always match. Safe here since Vercel's own
+  // platform is the one setting the forwarded host header.
+  trustHost: true,
   pages: {
     // A real sign-in page that reads `callbackUrl` and forwards it into
     // signIn('google', { callbackUrl }) — see src/app/workspace-q/signin/page.tsx.
