@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import { EnrollmentRole, GlobalRole } from '@prisma/client';
+import { EnrollmentRole, GlobalRole, Prisma } from '@prisma/client';
 import { cache } from 'react';
 
 // ============================================================================
@@ -143,8 +143,7 @@ export async function getLearnerSessionState(offeringSessionId: string) {
 /**
  * MUTATION: Save a Block Response
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function saveLearnerResponse(offeringSessionId: string, blockId: string, value: any) {
+export async function saveLearnerResponse(offeringSessionId: string, blockId: string, value: Prisma.InputJsonValue) {
   const user = await requireAuth();
   await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
 

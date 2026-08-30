@@ -1,18 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server';
 
 import { saveLearnerResponse, saveLearnerProgress } from '@/lib/dal';
-import { ProgressState } from '@prisma/client';
+import { Prisma, ProgressState } from '@prisma/client';
 
-export async function saveResponseAction(offeringSessionId: string, blockId: string, value: any) {
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export async function saveResponseAction(offeringSessionId: string, blockId: string, value: Prisma.InputJsonValue) {
   try {
     await saveLearnerResponse(offeringSessionId, blockId, value);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to save response:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorMessage(error) };
   }
 }
 
@@ -20,8 +21,8 @@ export async function saveProgressAction(offeringSessionId: string, stageId: str
   try {
     await saveLearnerProgress(offeringSessionId, stageId, state);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to save progress:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorMessage(error) };
   }
 }

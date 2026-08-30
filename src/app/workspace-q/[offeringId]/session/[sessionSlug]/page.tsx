@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // =============================================================================
 // Learning Session 01 — Prototype Page
 // Route: /workspace-q/learning-sessions/session-01
@@ -17,6 +16,7 @@ import { prisma } from '@/lib/prisma';
 import SessionLayout from '@/components/session/SessionLayout';
 import { EnrollmentRole } from '@prisma/client';
 import { auth } from '@/auth';
+import type { LearningSession } from '@/types/learning-session';
 
 export const metadata: Metadata = {
   title: 'Workspace Q — Learning Session',
@@ -76,8 +76,11 @@ export default async function LearningSessionPage(
 
   // 3. Fetch the full state (content + user progress + user responses)
   const state = await getLearnerSessionState(offeringSession.id);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sessionContent = state.sessionVersion.content as any;
+  // The Prisma `content` column is a validated JSON snapshot (see
+  // SessionVersion.contentHash / schemaVersion) whose real shape is
+  // LearningSession — go through `unknown` since Json and LearningSession
+  // don't structurally overlap enough for TS to allow a direct cast.
+  const sessionContent = state.sessionVersion.content as unknown as LearningSession;
 
   return (
     <SessionLayout 

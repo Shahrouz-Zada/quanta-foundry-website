@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 // =============================================================================
 // SessionLayout — Learning Sessions Prototype
@@ -72,7 +69,7 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
       if (r.blockId.startsWith(`${stageId}-`)) {
         const idx = parseInt(r.blockId.split('-')[1], 10);
         if (!isNaN(idx) && idx < count) {
-          answers[idx] = (r.value as any)?.text || '';
+          answers[idx] = (r.value as { text?: string } | null)?.text || '';
         }
       }
     });
