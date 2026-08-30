@@ -16,7 +16,7 @@ import { prisma } from '@/lib/prisma';
 import SessionLayout from '@/components/session/SessionLayout';
 import { EnrollmentRole } from '@prisma/client';
 import { auth } from '@/auth';
-import type { LearningSession } from '@/types/learning-session';
+import { toLearningSession } from '@/lib/session-content-adapter';
 
 export const metadata: Metadata = {
   title: 'Workspace Q — Learning Session',
@@ -59,7 +59,7 @@ export default async function LearningSessionPage(
     redirect('/workspace-q?error=not-enrolled');
   }
 
-  // 3. Resolve the OfferingSession
+  // 4. Resolve the OfferingSession
   const offeringSession = await prisma.offeringSession.findFirst({
     where: {
       offeringId: offering.id,
@@ -67,20 +67,25 @@ export default async function LearningSessionPage(
         session: { slug: sessionSlug }
       }
     },
-    select: { id: true }
+    select: { id: true, order: true }
   });
 
   if (!offeringSession) {
     notFound();
   }
 
-  // 3. Fetch the full state (content + user progress + user responses)
+  // 5. Fetch the full state (content + user progress + user responses)
   const state = await getLearnerSessionState(offeringSession.id);
-  // The Prisma `content` column is a validated JSON snapshot (see
-  // SessionVersion.contentHash / schemaVersion) whose real shape is
-  // LearningSession — go through `unknown` since Json and LearningSession
-  // don't structurally overlap enough for TS to allow a direct cast.
-  const sessionContent = state.sessionVersion.content as unknown as LearningSession;
+
+  // The stored `content` Json uses the authored SessionContent schema
+  // (block-based stages, `summary`, `estimatedMinutes`), while this UI renders
+  // the LearningSession shape (flattened prompts/resources, `outputBadges`,
+  // `estimatedTime`). Casting between them compiled but crashed at runtime on
+  // `session.outputBadges.map(...)`, since that field does not exist in the
+  // stored content. Convert explicitly instead.
+  const sessionContent = toLearningSession(state.sessionVersion.content, {
+    sessionNumber: offeringSession.order,
+  });
 
   return (
     <SessionLayout 
