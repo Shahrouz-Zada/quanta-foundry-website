@@ -12,7 +12,6 @@ import { Check, ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import type { LearningStage, StageId } from '@/types/learning-session';
 import { useTranslation, type MessageKey } from '@/lib/i18n';
-import { CORE_STAGE_IDS } from '@/lib/completion-rules';
 
 export type NavItem = 'overview' | StageId;
 
@@ -173,34 +172,38 @@ export default function SessionSidebar({
       </nav>
 
       {/* ── Progress (expanded) ──────────────────────────────────────── */}
-      {isExpanded && (
-        <div className="shrink-0 border-t border-[var(--wq-shell-border)] px-4 py-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] text-[var(--wq-shell-label)] uppercase tracking-wider select-none">
-              {t('nav.progress')}
-            </span>
-            <span className="text-[10px] text-white/45 font-medium tabular-nums">
-              {coreCompleted} / {CORE_STAGE_IDS.length}
-            </span>
-          </div>
-          <div
-            role="progressbar"
-            aria-valuenow={coreCompleted}
-            aria-valuemin={0}
-            aria-valuemax={CORE_STAGE_IDS.length}
-            aria-label={t('completion.progress', { n: coreCompleted })}
-            className="h-1 rounded-full bg-white/8 overflow-hidden"
-          >
+      {isExpanded && (() => {
+        // Compute dynamically. If we have 4 core stages, this shows 0 / 4.
+        const coreTotal = stages.filter(s => s.isCore).length;
+        return (
+          <div className="shrink-0 border-t border-[var(--wq-shell-border)] px-4 py-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] text-[var(--wq-shell-label)] uppercase tracking-wider select-none">
+                {t('nav.progress')}
+              </span>
+              <span className="text-[10px] text-white/45 font-medium tabular-nums">
+                {coreCompleted} / {coreTotal}
+              </span>
+            </div>
             <div
-              className="h-full rounded-full bg-[var(--wq-accent)] transition-all duration-500 ease-out motion-reduce:transition-none"
-              style={{ width: `${(coreCompleted / CORE_STAGE_IDS.length) * 100}%` }}
-            />
+              role="progressbar"
+              aria-valuenow={coreCompleted}
+              aria-valuemin={0}
+              aria-valuemax={coreTotal}
+              aria-label={t('completion.progress', { n: coreCompleted, total: coreTotal })}
+              className="h-1 rounded-full bg-white/8 overflow-hidden"
+            >
+              <div
+                className="h-full rounded-full bg-[var(--wq-accent)] transition-all duration-500 ease-out motion-reduce:transition-none"
+                style={{ width: `${(coreCompleted / Math.max(1, coreTotal)) * 100}%` }}
+              />
+            </div>
+            <p className="mt-2 text-[10px] text-[var(--wq-shell-label)] leading-snug">
+              {t('completion.progress', { n: coreCompleted, total: coreTotal })}
+            </p>
           </div>
-          <p className="mt-2 text-[10px] text-[var(--wq-shell-label)] leading-snug">
-            {t('completion.progress', { n: coreCompleted })}
-          </p>
-        </div>
-      )}
+        );
+      })()}
     </aside>
   );
 }

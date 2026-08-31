@@ -57,7 +57,11 @@ export default function StageCompletionPanel({
   const { t } = useTranslation();
   const rule  = COMPLETION_RULES[stageId] as StageCompletionRule | undefined;
 
-  // Publish has its own separate UI — this panel is not rendered for it
+  // Publish has its own separate UI — this panel is not rendered for it.
+  // Note: Unlike progress bars/navigation, this explicit 'publish' check
+  // remains hardcoded because it's a routing/layout decision (PublishBody
+  // completely replaces this panel with a 4-phase review UI), not a data
+  // modelling one.
   if (stageId === 'publish' || !rule) return null;
 
   const canComplete = rule.canComplete(completionState);

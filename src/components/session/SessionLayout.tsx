@@ -12,7 +12,7 @@ import type { LearningSession, StageId } from '@/types/learning-session';
 import type { NavItem } from './SessionSidebar';
 import { useTranslation, type MessageKey } from '@/lib/i18n';
 import { useBreadcrumb } from '@/lib/breadcrumb-context';
-import { CORE_STAGE_IDS, countCoreCompleted } from '@/lib/completion-rules';
+import { countCoreCompleted } from '@/lib/completion-rules';
 import type { CompletionState } from '@/lib/completion-rules';
 import SessionSidebar from './SessionSidebar';
 import StageContent from './StageContent';
@@ -22,15 +22,6 @@ import type { Progress, Response, LockState } from '@prisma/client';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 export type PublishState = 'none' | 'drafting' | 'review-requested' | 'published';
-
-const STAGE_IDS: StageId[] = [
-  'prepare', 'explore', 'experiment', 'interpret', 'build', 'reflect', 'publish',
-];
-const ALL_NAV_ITEMS: NavItem[] = ['overview', ...STAGE_IDS];
-
-function isValidNavItem(s: string | null): s is NavItem {
-  return s !== null && (ALL_NAV_ITEMS as string[]).includes(s);
-}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -108,6 +99,31 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
   const [predictionLockPending, setPredictionLockPending] = useState(false);
   const [predictionLockError, setPredictionLockError] = useState<string | null>(null);
 
+  // ── Stage sequence & core-progress, derived from the real session data ────
+  // These used to be a hardcoded 7-item module constant and a hardcoded
+  // 6-item CORE_STAGE_IDS constant (spec section 9 explicitly says not to
+  // hardcode the stage count globally). Deriving them from `session.stages`
+  // means a session with a different stage set — fewer stages, or a
+  // different one marked non-core — gets correct navigation and progress
+  // with no code change, straight from the same SessionVersion data the
+  // sidebar and Overview badge also read.
+  const navItems = useMemo<NavItem[]>(
+    () => ['overview', ...session.stages.map((s) => s.id)],
+    [session.stages]
+  );
+  const coreStageIds = useMemo<StageId[]>(
+    () => session.stages.filter((s) => s.isCore).map((s) => s.id),
+    [session.stages]
+  );
+  const lastStageId = useMemo(
+    () => session.stages[session.stages.length - 1]?.id ?? null,
+    [session.stages]
+  );
+  const isValidNavItem = useCallback(
+    (s: string | null): s is NavItem => s !== null && (navItems as string[]).includes(s),
+    [navItems]
+  );
+
   // Hydrate completed stages from initialProgress
   useEffect(() => {
     const completed = new Set(initialProgress.filter(p => p.state === 'COMPLETE').map(p => p.stageId as StageId));
@@ -157,7 +173,7 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
     syncFromUrl();
     window.addEventListener('popstate', syncFromUrl);
     return () => window.removeEventListener('popstate', syncFromUrl);
-  }, []);
+  }, [isValidNavItem]);
 
   // ── Sync breadcrumb with active item ──────────────────────────────────────
   useEffect(() => {
@@ -180,10 +196,10 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, []);
 
-  const activeIndex = ALL_NAV_ITEMS.indexOf(activeItem);
+  const activeIndex = navItems.indexOf(activeItem);
 
-  const prevItem = activeIndex > 0 ? ALL_NAV_ITEMS[activeIndex - 1] : null;
-  const nextItem = activeIndex < ALL_NAV_ITEMS.length - 1 ? ALL_NAV_ITEMS[activeIndex + 1] : null;
+  const prevItem = activeIndex > 0 ? navItems[activeIndex - 1] : null;
+  const nextItem = activeIndex < navItems.length - 1 ? navItems[activeIndex + 1] : null;
 
   const prevStageLabel = prevItem ? t(`stage.${prevItem}` as MessageKey) : '';
   const nextStageLabel = nextItem ? t(`stage.${nextItem}` as MessageKey) : '';
@@ -198,11 +214,15 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
 
   // ── Completion handlers ───────────────────────────────────────────────────
   const handleStageComplete = useCallback((stageId: StageId) => {
-    // Guard: publish is never added to completedStages
-    if (stageId === 'publish') return;
+    // Guard: a non-core stage (e.g. Publish) is never added to
+    // completedStages — it has its own tracking (publishState) and must
+    // not count toward core progress. Derived from the stage's real
+    // `isCore` flag rather than a hardcoded 'publish' check, so this holds
+    // for any future session that marks a different stage optional.
+    if (!coreStageIds.includes(stageId)) return;
     setCompletedStages((prev) => new Set([...prev, stageId]));
     saveProgressAction(offeringSessionId, stageId, 'COMPLETE').catch(console.error);
-  }, [offeringSessionId]);
+  }, [offeringSessionId, coreStageIds]);
 
   const handleUndoComplete = useCallback((stageId: StageId) => {
     setCompletedStages((prev) => {
@@ -264,7 +284,7 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
   const activeLabel  = activeItem === 'overview'
     ? t('stage.overview')
     : (activeStage?.title ?? '');
-  const coreCompleted = countCoreCompleted(completedStages);
+  const coreCompleted = countCoreCompleted(coreStageIds, completedStages);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -325,7 +345,8 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
               {session.stages.map((stage, index) => {
                 const isActive   = activeItem === stage.id;
                 const isDone     = completedStages.has(stage.id);
-                const isOptional = stage.id === 'publish';
+                // The DB/adapter now dictates optionality via isCore
+                const isOptional = !stage.isCore;
                 return (
                   <button key={stage.id} onClick={() => navigateTo(stage.id)} aria-current={isActive ? 'step' : undefined}
                     className={cn('flex items-center gap-3 mx-1 px-3 py-3 rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wq-accent)] focus-visible:ring-inset', isActive ? 'bg-[var(--wq-accent)]/18 text-white' : isDone ? 'text-white/55 hover:bg-white/5 hover:text-white/75' : 'text-white/22 hover:bg-white/4 hover:text-white/45')}>
@@ -341,10 +362,10 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
             </nav>
             <div className="shrink-0 border-t border-[var(--wq-shell-border)] px-4 py-4">
               <p className="text-xs text-[var(--wq-shell-label)] tabular-nums">
-                {t('completion.progress', { n: coreCompleted })}
+                {t('completion.progress', { n: coreCompleted, total: coreStageIds.length })}
               </p>
               <div className="h-1 rounded-full bg-white/8 overflow-hidden mt-2">
-                <div className="h-full rounded-full bg-[var(--wq-accent)] transition-all duration-500 motion-reduce:transition-none" style={{ width: `${(coreCompleted / CORE_STAGE_IDS.length) * 100}%` }} />
+                <div className="h-full rounded-full bg-[var(--wq-accent)] transition-all duration-500 motion-reduce:transition-none" style={{ width: `${(coreCompleted / coreStageIds.length) * 100}%` }} />
               </div>
             </div>
           </div>
@@ -417,7 +438,7 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
             prevStageLabel={prevStageLabel}
             nextStageLabel={nextStageLabel}
             isOverview={activeItem === 'overview'}
-            isLastStage={activeItem === 'publish'}
+            isLastStage={activeItem === lastStageId}
             onPrev={goToPrev}
             onNext={goToNext}
           />

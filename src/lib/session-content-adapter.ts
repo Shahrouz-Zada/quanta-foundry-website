@@ -76,7 +76,12 @@ interface StoredStage {
   order?: unknown;
   title?: unknown;
   description?: unknown;
+  isCore?: unknown;
   blocks?: unknown;
+}
+
+function asOrder(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER;
 }
 
 interface StoredSessionContent {
@@ -170,6 +175,11 @@ function toStage(raw: unknown): LearningStage | null {
     id: keyCandidate,
     title: asString(s.title, keyCandidate),
     description: asString(s.description),
+    // Whether this stage counts toward core progress. Defaults to true to
+    // match content-schemas.ts's `Stage.isCore` Zod default — a stage
+    // authored without the field is core unless explicitly marked otherwise,
+    // same as the DB-side schema assumes.
+    isCore: typeof s.isCore === 'boolean' ? s.isCore : true,
     prompts,
     resources,
     reveals,
@@ -189,7 +199,14 @@ export function toLearningSession(
     typeof storedContent === 'object' && storedContent !== null ? storedContent : {}
   ) as StoredSessionContent;
 
+  // Sort by the authored `order` field rather than trusting JSON array
+  // position — the two happen to agree in the current content, but the UI's
+  // stage sequence (nav, prev/next, sidebar numbering) should come from the
+  // field that's actually meant to define it. A stage with a missing/invalid
+  // order sorts last rather than throwing.
   const stages = asArray(content.stages)
+    .slice()
+    .sort((a, b) => asOrder((a as StoredStage)?.order) - asOrder((b as StoredStage)?.order))
     .map((stage) => toStage(stage))
     .filter((stage): stage is LearningStage => stage !== null);
 

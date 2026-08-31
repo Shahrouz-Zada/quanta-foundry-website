@@ -158,12 +158,16 @@ export const COMPLETION_RULES: Record<StageId, StageCompletionRule> = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** The 6 core stages that count toward progress. Publish is excluded. */
-export const CORE_STAGE_IDS: StageId[] = [
-  'prepare', 'explore', 'experiment', 'interpret', 'build', 'reflect',
-];
+//
+// There used to be a hardcoded `CORE_STAGE_IDS` constant here (the 6
+// non-Publish stages). That baked "this session has exactly these 7 stages"
+// into the app, which is exactly what spec section 9 says not to do — a
+// different session may use a different subset. The set of core stages is
+// now derived per-session from `LearningStage.isCore` (itself carried
+// through from the authored content's `Stage.isCore` via the adapter — see
+// session-content-adapter.ts) and passed in here, not assumed globally.
 
-/** Count how many core stages are completed */
-export function countCoreCompleted(completedStages: Set<StageId>): number {
-  return CORE_STAGE_IDS.filter((id) => completedStages.has(id)).length;
+/** Count how many of the given core stage IDs are completed. */
+export function countCoreCompleted(coreStageIds: StageId[], completedStages: Set<StageId>): number {
+  return coreStageIds.filter((id) => completedStages.has(id)).length;
 }

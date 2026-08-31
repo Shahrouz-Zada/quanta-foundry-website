@@ -82,8 +82,53 @@ export const session01: SessionContent = {
       ]
     },
     {
-      id: 'stage-build',
+      id: 'stage-interpret',
       order: 4,
+      key: 'interpret',
+      title: 'Interpret',
+      description: 'Pause before drawing conclusions. Use these prompts to reason about what the results actually show.',
+      defaultPlacement: 'in-session',
+      isCore: true,
+      blocks: [
+        // NOTE: no predictionReveal block yet. That block's `resultText` is
+        // supposed to be the actual outcome of running the Experiment-stage
+        // notebook (naive benchmark vs logistic regression) — a real finding
+        // from executing it, not something to write ahead of time. Add a
+        // block here of the form:
+        //   { id: 'b-interp-reveal', type: 'predictionReveal',
+        //     linkedPredictionBlockId: 'b-expr-lock', resultText: '<real result>' }
+        // once that number exists. The adapter and UI already support it —
+        // see PREDICTION_LOCK_UI_WIRING.md.
+        {
+          id: 'b-interp-q1',
+          type: 'openQuestion',
+          prompt: 'What patterns do you observe in the model output? Describe what you see numerically.',
+        },
+        {
+          id: 'b-interp-q2',
+          type: 'openQuestion',
+          prompt: 'What might explain the difference in performance between the naive benchmark and the logistic regression?',
+        },
+        {
+          id: 'b-interp-q3',
+          type: 'openQuestion',
+          prompt: 'What does a higher accuracy score not prove about the model?',
+        },
+        {
+          id: 'b-interp-q4',
+          type: 'openQuestion',
+          prompt: 'Which assumption in this experiment matters most to the validity of the result?',
+        },
+        {
+          id: 'b-interp-q5',
+          type: 'openQuestion',
+          prompt: 'What would you design as the next experiment, and why?',
+        },
+      ]
+    },
+    {
+      id: 'stage-build',
+      order: 5,
       key: 'build',
       title: 'Build',
       description: 'Translate your work into a structured project artifact: the Prediction Problem Brief.',
@@ -94,6 +139,58 @@ export const session01: SessionContent = {
           id: 'b-build-editor',
           type: 'artifactEditor',
           templateId: 'template-prediction-brief'
+        }
+      ]
+    },
+    {
+      id: 'stage-reflect',
+      order: 6,
+      key: 'reflect',
+      title: 'Reflect',
+      description: 'Step back from the result. Critical reflection is how experimental work becomes real knowledge.',
+      defaultPlacement: 'after',
+      isCore: true,
+      blocks: [
+        {
+          id: 'b-reflect-q1',
+          type: 'openQuestion',
+          prompt: 'What aspect of this session worked well for your understanding?',
+        },
+        {
+          id: 'b-reflect-q2',
+          type: 'openQuestion',
+          prompt: 'What failed or remained genuinely unclear after the experiment?',
+        },
+        {
+          id: 'b-reflect-q3',
+          type: 'openQuestion',
+          prompt: 'What remains uncertain, even if the model performed well?',
+        },
+        {
+          id: 'b-reflect-q4',
+          type: 'openQuestion',
+          prompt: 'What would you change about the experimental design?',
+        },
+        {
+          id: 'b-reflect-q5',
+          type: 'openQuestion',
+          prompt: 'What did the result not prove, even under the best interpretation?',
+        },
+      ]
+    },
+    {
+      id: 'stage-publish',
+      order: 7,
+      key: 'publish',
+      title: 'Publish',
+      description: 'Strong session outputs may be revised into a Quanta Foundry Projects & Notes entry — after review, consent, and attribution confirmation.',
+      defaultPlacement: 'after',
+      isCore: false,
+      blocks: [
+        {
+          id: 'b-publish-intro',
+          type: 'prose',
+          content: 'Publishing is optional and reviewed separately from the six core stages above. Nothing you submit here becomes public without your explicit consent at each step.',
         }
       ]
     }

@@ -57,7 +57,7 @@ const messages = {
     'completion.requirements':    'Stage requirements',
     'completion.markComplete':    'Mark {stage} as Complete',
     'completion.completed':       '{stage} completed',
-    'completion.progress':        '{n} of 6 core stages completed',
+    'completion.progress':        '{n} of {total} core stages completed',
     'completion.optional':        'optional',
     'completion.optionalPublish': 'Publish is optional and tracked separately from the six core stages.',
 
@@ -196,7 +196,7 @@ const messages = {
     'completion.requirements':    'Exigences de l\'étape',
     'completion.markComplete':    'Marquer {stage} comme terminé',
     'completion.completed':       '{stage} terminé',
-    'completion.progress':        '{n} des 6 étapes principales terminées',
+    'completion.progress':        '{n} des {total} étapes principales terminées',
     'completion.optional':        'optionnel',
     'completion.optionalPublish': 'Publier est optionnel et suivi séparément des six étapes principales.',
 

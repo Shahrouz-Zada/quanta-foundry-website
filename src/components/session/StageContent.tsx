@@ -13,7 +13,7 @@ import type { NavItem } from './SessionSidebar';
 import type { CompletionState } from '@/lib/completion-rules';
 import type { PublishState } from './SessionLayout';
 import { useTranslation, type MessageKey } from '@/lib/i18n';
-import { CORE_STAGE_IDS } from '@/lib/completion-rules';
+
 import ResourceCard from './ResourceCard';
 import PromptBlock from './PromptBlock';
 import EmbeddedDeck from './EmbeddedDeck';
@@ -37,12 +37,6 @@ const STATUS_ICONS: Record<string, string> = {
   active:    '●',
   archived:  '○',
 };
-
-// ── ALL nav items in order ────────────────────────────────────────────────────
-
-const ALL_NAV_ITEMS: NavItem[] = [
-  'overview', 'prepare', 'explore', 'experiment', 'interpret', 'build', 'reflect', 'publish',
-];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -306,7 +300,7 @@ export default function StageContent({
 
           {/* Progress dots */}
           <div className="flex-1 flex items-center justify-center gap-1.5" aria-hidden="true">
-            {ALL_NAV_ITEMS.map((item) => (
+            {(['overview', ...session.stages.map(s => s.id)] as NavItem[]).map((item) => (
               <span
                 key={item}
                 className={[
@@ -391,7 +385,7 @@ function OverviewBody({ session, t }: { session: LearningSession; t: TFn }) {
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[var(--wq-border)] text-[var(--wq-text-muted)] border border-[var(--wq-border)] ml-auto">
-          <FlaskConical size={11} aria-hidden="true" />{CORE_STAGE_IDS.length + 1} stages
+          <FlaskConical size={11} aria-hidden="true" />{session.stages.length} stages
         </span>
       </div>
 
@@ -404,10 +398,10 @@ function OverviewBody({ session, t }: { session: LearningSession; t: TFn }) {
           {session.stages.map((stg, index) => (
             <li key={stg.id} className="flex items-start gap-3">
               <span aria-hidden="true" className="shrink-0 w-6 h-6 rounded-full bg-[var(--wq-shell)] text-[var(--wq-shell-text)] text-[10px] font-bold flex items-center justify-center mt-0.5">
-                {String(index + 1).padStart(2, '00')}
+                {String(index + 1).padStart(2, '0')}
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[var(--wq-text)]">{stg.title}</p>
+                <p className="text-sm font-semibold text-[var(--wq-text)] flex items-center gap-2">{stg.title}{!stg.isCore && <span className="text-[10px] font-medium text-[var(--wq-gold)]/70 uppercase tracking-wider">({t('completion.optional')})</span>}</p>
                 <p className="text-xs text-[var(--wq-text-muted)] leading-relaxed mt-0.5">{stg.description}</p>
               </div>
             </li>

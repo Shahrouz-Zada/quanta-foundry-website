@@ -1,6 +1,15 @@
 // =============================================================================
 // Quanta Foundry — Learning Session Static Data
 // Prototype: feature/learning-sessions-prototype
+//
+// NOT IMPORTED ANYWHERE — this predates the DB-backed session page and is
+// dead code today (kept type-correct only so it doesn't break `next build`,
+// which type-checks the whole src tree regardless of imports).
+//
+// Its Interpret/Reflect/Publish stage copy has since been migrated into
+// src/content/sessions/session-01.ts — the actual authored content the DB
+// seeds from, which is now the source of truth for all 7 stages. This file
+// is kept only as a historical reference; don't add new content here.
 // =============================================================================
 
 import type { LearningSession } from '@/types/learning-session';
@@ -21,6 +30,7 @@ export const SESSION_01: LearningSession = {
   stages: [
     {
       id: 'prepare',
+      isCore: true,
       title: 'Prepare',
       description:
         'Arrive with context. The readings and questions below will help you engage more deeply with the session.',
@@ -51,6 +61,7 @@ export const SESSION_01: LearningSession = {
     },
     {
       id: 'explore',
+      isCore: true,
       title: 'Explore',
       description:
         'Work through the interactive teaching deck at your own pace. Use it to build a shared vocabulary before running the experiment.',
@@ -67,6 +78,7 @@ export const SESSION_01: LearningSession = {
     },
     {
       id: 'experiment',
+      isCore: true,
       title: 'Experiment',
       description:
         'Run the computational experiment: naive benchmark versus logistic regression for market-stress classification.',
@@ -106,6 +118,7 @@ export const SESSION_01: LearningSession = {
     },
     {
       id: 'interpret',
+      isCore: true,
       title: 'Interpret',
       description:
         'Pause before drawing conclusions. Use these prompts to reason about what the results actually show.',
@@ -119,6 +132,7 @@ export const SESSION_01: LearningSession = {
     },
     {
       id: 'build',
+      isCore: true,
       title: 'Build',
       description:
         'Translate your work into a structured project artifact: the Prediction Problem Brief.',
@@ -134,6 +148,7 @@ export const SESSION_01: LearningSession = {
     },
     {
       id: 'reflect',
+      isCore: true,
       title: 'Reflect',
       description:
         'Step back from the result. Critical reflection is how experimental work becomes real knowledge.',
@@ -147,6 +162,7 @@ export const SESSION_01: LearningSession = {
     },
     {
       id: 'publish',
+      isCore: false,
       title: 'Publish',
       description:
         'Strong session outputs may be revised into a Quanta Foundry Projects & Notes entry — after review, consent, and attribution confirmation.',

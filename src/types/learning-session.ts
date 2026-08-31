@@ -56,6 +56,14 @@ export interface LearningStage {
   id: StageId;
   title: string;
   description: string;
+  /**
+   * Whether this stage counts toward the session's core-progress total.
+   * Carried through from the authored content's `Stage.isCore` (see
+   * content-schemas.ts) — the UI derives "how many stages", "how many are
+   * core", and "which are optional" from this per-session, per-stage flag
+   * rather than assuming a fixed 6-core-plus-Publish shape.
+   */
+  isCore: boolean;
   resources?: SessionResource[];
   prompts?: PromptItem[];
   reveals?: PredictionReveal[];
