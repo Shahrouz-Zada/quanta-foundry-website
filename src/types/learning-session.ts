@@ -82,3 +82,32 @@ export interface LearningSession {
   outputBadges: string[];
   stages: LearningStage[];
 }
+
+/**
+ * Prediction Problem Brief content — the Build-stage Project artifact.
+ * Lives here (not in content-schemas.ts) because it is NOT authored
+ * SessionContent; it's the learner's own work product, persisted via
+ * Project -> Artifact -> ArtifactVersion (see saveLearnerBrief in dal.ts).
+ * The eight keys correspond 1:1 to BRIEF_FIELDS in ArtifactPanel.tsx.
+ */
+export interface BriefContent {
+  problemStatement:  string;
+  targetVariable:    string;
+  predictionHorizon: string;
+  availableData:     string;
+  benchmarkModel:    string;
+  evaluationMetric:  string;
+  mainLimitation:    string;
+  nextExperiment:    string;
+}
+
+export const EMPTY_BRIEF: BriefContent = {
+  problemStatement:  '',
+  targetVariable:    '',
+  predictionHorizon: '',
+  availableData:     '',
+  benchmarkModel:    '',
+  evaluationMetric:  '',
+  mainLimitation:    '',
+  nextExperiment:    '',
+};

@@ -8,15 +8,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { LearningSession, StageId } from '@/types/learning-session';
+import type { LearningSession, StageId, BriefContent } from '@/types/learning-session';
+import { EMPTY_BRIEF } from '@/types/learning-session';
 import type { NavItem } from './SessionSidebar';
+import type { BriefSaveStatus } from './ArtifactPanel';
 import { useTranslation, type MessageKey } from '@/lib/i18n';
 import { useBreadcrumb } from '@/lib/breadcrumb-context';
 import { countCoreCompleted } from '@/lib/completion-rules';
 import type { CompletionState } from '@/lib/completion-rules';
+import { useDebouncedSave } from '@/lib/use-debounced-save';
 import SessionSidebar from './SessionSidebar';
 import StageContent from './StageContent';
-import { saveResponseAction, saveProgressAction, lockPredictionAction } from '../../app/workspace-q/actions';
+import { saveResponseAction, saveProgressAction, lockPredictionAction, saveBriefAction } from '../../app/workspace-q/actions';
 import type { Progress, Response, LockState } from '@prisma/client';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -25,14 +28,15 @@ export type PublishState = 'none' | 'drafting' | 'review-requested' | 'published
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-interface Props { 
+interface Props {
   session: LearningSession;
   offeringSessionId: string;
   initialProgress: Progress[];
   initialResponses: Response[];
+  initialBrief?: BriefContent;
 }
 
-export default function SessionLayout({ session, offeringSessionId, initialProgress, initialResponses }: Props) {
+export default function SessionLayout({ session, offeringSessionId, initialProgress, initialResponses, initialBrief }: Props) {
   const { t } = useTranslation();
   const { setBreadcrumb } = useBreadcrumb();
 
@@ -98,6 +102,28 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
   );
   const [predictionLockPending, setPredictionLockPending] = useState(false);
   const [predictionLockError, setPredictionLockError] = useState<string | null>(null);
+
+  // ── Prediction Problem Brief state (Build stage) ──────────────────────────
+  const [briefContent, setBriefContent] = useState<BriefContent>(() => initialBrief ?? EMPTY_BRIEF);
+  const [briefSaveStatus, setBriefSaveStatus] = useState<BriefSaveStatus>('idle');
+
+  const sessionLabel = useMemo(
+    () => `Session ${String(session.sessionNumber).padStart(2, '0')}`,
+    [session.sessionNumber]
+  );
+
+  // ── Debounced autosave (spec section 15: ~1500ms after typing stops, not
+  // every keystroke). Keyed per blockId so independent fields don't cancel
+  // each other's pending saves — see use-debounced-save.ts. Local state
+  // above always updates immediately; only the network call is debounced.
+  const debouncedSaveResponse = useDebouncedSave((blockId: string, text: string) => {
+    saveResponseAction(offeringSessionId, blockId, { text }).catch(console.error);
+  });
+  const debouncedSaveBrief = useDebouncedSave((_key: string, content: BriefContent) => {
+    saveBriefAction(offeringSessionId, content)
+      .then((result) => setBriefSaveStatus(result.success ? 'saved' : 'error'))
+      .catch(() => setBriefSaveStatus('error'));
+  });
 
   // ── Stage sequence & core-progress, derived from the real session data ────
   // These used to be a hardcoded 7-item module constant and a hardcoded
@@ -234,7 +260,8 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
   }, [offeringSessionId]);
 
   // ── Answer change handlers ────────────────────────────────────────────────
-  // In a production app, wrap these saveResponseAction calls in useDebounceCallback
+  // Local state updates immediately (responsive typing); the network save
+  // goes through debouncedSaveResponse, keyed per blockId (see above).
   const prepareStage   = useMemo(() => session.stages.find((s) => s.id === 'prepare') ?? null, [session.stages]);
   const interpretStage = useMemo(() => session.stages.find((s) => s.id === 'interpret') ?? null, [session.stages]);
   const reflectStage   = useMemo(() => session.stages.find((s) => s.id === 'reflect') ?? null, [session.stages]);
@@ -242,28 +269,36 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
   const handlePrepareAnswerChange = useCallback((i: number, v: string) => {
     setPrepareAnswers((p) => { const n = [...p]; n[i] = v; return n; });
     const blockId = prepareStage?.prompts?.[i]?.blockId;
-    if (blockId) saveResponseAction(offeringSessionId, blockId, { text: v }).catch(console.error);
-  }, [offeringSessionId, prepareStage]);
+    if (blockId) debouncedSaveResponse(blockId, v);
+  }, [prepareStage, debouncedSaveResponse]);
 
   const handleInterpretChange = useCallback((i: number, v: string) => {
     setInterpretAnswers((p) => { const n = [...p]; n[i] = v; return n; });
     const blockId = interpretStage?.prompts?.[i]?.blockId;
-    if (blockId) saveResponseAction(offeringSessionId, blockId, { text: v }).catch(console.error);
-  }, [offeringSessionId, interpretStage]);
+    if (blockId) debouncedSaveResponse(blockId, v);
+  }, [interpretStage, debouncedSaveResponse]);
 
   const handleReflectChange = useCallback((i: number, v: string) => {
     setReflectAnswers((p) => { const n = [...p]; n[i] = v; return n; });
     const blockId = reflectStage?.prompts?.[i]?.blockId;
-    if (blockId) saveResponseAction(offeringSessionId, blockId, { text: v }).catch(console.error);
-  }, [offeringSessionId, reflectStage]);
+    if (blockId) debouncedSaveResponse(blockId, v);
+  }, [reflectStage, debouncedSaveResponse]);
 
   // ── Prediction Lock handlers ──────────────────────────────────────────────
   const handlePredictionChange = useCallback((v: string) => {
     setPredictionText(v);
     if (predictionBlock) {
-      saveResponseAction(offeringSessionId, predictionBlock.blockId, { text: v }).catch(console.error);
+      debouncedSaveResponse(predictionBlock.blockId, v);
     }
-  }, [offeringSessionId, predictionBlock]);
+  }, [predictionBlock, debouncedSaveResponse]);
+
+  // ── Prediction Problem Brief handler ──────────────────────────────────────
+  const handleBriefFieldChange = useCallback((key: keyof BriefContent, value: string) => {
+    const next = { ...briefContent, [key]: value };
+    setBriefContent(next);
+    setBriefSaveStatus('saving');
+    debouncedSaveBrief('brief', next);
+  }, [briefContent, debouncedSaveBrief]);
 
   const handleLockPrediction = useCallback(async () => {
     if (!predictionBlock) return;
@@ -421,6 +456,11 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
             }}
             reflectAnswers={reflectAnswers}
             onReflectAnswerChange={handleReflectChange}
+            // Prediction Problem Brief
+            briefContent={briefContent}
+            onBriefFieldChange={handleBriefFieldChange}
+            briefSaveStatus={briefSaveStatus}
+            sessionLabel={sessionLabel}
             // Prediction Lock
             predictionText={predictionText}
             predictionLockState={predictionLockState}

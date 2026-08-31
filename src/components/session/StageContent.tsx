@@ -6,18 +6,17 @@
 
 import { useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Clock, Layers, FlaskConical, Lock, CheckCircle2, RotateCcw, Ban } from 'lucide-react';
-import type { LearningSession, LearningStage, StageId, PredictionReveal } from '@/types/learning-session';
+import type { LearningSession, LearningStage, StageId, PredictionReveal, BriefContent } from '@/types/learning-session';
 import type { LockState } from '@prisma/client';
 import { cn } from '@/lib/utils';
 import type { NavItem } from './SessionSidebar';
 import type { CompletionState } from '@/lib/completion-rules';
 import type { PublishState } from './SessionLayout';
 import { useTranslation, type MessageKey } from '@/lib/i18n';
-
 import ResourceCard from './ResourceCard';
 import PromptBlock from './PromptBlock';
 import EmbeddedDeck from './EmbeddedDeck';
-import ArtifactPanel from './ArtifactPanel';
+import ArtifactPanel, { type BriefSaveStatus } from './ArtifactPanel';
 import PublicationPathway from './PublicationPathway';
 import StageCompletionPanel from './StageCompletionPanel';
 
@@ -60,6 +59,12 @@ interface Props {
   reflectAnswers:          string[];
   onReflectAnswerChange:   (i: number, v: string) => void;
 
+  // Prediction Problem Brief (Build stage)
+  briefContent:      BriefContent;
+  onBriefFieldChange: (key: keyof BriefContent, value: string) => void;
+  briefSaveStatus:   BriefSaveStatus;
+  sessionLabel:      string;
+
   // Prediction Lock (Experiment stage prompt + Interpret stage reveal)
   predictionText:         string;
   predictionLockState:    LockState;
@@ -95,6 +100,7 @@ export default function StageContent({
   interpretAnswers, onInterpretAnswerChange,
   buildConfirmed, onBuildConfirm,
   reflectAnswers, onReflectAnswerChange,
+  briefContent, onBriefFieldChange, briefSaveStatus, sessionLabel,
   predictionText, predictionLockState, predictionLockedAt,
   predictionLockPending, predictionLockError,
   onPredictionChange, onLockPrediction,
@@ -235,7 +241,12 @@ export default function StageContent({
 
         {!isOverview && stage && activeItem === 'build' && (
           <>
-            <ArtifactPanel />
+            <ArtifactPanel
+              content={briefContent}
+              onFieldChange={onBriefFieldChange}
+              saveStatus={briefSaveStatus}
+              sessionLabel={sessionLabel}
+            />
             <StageCompletionPanel
               stageId="build"
               completionState={completionState}

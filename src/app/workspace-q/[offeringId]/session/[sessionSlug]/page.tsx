@@ -17,6 +17,7 @@ import SessionLayout from '@/components/session/SessionLayout';
 import { EnrollmentRole } from '@prisma/client';
 import { auth } from '@/auth';
 import { toLearningSession } from '@/lib/session-content-adapter';
+import type { BriefContent } from '@/types/learning-session';
 
 export const metadata: Metadata = {
   title: 'Workspace Q — Learning Session',
@@ -60,6 +61,12 @@ export default async function LearningSessionPage(
   }
 
   // 4. Resolve the OfferingSession
+  // `findFirst` with no explicit order is only safe as long as exactly one
+  // OfferingSession row ever matches. seed.ts's own upsert logic guarantees
+  // that going forward, but this is cheap defense-in-depth against any other
+  // way a duplicate could land here (a manual DB fix, a future migration
+  // that isn't as careful) — always resolve to the most recently created
+  // row rather than whatever order Postgres happens to return.
   const offeringSession = await prisma.offeringSession.findFirst({
     where: {
       offeringId: offering.id,
@@ -67,6 +74,7 @@ export default async function LearningSessionPage(
         session: { slug: sessionSlug }
       }
     },
+    orderBy: { createdAt: 'desc' },
     select: { id: true, order: true }
   });
 
@@ -87,12 +95,20 @@ export default async function LearningSessionPage(
     sessionNumber: offeringSession.order,
   });
 
+  // The Prediction Problem Brief (Build stage) is a Project/Artifact, not
+  // session content — state.artifacts is already scoped to this learner's
+  // own 'prediction-brief' artifact for this session (see dal.ts). Nothing
+  // exists yet for a learner who has never typed into it, hence the
+  // optional chain; SessionLayout falls back to an empty brief itself.
+  const initialBrief = state.artifacts[0]?.versions[0]?.content as BriefContent | undefined;
+
   return (
-    <SessionLayout 
-      session={sessionContent} 
+    <SessionLayout
+      session={sessionContent}
       offeringSessionId={offeringSession.id}
       initialProgress={state.progress}
       initialResponses={state.responses}
+      initialBrief={initialBrief}
     />
   );
 }

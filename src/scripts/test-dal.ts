@@ -130,9 +130,13 @@ async function runTests() {
       data: { ownerId: learner1.id, title: 'L1 Project', visibility: Visibility.COHORT }
     });
     await prisma.artifact.create({
+      // type must match BRIEF_ARTIFACT_TYPE in dal.ts — getLearnerSessionState
+      // now filters `artifacts` to that type, so a different type here would
+      // silently make this isolation check vacuous (an empty array passes
+      // .every() trivially) instead of actually exercising the filter.
       data: {
         projectId: l1Project.id,
-        type: 'notebook',
+        type: 'prediction-brief',
         title: 'L1 Notebook',
         createdFromOfferingSessionId: cohortOfferingSession.id,
       }
@@ -150,7 +154,7 @@ async function runTests() {
     await prisma.artifact.create({
       data: {
         projectId: l2Project.id,
-        type: 'notebook',
+        type: 'prediction-brief',
         title: 'L2 Notebook',
         createdFromOfferingSessionId: cohortOfferingSession.id,
       }

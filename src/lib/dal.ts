@@ -2,6 +2,12 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { EnrollmentRole, GlobalRole, LockState, Prisma } from '@prisma/client';
 import { cache } from 'react';
+import type { BriefContent } from '@/types/learning-session';
+
+// The Artifact `type` string used for the Prediction Problem Brief. Freeform
+// on the schema (Artifact.type is just String) — centralized here so the
+// state-fetch query and the save path can't drift apart.
+const BRIEF_ARTIFACT_TYPE = 'prediction-brief';
 
 // ============================================================================
 // Data Access Layer (DAL)
@@ -126,11 +132,24 @@ export async function getLearnerSessionState(offeringSessionId: string) {
         where: { userId: user.id },
       },
       artifacts: {
-        where: { 
+        // Scoped to the Prediction Problem Brief for now — this is the only
+        // artifact type the session UI creates today. Widen this filter (or
+        // split into a dedicated query) once a second artifact type exists.
+        where: {
+          type: BRIEF_ARTIFACT_TYPE,
           project: {
-            ownerId: user.id 
+            ownerId: user.id
           }
-        }
+        },
+        include: {
+          // test-dal.ts's isolation check reads `a.project.ownerId` — that
+          // line pre-dates this change and would have thrown at runtime
+          // (project was filtered on but never included), since `.every()`
+          // on a non-empty array does invoke its callback. Including it
+          // here is what that assertion already assumed.
+          project: { select: { ownerId: true } },
+          versions: { orderBy: { version: 'desc' }, take: 1 },
+        },
       }
     },
   });
@@ -293,5 +312,107 @@ export async function saveLearnerProgress(offeringSessionId: string, stageId: st
       state,
       completedAt: state === 'COMPLETE' ? new Date() : null,
     }
+  });
+}
+
+/**
+ * MUTATION: Save the learner's Prediction Problem Brief for this session
+ * (Build stage). Backed by Project -> Artifact -> ArtifactVersion.
+ *
+ * First save for a given (learner, offeringSession) pair creates a
+ * dedicated Project + Artifact + v1 ArtifactVersion together, inside one
+ * transaction. Every subsequent save updates that same ArtifactVersion's
+ * `content` in place rather than inserting a new version per autosave tick
+ * — `ArtifactVersion.version` is reserved for a meaningful checkpoint (e.g.
+ * a future "submit for review" action once the consent/attribution flow
+ * mentioned in the UI copy exists), not every debounced keystroke batch.
+ *
+ * Design decisions worth being explicit about:
+ *  - One Project is created per (learner, offeringSession), not one
+ *    per-learner Project that accumulates artifacts across every session.
+ *    The Project model has no field to naturally key a broader "this
+ *    learner's one Project" lookup on without a schema migration, and
+ *    scoping to the session it came from is a reasonable, easy-to-widen-
+ *    later default — it's a product decision, not an oversight.
+ *  - `visibility` is left unset, so it takes the schema's own
+ *    `@default(COHORT)`. There is no PRIVATE option on the Visibility enum
+ *    today, so a Brief the learner hasn't consented to share is technically
+ *    stored as COHORT-visible the moment it's created. Nothing currently
+ *    reads Project.visibility to decide what to surface to other cohort
+ *    members, so this isn't an active leak — but it's worth a real decision
+ *    (either a PRIVATE enum value, or a `consentedAt`-style gate) before any
+ *    future feature lists Projects by visibility.
+ *  - Concurrency: the existence check and the create are not wrapped in a
+ *    DB-level unique constraint (there isn't one to key on), so two
+ *    near-simultaneous first-saves for the same learner (e.g. two open tabs)
+ *    could theoretically each create their own Project+Artifact. Low
+ *    probability given the debounce this is called through, and the same
+ *    category of known-not-fully-solved risk already flagged for the
+ *    SessionVersion/OfferingSession reseed case.
+ */
+export async function saveLearnerBrief(offeringSessionId: string, content: BriefContent) {
+  const user = await requireAuth();
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
+
+  const jsonContent = content as unknown as Prisma.InputJsonValue;
+
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const existingArtifact = await tx.artifact.findFirst({
+      where: {
+        type: BRIEF_ARTIFACT_TYPE,
+        createdFromOfferingSessionId: offeringSessionId,
+        project: { ownerId: user.id },
+      },
+      include: { versions: { orderBy: { version: 'desc' }, take: 1 } },
+    });
+
+    if (existingArtifact) {
+      const latest = existingArtifact.versions[0];
+      if (latest) {
+        return tx.artifactVersion.update({
+          where: { id: latest.id },
+          data: { content: jsonContent },
+        });
+      }
+      // An Artifact with no versions shouldn't happen (we always create v1
+      // alongside the Artifact below) — guard rather than crash if it does.
+      return tx.artifactVersion.create({
+        data: { artifactId: existingArtifact.id, version: 1, content: jsonContent, createdBy: user.id },
+      });
+    }
+
+    // First save — create the Project + Artifact + v1 ArtifactVersion together.
+    const offeringSession = await tx.offeringSession.findUnique({
+      where: { id: offeringSessionId },
+      select: { sessionVersion: { select: { session: { select: { title: true } } } } },
+    });
+    const sessionTitle = offeringSession?.sessionVersion.session.title ?? 'Learning Session';
+
+    const project = await tx.project.create({
+      data: {
+        ownerId: user.id,
+        title: sessionTitle,
+      },
+    });
+
+    const artifact = await tx.artifact.create({
+      data: {
+        projectId: project.id,
+        type: BRIEF_ARTIFACT_TYPE,
+        title: 'Prediction Problem Brief',
+        createdFromOfferingSessionId: offeringSessionId,
+      },
+    });
+
+    const version = await tx.artifactVersion.create({
+      data: { artifactId: artifact.id, version: 1, content: jsonContent, createdBy: user.id },
+    });
+
+    await tx.artifact.update({
+      where: { id: artifact.id },
+      data: { currentVersionId: version.id },
+    });
+
+    return version;
   });
 }

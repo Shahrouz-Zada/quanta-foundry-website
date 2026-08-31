@@ -5,8 +5,10 @@ import {
   saveLearnerProgress,
   lockPredictionResponse,
   setPredictionLockState,
+  saveLearnerBrief,
 } from '@/lib/dal';
 import { LockState, Prisma, ProgressState } from '@prisma/client';
+import type { BriefContent } from '@/types/learning-session';
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -73,6 +75,21 @@ export async function voidPredictionAction(responseId: string, reason?: string) 
     return { success: true };
   } catch (error: unknown) {
     console.error('Failed to void prediction:', error);
+    return { success: false, error: errorMessage(error) };
+  }
+}
+
+/**
+ * Save the learner's Prediction Problem Brief (Build stage). See
+ * saveLearnerBrief() in dal.ts for the Project/Artifact/ArtifactVersion
+ * get-or-create logic this wraps.
+ */
+export async function saveBriefAction(offeringSessionId: string, content: BriefContent) {
+  try {
+    await saveLearnerBrief(offeringSessionId, content);
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('Failed to save brief:', error);
     return { success: false, error: errorMessage(error) };
   }
 }

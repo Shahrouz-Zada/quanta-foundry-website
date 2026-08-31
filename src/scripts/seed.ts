@@ -128,22 +128,52 @@ async function main() {
     },
   });
 
-  // 7. OfferingSessions — connectOrCreate on @@unique([offeringId, sessionVersionId])
+  // 7. OfferingSessions — repoint to the newly published version rather than
+  // forking a new row per republish.
+  //
+  // This used to upsert keyed on @@unique([offeringId, sessionVersionId]).
+  // That key always misses on a republish, because the new sessionVersionId
+  // has never been paired with this offeringId before — so `upsert` always
+  // took the create branch, leaving the OLD OfferingSession row (still
+  // pointing at the previous version) in place, orphaned, alongside a new
+  // one. Two rows then exist for the same offering/session slot, and
+  // whatever reads it with `findFirst` and no explicit order (see the
+  // session page) has no guarantee which one it gets — this is exactly what
+  // caused the 7-stage restore to keep showing 4 stages after a reseed.
+  //
+  // Fixed by finding the existing OfferingSession for this offering that
+  // belongs to ANY version of this Session (joining through
+  // sessionVersion.sessionId, not sessionVersionId) and repointing its
+  // sessionVersionId in place. Preserving the row's own id is what matters:
+  // every Response/Progress/Artifact a learner already has is a foreign key
+  // into that id, so repointing it makes them see the new content without
+  // losing anything — versus creating a new row, which is what stranded
+  // them in the first place.
   for (const offering of [cohortOffering, communityOffering]) {
-    await prisma.offeringSession.upsert({
+    const existing = await prisma.offeringSession.findFirst({
       where: {
-        offeringId_sessionVersionId: {
-          offeringId: offering.id,
-          sessionVersionId: activeVersionId!,
-        },
-      },
-      update: {},
-      create: {
         offeringId: offering.id,
-        sessionVersionId: activeVersionId!,
-        order: 1,
+        sessionVersion: { sessionId: session.id },
       },
     });
+
+    if (existing) {
+      if (existing.sessionVersionId !== activeVersionId) {
+        await prisma.offeringSession.update({
+          where: { id: existing.id },
+          data: { sessionVersionId: activeVersionId! },
+        });
+        console.log(`  Repointed OfferingSession ${existing.id} (${offering.slug}) to the newly published version.`);
+      }
+    } else {
+      await prisma.offeringSession.create({
+        data: {
+          offeringId: offering.id,
+          sessionVersionId: activeVersionId!,
+          order: 1,
+        },
+      });
+    }
   }
 
   // 8. Enrollments — upsert on @@unique([offeringId, userId])

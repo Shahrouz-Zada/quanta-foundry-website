@@ -159,6 +159,14 @@ const messages = {
     'prediction.yourPrediction':   'Your prediction',
     'prediction.actualOutcome':    'What actually happened',
     'prediction.noPredictionYet':  'You have not locked a prediction for this experiment yet.',
+
+    // ── Prediction Problem Brief ─────────────────────────────────────────────
+    'brief.status.idle':    '',
+    'brief.status.saving':  'Saving…',
+    'brief.status.saved':   'Saved',
+    'brief.status.error':   'Could not save — retrying',
+    'brief.footerNote':
+      'Your responses are saved to your project workspace as you type. Completed briefs may be nominated for Projects & Notes review after consent and attribution confirmation.',
   },
 
   fr: {
@@ -298,6 +306,14 @@ const messages = {
     'prediction.yourPrediction':   'Votre prédiction',
     'prediction.actualOutcome':    'Ce qui s\'est réellement passé',
     'prediction.noPredictionYet':  'Vous n\'avez pas encore verrouillé de prédiction pour cette expérience.',
+
+    // ── Note de problème de prédiction ───────────────────────────────────────
+    'brief.status.idle':    '',
+    'brief.status.saving':  'Enregistrement…',
+    'brief.status.saved':   'Enregistré',
+    'brief.status.error':   'Échec de l\'enregistrement — nouvelle tentative',
+    'brief.footerNote':
+      'Vos réponses sont enregistrées dans votre espace de projet au fur et à mesure. Les notes terminées peuvent être proposées pour la revue Projets et Notes après consentement et confirmation d\'attribution.',
   },
 } as const;
 
