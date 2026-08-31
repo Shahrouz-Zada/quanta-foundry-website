@@ -16,8 +16,8 @@ import { CORE_STAGE_IDS, countCoreCompleted } from '@/lib/completion-rules';
 import type { CompletionState } from '@/lib/completion-rules';
 import SessionSidebar from './SessionSidebar';
 import StageContent from './StageContent';
-import { saveResponseAction, saveProgressAction } from '../../app/workspace-q/actions';
-import type { Progress, Response } from '@prisma/client';
+import { saveResponseAction, saveProgressAction, lockPredictionAction } from '../../app/workspace-q/actions';
+import type { Progress, Response, LockState } from '@prisma/client';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -58,31 +58,55 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // ── Lifted textarea & confirmation state ──────────────────────────────────
-  const prepareCount   = session.stages.find((s) => s.id === 'prepare')?.prompts?.length ?? 0;
-  const interpretCount = session.stages.find((s) => s.id === 'interpret')?.prompts?.length ?? 0;
-  const reflectCount   = session.stages.find((s) => s.id === 'reflect')?.prompts?.length ?? 0;
-
-  // Hydrate answers from initialResponses
-  const getInitialAnswers = (stageId: string, count: number) => {
-    const answers = Array(count).fill('');
-    initialResponses.forEach(r => {
-      if (r.blockId.startsWith(`${stageId}-`)) {
-        const idx = parseInt(r.blockId.split('-')[1], 10);
-        if (!isNaN(idx) && idx < count) {
-          answers[idx] = (r.value as { text?: string } | null)?.text || '';
-        }
-      }
+  // Hydrate a stage's answers matched by each prompt's real content block ID.
+  // (Previously matched on a synthetic `${stageId}-${index}` ID invented in
+  // this component, which never corresponded to what saveLearnerResponse
+  // actually stores — the adapter now carries the real blockId through, so
+  // this matches the same key saveResponseAction saves under.)
+  const getInitialAnswers = (stageId: StageId) => {
+    const prompts = session.stages.find((s) => s.id === stageId)?.prompts ?? [];
+    return prompts.map((p) => {
+      const r = initialResponses.find((r) => r.blockId === p.blockId);
+      return (r?.value as { text?: string } | null)?.text ?? '';
     });
-    return answers;
   };
 
-  const [prepareAnswers,      setPrepareAnswers]      = useState<string[]>(() => getInitialAnswers('prepare', prepareCount));
+  const [prepareAnswers,      setPrepareAnswers]      = useState<string[]>(() => getInitialAnswers('prepare'));
   const [exploreConfirmed,    setExploreConfirmed]    = useState(() => initialProgress.some(p => p.stageId === 'explore' && p.state === 'COMPLETE'));
   const [experimentConfirmed, setExperimentConfirmed] = useState(() => initialProgress.some(p => p.stageId === 'experiment' && p.state === 'COMPLETE'));
   const [experimentUrl,       setExperimentUrl]       = useState('');
-  const [interpretAnswers,    setInterpretAnswers]    = useState<string[]>(() => getInitialAnswers('interpret', interpretCount));
+  const [interpretAnswers,    setInterpretAnswers]    = useState<string[]>(() => getInitialAnswers('interpret'));
   const [buildConfirmed,      setBuildConfirmed]      = useState(() => initialProgress.some(p => p.stageId === 'build' && p.state === 'COMPLETE'));
-  const [reflectAnswers,      setReflectAnswers]      = useState<string[]>(() => getInitialAnswers('reflect', reflectCount));
+  const [reflectAnswers,      setReflectAnswers]      = useState<string[]>(() => getInitialAnswers('reflect'));
+
+  // ── Prediction Lock state (Experiment stage) ──────────────────────────────
+  // There is exactly one predictionLock block in the current content model;
+  // this tracks that one prediction directly rather than a generic per-block
+  // map. If a future session authors more than one, this is the place to
+  // generalize to a keyed structure.
+  const predictionStage = useMemo(
+    () => session.stages.find((s) => s.id === 'experiment') ?? null,
+    [session.stages]
+  );
+  const predictionBlock = useMemo(
+    () => predictionStage?.prompts?.find((p) => p.type === 'predictionLock') ?? null,
+    [predictionStage]
+  );
+  const initialPredictionResponse = useMemo(
+    () => (predictionBlock ? initialResponses.find((r) => r.blockId === predictionBlock.blockId) ?? null : null),
+    [predictionBlock, initialResponses]
+  );
+  const [predictionText, setPredictionText] = useState(
+    () => (initialPredictionResponse?.value as { text?: string } | null)?.text ?? ''
+  );
+  const [predictionLockState, updatePredictionLockState] = useState<LockState>(
+    () => (initialPredictionResponse?.lockState ?? 'DRAFT') as LockState
+  );
+  const [predictionLockedAt, setPredictionLockedAt] = useState<Date | null>(
+    () => initialPredictionResponse?.lockedAt ?? null
+  );
+  const [predictionLockPending, setPredictionLockPending] = useState(false);
+  const [predictionLockError, setPredictionLockError] = useState<string | null>(null);
 
   // Hydrate completed stages from initialProgress
   useEffect(() => {
@@ -191,18 +215,49 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
 
   // ── Answer change handlers ────────────────────────────────────────────────
   // In a production app, wrap these saveResponseAction calls in useDebounceCallback
+  const prepareStage   = useMemo(() => session.stages.find((s) => s.id === 'prepare') ?? null, [session.stages]);
+  const interpretStage = useMemo(() => session.stages.find((s) => s.id === 'interpret') ?? null, [session.stages]);
+  const reflectStage   = useMemo(() => session.stages.find((s) => s.id === 'reflect') ?? null, [session.stages]);
+
   const handlePrepareAnswerChange = useCallback((i: number, v: string) => {
     setPrepareAnswers((p) => { const n = [...p]; n[i] = v; return n; });
-    saveResponseAction(offeringSessionId, `prepare-${i}`, { text: v }).catch(console.error);
-  }, [offeringSessionId]);
+    const blockId = prepareStage?.prompts?.[i]?.blockId;
+    if (blockId) saveResponseAction(offeringSessionId, blockId, { text: v }).catch(console.error);
+  }, [offeringSessionId, prepareStage]);
+
   const handleInterpretChange = useCallback((i: number, v: string) => {
     setInterpretAnswers((p) => { const n = [...p]; n[i] = v; return n; });
-    saveResponseAction(offeringSessionId, `interpret-${i}`, { text: v }).catch(console.error);
-  }, [offeringSessionId]);
+    const blockId = interpretStage?.prompts?.[i]?.blockId;
+    if (blockId) saveResponseAction(offeringSessionId, blockId, { text: v }).catch(console.error);
+  }, [offeringSessionId, interpretStage]);
+
   const handleReflectChange = useCallback((i: number, v: string) => {
     setReflectAnswers((p) => { const n = [...p]; n[i] = v; return n; });
-    saveResponseAction(offeringSessionId, `reflect-${i}`, { text: v }).catch(console.error);
-  }, [offeringSessionId]);
+    const blockId = reflectStage?.prompts?.[i]?.blockId;
+    if (blockId) saveResponseAction(offeringSessionId, blockId, { text: v }).catch(console.error);
+  }, [offeringSessionId, reflectStage]);
+
+  // ── Prediction Lock handlers ──────────────────────────────────────────────
+  const handlePredictionChange = useCallback((v: string) => {
+    setPredictionText(v);
+    if (predictionBlock) {
+      saveResponseAction(offeringSessionId, predictionBlock.blockId, { text: v }).catch(console.error);
+    }
+  }, [offeringSessionId, predictionBlock]);
+
+  const handleLockPrediction = useCallback(async () => {
+    if (!predictionBlock) return;
+    setPredictionLockPending(true);
+    setPredictionLockError(null);
+    const result = await lockPredictionAction(offeringSessionId, predictionBlock.blockId);
+    setPredictionLockPending(false);
+    if (result.success) {
+      updatePredictionLockState('LOCKED');
+      setPredictionLockedAt(result.lockedAt ?? new Date());
+    } else {
+      setPredictionLockError(result.error ?? t('prediction.lockErrorFallback'));
+    }
+  }, [offeringSessionId, predictionBlock, t]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const activeStage  = session.stages.find((s) => s.id === activeItem);
@@ -345,6 +400,14 @@ export default function SessionLayout({ session, offeringSessionId, initialProgr
             }}
             reflectAnswers={reflectAnswers}
             onReflectAnswerChange={handleReflectChange}
+            // Prediction Lock
+            predictionText={predictionText}
+            predictionLockState={predictionLockState}
+            predictionLockedAt={predictionLockedAt}
+            predictionLockPending={predictionLockPending}
+            predictionLockError={predictionLockError}
+            onPredictionChange={handlePredictionChange}
+            onLockPrediction={handleLockPrediction}
             // Completion
             onStageComplete={handleStageComplete}
             onUndoStageComplete={handleUndoComplete}

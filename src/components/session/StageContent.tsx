@@ -5,8 +5,10 @@
 // =============================================================================
 
 import { useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Clock, Layers, FlaskConical } from 'lucide-react';
-import type { LearningSession, LearningStage, StageId } from '@/types/learning-session';
+import { ChevronLeft, ChevronRight, Clock, Layers, FlaskConical, Lock, CheckCircle2, RotateCcw, Ban } from 'lucide-react';
+import type { LearningSession, LearningStage, StageId, PredictionReveal } from '@/types/learning-session';
+import type { LockState } from '@prisma/client';
+import { cn } from '@/lib/utils';
 import type { NavItem } from './SessionSidebar';
 import type { CompletionState } from '@/lib/completion-rules';
 import type { PublishState } from './SessionLayout';
@@ -18,6 +20,10 @@ import EmbeddedDeck from './EmbeddedDeck';
 import ArtifactPanel from './ArtifactPanel';
 import PublicationPathway from './PublicationPathway';
 import StageCompletionPanel from './StageCompletionPanel';
+
+// ── Type alias for the t() function ─────────────────────────────────────────
+
+type TFn = ReturnType<typeof useTranslation>['t'];
 
 // ── Status badge styles ────────────────────────────────────────────────────────
 
@@ -64,6 +70,15 @@ interface Props {
   reflectAnswers:          string[];
   onReflectAnswerChange:   (i: number, v: string) => void;
 
+  // Prediction Lock (Experiment stage prompt + Interpret stage reveal)
+  predictionText:         string;
+  predictionLockState:    LockState;
+  predictionLockedAt:     Date | null;
+  predictionLockPending:  boolean;
+  predictionLockError:    string | null;
+  onPredictionChange:     (text: string) => void;
+  onLockPrediction:       () => void;
+
   // Completion
   onStageComplete:     (id: StageId) => void;
   onUndoStageComplete: (id: StageId) => void;
@@ -90,6 +105,9 @@ export default function StageContent({
   interpretAnswers, onInterpretAnswerChange,
   buildConfirmed, onBuildConfirm,
   reflectAnswers, onReflectAnswerChange,
+  predictionText, predictionLockState, predictionLockedAt,
+  predictionLockPending, predictionLockError,
+  onPredictionChange, onLockPrediction,
   onStageComplete, onUndoStageComplete,
   hasPrev, hasNext, prevStageLabel, nextStageLabel, isOverview, isLastStage,
   onPrev, onNext,
@@ -181,7 +199,17 @@ export default function StageContent({
 
         {!isOverview && stage && activeItem === 'experiment' && (
           <>
-            <ExperimentBody stage={stage} resourceAvailable={completionState.experimentResourceAvailable} />
+            <ExperimentBody
+              stage={stage}
+              resourceAvailable={completionState.experimentResourceAvailable}
+              predictionText={predictionText}
+              predictionLockState={predictionLockState}
+              predictionLockedAt={predictionLockedAt}
+              predictionLockPending={predictionLockPending}
+              predictionLockError={predictionLockError}
+              onPredictionChange={onPredictionChange}
+              onLockPrediction={onLockPrediction}
+            />
             <StageCompletionPanel
               stageId="experiment"
               completionState={completionState}
@@ -196,6 +224,14 @@ export default function StageContent({
 
         {!isOverview && stage && activeItem === 'interpret' && (
           <>
+            {stage.reveals && stage.reveals.length > 0 && (
+              <PredictionRevealSection
+                reveals={stage.reveals}
+                predictionText={predictionText}
+                predictionLockState={predictionLockState}
+                t={t}
+              />
+            )}
             <PromptSection title={t('stage.interpret')} stage={stage} answers={interpretAnswers} onAnswerChange={onInterpretAnswerChange} />
             <StageCompletionPanel
               stageId="interpret"
@@ -432,7 +468,23 @@ function ExploreBody({
 
 function ExperimentBody({
   stage, resourceAvailable,
-}: { stage: LearningStage; resourceAvailable: boolean }) {
+  predictionText, predictionLockState, predictionLockedAt,
+  predictionLockPending, predictionLockError,
+  onPredictionChange, onLockPrediction,
+}: {
+  stage: LearningStage;
+  resourceAvailable: boolean;
+  predictionText: string;
+  predictionLockState: LockState;
+  predictionLockedAt: Date | null;
+  predictionLockPending: boolean;
+  predictionLockError: string | null;
+  onPredictionChange: (text: string) => void;
+  onLockPrediction: () => void;
+}) {
+  const { t } = useTranslation();
+  const predictionBlock = stage.prompts?.find((p) => p.type === 'predictionLock') ?? null;
+
   return (
     <div className="max-w-5xl">
       <div className="flex items-start gap-3 bg-[var(--wq-gold-muted)] border border-[var(--wq-gold)]/20 rounded-xl px-5 py-4 mb-8">
@@ -444,7 +496,22 @@ function ExperimentBody({
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      {predictionBlock && (
+        <PredictionLockPrompt
+          prompt={predictionBlock.prompt}
+          text={predictionText}
+          lockState={predictionLockState}
+          lockedAt={predictionLockedAt}
+          pending={predictionLockPending}
+          error={predictionLockError}
+          onChange={onPredictionChange}
+          onLock={onLockPrediction}
+          t={t}
+        />
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
         {stage.resources?.map((r) => <ResourceCard key={r.id} resource={r} />)}
       </div>
       {!resourceAvailable && (
@@ -452,6 +519,151 @@ function ExperimentBody({
           Experiment resources are coming soon. Stage completion will be enabled once at least one resource is available.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * Prediction Lock (spec section 12). Editable while DRAFT/REOPENED; becomes
+ * a read-only card once LOCKED or VOIDED. The lock button calls onLockPrediction
+ * (SessionLayout -> lockPredictionAction -> dal.ts), which is the server-side
+ * source of truth — this component never sets lockState itself, only reflects
+ * whatever SessionLayout's state holds after the Server Action resolves.
+ */
+function PredictionLockPrompt({
+  prompt, text, lockState, lockedAt, pending, error, onChange, onLock, t,
+}: {
+  prompt: string;
+  text: string;
+  lockState: LockState;
+  lockedAt: Date | null;
+  pending: boolean;
+  error: string | null;
+  onChange: (text: string) => void;
+  onLock: () => void;
+  t: TFn;
+}) {
+  const isEditable = lockState === 'DRAFT' || lockState === 'REOPENED';
+  const isLocked = lockState === 'LOCKED';
+  const isVoided = lockState === 'VOIDED';
+
+  return (
+    <div className={cn(
+      'rounded-xl border bg-white p-5 mb-6 transition-colors duration-150',
+      (isLocked || isVoided) ? 'border-[var(--wq-accent)]/30' : 'border-[#18242B]/10 hover:border-[#18242B]/18'
+    )}>
+      <div className="flex items-start gap-3 mb-3">
+        <span
+          aria-hidden="true"
+          className="shrink-0 w-5 h-5 rounded-full bg-[#08212C] text-white text-[10px] font-bold flex items-center justify-center mt-0.5"
+        >
+          ⚗
+        </span>
+        <p className="text-sm text-[#18242B] leading-relaxed flex-1">{prompt}</p>
+        {isLocked && (
+          <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[var(--wq-accent)]/12 text-[var(--wq-accent)] border border-[var(--wq-accent)]/25">
+            <Lock size={10} aria-hidden="true" />
+            {lockedAt ? t('prediction.lockedAt', { date: lockedAt.toLocaleString() }) : t('prediction.lockedBadge')}
+          </span>
+        )}
+        {isVoided && (
+          <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-600 border border-red-400/25">
+            <Ban size={10} aria-hidden="true" />
+            {t('prediction.voidedNotice')}
+          </span>
+        )}
+      </div>
+
+      {lockState === 'REOPENED' && (
+        <p className="flex items-center gap-1.5 text-xs text-amber-700 mb-3">
+          <RotateCcw size={12} aria-hidden="true" />
+          {t('prediction.reopenedNotice')}
+        </p>
+      )}
+
+      {isEditable ? (
+        <textarea
+          value={text}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Write your response here…"
+          rows={3}
+          className="w-full mt-2 rounded-lg border border-[#18242B]/10 hover:border-[#18242B]/18 bg-[#FAF8F2] px-4 py-3 text-sm text-[#18242B] placeholder:text-[#5F6B70]/55 resize-y min-h-[80px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#2F8174] focus:border-[#2F8174]"
+          aria-label={prompt}
+        />
+      ) : (
+        <p className="w-full mt-2 rounded-lg border border-[var(--wq-border)] bg-[var(--wq-canvas-alt)] px-4 py-3 text-sm text-[var(--wq-text)] leading-relaxed whitespace-pre-wrap">
+          {text || t('prediction.noPredictionYet')}
+        </p>
+      )}
+
+      {isEditable && (
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onLock}
+            disabled={pending || !text.trim()}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[var(--wq-accent)] text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wq-accent)] disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-[var(--wq-accent-hover)]"
+          >
+            <Lock size={12} aria-hidden="true" />
+            {pending ? t('prediction.locking') : t('prediction.lockButton')}
+          </button>
+          {!text.trim() && <span className="text-[11px] text-[var(--wq-text-muted)]">{t('prediction.emptyWarning')}</span>}
+        </div>
+      )}
+
+      <p className="mt-2 text-[11px] text-[var(--wq-text-muted)] leading-relaxed">{t('prediction.lockHelp')}</p>
+
+      {error && (
+        <p className="mt-2 text-xs text-red-600">{error}</p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Interpret-stage "prediction vs. outcome" comparison (spec section 12).
+ * Renders every predictionReveal block in the stage's content, matching
+ * `reveal.linkedBlockId` against the one prediction this prototype tracks.
+ * (Session 01's authored content has no Interpret stage / reveal block yet
+ * — this renders correctly whenever one exists, but there's nothing in the
+ * current seed data to exercise it against.)
+ */
+function PredictionRevealSection({
+  reveals, predictionText, predictionLockState, t,
+}: {
+  reveals: PredictionReveal[];
+  predictionText: string;
+  predictionLockState: LockState;
+  t: TFn;
+}) {
+  const isLocked = predictionLockState === 'LOCKED';
+
+  return (
+    <div className="max-w-3xl mb-8 space-y-4">
+      {reveals.map((reveal) => (
+        <div key={reveal.blockId} className="rounded-xl border border-[var(--wq-border)] bg-white p-5">
+          <h3 className="text-sm font-semibold text-[var(--wq-text)] mb-4 flex items-center gap-2">
+            <CheckCircle2 size={15} className="text-[var(--wq-accent)]" aria-hidden="true" />
+            {t('prediction.revealTitle')}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-[11px] font-semibold text-[var(--wq-text-muted)] uppercase tracking-wider mb-1.5">
+                {t('prediction.yourPrediction')}
+              </p>
+              <p className="text-sm text-[var(--wq-text)] leading-relaxed whitespace-pre-wrap">
+                {isLocked && predictionText ? predictionText : t('prediction.noPredictionYet')}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-[var(--wq-text-muted)] uppercase tracking-wider mb-1.5">
+                {t('prediction.actualOutcome')}
+              </p>
+              <p className="text-sm text-[var(--wq-text)] leading-relaxed whitespace-pre-wrap">{reveal.resultText}</p>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

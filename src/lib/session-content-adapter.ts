@@ -26,6 +26,8 @@ import type {
   SessionResource,
   ResourceType,
   StageId,
+  PromptItem,
+  PredictionReveal,
 } from '@/types/learning-session';
 
 /** StageIds the prototype UI knows how to render. */
@@ -64,6 +66,8 @@ interface StoredBlock {
   type?: unknown;
   prompt?: unknown;
   resources?: unknown;
+  linkedPredictionBlockId?: unknown;
+  resultText?: unknown;
 }
 
 interface StoredStage {
@@ -120,18 +124,22 @@ function toStage(raw: unknown): LearningStage | null {
   const keyCandidate = asString(s.key) || asString(s.id).replace(/^stage-/, '');
   if (!isStageId(keyCandidate)) return null;
 
-  const prompts: string[] = [];
+  const prompts: PromptItem[] = [];
   const resources: SessionResource[] = [];
+  const reveals: PredictionReveal[] = [];
 
   asArray(s.blocks).forEach((rawBlock, blockIndex) => {
     if (typeof rawBlock !== 'object' || rawBlock === null) return;
     const block = rawBlock as StoredBlock;
 
     // Both openQuestion and predictionLock present a single free-text prompt
-    // and are rendered by the UI's prompt list.
+    // and are rendered by the UI's prompt list. Keep the real block ID —
+    // callers need it to save/lock the exact Response row, not a
+    // UI-invented index-based one.
     if (block.type === 'openQuestion' || block.type === 'predictionLock') {
       const prompt = asString(block.prompt);
-      if (prompt) prompts.push(prompt);
+      const blockId = asString(block.id, `block-${blockIndex}`);
+      if (prompt) prompts.push({ blockId, type: block.type, prompt });
       return;
     }
 
@@ -140,6 +148,21 @@ function toStage(raw: unknown): LearningStage | null {
         const resource = toResource(rawResource, blockIndex * 100 + resourceIndex);
         if (resource) resources.push(resource);
       });
+      return;
+    }
+
+    // predictionReveal — the Interpret-stage counterpart to a predictionLock
+    // block, shown next to the prediction the learner locked earlier.
+    if (block.type === 'predictionReveal') {
+      const linkedBlockId = asString(block.linkedPredictionBlockId);
+      const resultText = asString(block.resultText);
+      if (linkedBlockId && resultText) {
+        reveals.push({
+          blockId: asString(block.id, `block-${blockIndex}`),
+          linkedBlockId,
+          resultText,
+        });
+      }
     }
   });
 
@@ -149,6 +172,7 @@ function toStage(raw: unknown): LearningStage | null {
     description: asString(s.description),
     prompts,
     resources,
+    reveals,
   };
 }
 

@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import { EnrollmentRole, GlobalRole, Prisma } from '@prisma/client';
+import { EnrollmentRole, GlobalRole, LockState, Prisma } from '@prisma/client';
 import { cache } from 'react';
 
 // ============================================================================
@@ -142,30 +142,127 @@ export async function getLearnerSessionState(offeringSessionId: string) {
 
 /**
  * MUTATION: Save a Block Response
+ *
+ * A locked (or voided) response is read-only server-side, not just in the
+ * UI — per spec section 28 ("never rely on hiding UI"), a learner must not
+ * be able to POST over a locked prediction just because a disabled button
+ * didn't stop them. See lockPredictionResponse() / setPredictionLockState()
+ * for the Prediction Lock state machine this guards.
  */
 export async function saveLearnerResponse(offeringSessionId: string, blockId: string, value: Prisma.InputJsonValue) {
   const user = await requireAuth();
   await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
 
-  // Upsert the response
-  return prisma.response.upsert({
+  const existing = await prisma.response.findUnique({
     where: {
       userId_offeringSessionId_blockId: {
         userId: user.id,
         offeringSessionId,
         blockId,
-      }
+      },
     },
-    update: {
-      value,
-    },
-    create: {
-      userId: user.id,
-      offeringSessionId,
-      blockId,
-      value,
-    }
+    select: { id: true, lockState: true },
   });
+
+  if (existing) {
+    if (existing.lockState === LockState.LOCKED) {
+      throw new Error('This response is locked and cannot be edited. An instructor must reopen it first.');
+    }
+    if (existing.lockState === LockState.VOIDED) {
+      throw new Error('This response was voided by an instructor and cannot be edited.');
+    }
+    // DRAFT or REOPENED — editable.
+    return prisma.response.update({
+      where: { id: existing.id },
+      data: { value },
+    });
+  }
+
+  return prisma.response.create({
+    data: { userId: user.id, offeringSessionId, blockId, value },
+  });
+}
+
+/**
+ * MUTATION: Lock a prediction (learner action).
+ *
+ * Prediction Lock state machine (spec section 12): DRAFT -> LOCKED is the
+ * only transition a learner can make, and only on a response that already
+ * exists — you cannot lock a prediction that was never saved. Locking
+ * stamps `lockedAt` and makes the response read-only (enforced above, in
+ * saveLearnerResponse). REOPENED -> LOCKED is also allowed, so a learner
+ * can re-lock after an instructor reopens their prediction.
+ */
+export async function lockPredictionResponse(offeringSessionId: string, blockId: string) {
+  const user = await requireAuth();
+  await requireOfferingSessionRole(offeringSessionId, [EnrollmentRole.LEARNER, EnrollmentRole.INSTRUCTOR]);
+
+  const existing = await prisma.response.findUnique({
+    where: {
+      userId_offeringSessionId_blockId: {
+        userId: user.id,
+        offeringSessionId,
+        blockId,
+      },
+    },
+  });
+
+  if (!existing) {
+    throw new Error('Cannot lock a prediction that has not been saved yet. Write an answer first.');
+  }
+  if (existing.lockState === LockState.LOCKED) {
+    throw new Error('This prediction is already locked.');
+  }
+  if (existing.lockState === LockState.VOIDED) {
+    throw new Error('This prediction was voided by an instructor and cannot be locked.');
+  }
+
+  return prisma.response.update({
+    where: { id: existing.id },
+    data: { lockState: LockState.LOCKED, lockedAt: new Date() },
+  });
+}
+
+/**
+ * MUTATION: Reopen or void a locked prediction (instructor/admin only).
+ *
+ * Per spec section 12, only instructors/admins may perform this transition,
+ * and every such action must be recorded in PredictionLockAudit — this is
+ * the only place in the codebase that writes that table. `action` is typed
+ * to just the two staff-initiated states so a caller can't smuggle DRAFT or
+ * LOCKED through this path.
+ */
+export async function setPredictionLockState(
+  responseId: string,
+  action: typeof LockState.REOPENED | typeof LockState.VOIDED,
+  reason?: string
+) {
+  const response = await prisma.response.findUnique({
+    where: { id: responseId },
+    include: { offeringSession: { select: { offeringId: true } } },
+  });
+  if (!response) throw new Error('Response not found.');
+
+  const { user: actor } = await requireOfferingRole(response.offeringSession.offeringId, [EnrollmentRole.INSTRUCTOR]);
+
+  if (response.lockState !== LockState.LOCKED) {
+    throw new Error(
+      `Cannot ${action === LockState.REOPENED ? 'reopen' : 'void'} a prediction that is not currently ` +
+      `locked (current state: ${response.lockState}).`
+    );
+  }
+
+  const [updated] = await prisma.$transaction([
+    prisma.response.update({
+      where: { id: responseId },
+      data: { lockState: action, lockedAt: null },
+    }),
+    prisma.predictionLockAudit.create({
+      data: { responseId, actorId: actor.id, action, reason },
+    }),
+  ]);
+
+  return updated;
 }
 
 /**

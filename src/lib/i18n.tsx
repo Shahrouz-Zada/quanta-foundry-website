@@ -142,8 +142,23 @@ const messages = {
 
     // ── Prototype notices ──────────────────────────────────────────────────
     'proto.unsavedNote':
-      'Prototype mode: your notes are not saved and will be lost if you refresh or leave this page.',
+      'This screen is still a UI prototype, but your responses are saved to your account as you type.',
     'proto.label': 'Prototype',
+
+    // ── Prediction Lock ────────────────────────────────────────────────────
+    'prediction.lockButton':       'Lock prediction',
+    'prediction.locking':          'Locking…',
+    'prediction.lockedBadge':      'Locked',
+    'prediction.lockedAt':         'Locked {date}',
+    'prediction.reopenedNotice':   'An instructor reopened this prediction — you can edit it again.',
+    'prediction.voidedNotice':     'This prediction was voided by an instructor and can no longer be edited.',
+    'prediction.emptyWarning':     'Write your prediction before locking it.',
+    'prediction.lockErrorFallback':'Could not lock this prediction. Please try again.',
+    'prediction.lockHelp':         'Locking timestamps your prediction and makes it read-only. An instructor can reopen it if needed.',
+    'prediction.revealTitle':      'Prediction vs. outcome',
+    'prediction.yourPrediction':   'Your prediction',
+    'prediction.actualOutcome':    'What actually happened',
+    'prediction.noPredictionYet':  'You have not locked a prediction for this experiment yet.',
   },
 
   fr: {
@@ -266,8 +281,23 @@ const messages = {
 
     // ── Prototype notices ──────────────────────────────────────────────────
     'proto.unsavedNote':
-      'Mode prototype : vos notes ne sont pas sauvegardées et seront perdues si vous actualisez ou quittez cette page.',
+      'Cet écran est encore un prototype d\'interface, mais vos réponses sont enregistrées dans votre compte au fur et à mesure.',
     'proto.label': 'Prototype',
+
+    // ── Verrouillage de prédiction ─────────────────────────────────────────
+    'prediction.lockButton':       'Verrouiller la prédiction',
+    'prediction.locking':          'Verrouillage…',
+    'prediction.lockedBadge':      'Verrouillée',
+    'prediction.lockedAt':         'Verrouillée le {date}',
+    'prediction.reopenedNotice':   'Un instructeur a rouvert cette prédiction — vous pouvez la modifier à nouveau.',
+    'prediction.voidedNotice':     'Cette prédiction a été annulée par un instructeur et ne peut plus être modifiée.',
+    'prediction.emptyWarning':     'Écrivez votre prédiction avant de la verrouiller.',
+    'prediction.lockErrorFallback':'Impossible de verrouiller cette prédiction. Veuillez réessayer.',
+    'prediction.lockHelp':         'Verrouiller horodate votre prédiction et la rend en lecture seule. Un instructeur peut la rouvrir si nécessaire.',
+    'prediction.revealTitle':      'Prédiction vs. résultat',
+    'prediction.yourPrediction':   'Votre prédiction',
+    'prediction.actualOutcome':    'Ce qui s\'est réellement passé',
+    'prediction.noPredictionYet':  'Vous n\'avez pas encore verrouillé de prédiction pour cette expérience.',
   },
 } as const;
 

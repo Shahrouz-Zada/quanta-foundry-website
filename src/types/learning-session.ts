@@ -29,12 +29,36 @@ export interface SessionResource {
   url?: string;
 }
 
+/**
+ * A single-response prompt block. Carries the real content block ID (not a
+ * UI-invented one) so the caller can address the exact Response row this
+ * prompt maps to — required for saveResponseAction/lockPredictionAction to
+ * target the right record.
+ */
+export interface PromptItem {
+  blockId: string;
+  type: 'openQuestion' | 'predictionLock';
+  prompt: string;
+}
+
+/**
+ * The Interpret-stage counterpart to a predictionLock block: shows the
+ * actual outcome next to the prediction the learner locked earlier.
+ * `linkedBlockId` is the predictionLock block's ID this reveal refers to.
+ */
+export interface PredictionReveal {
+  blockId: string;
+  linkedBlockId: string;
+  resultText: string;
+}
+
 export interface LearningStage {
   id: StageId;
   title: string;
   description: string;
   resources?: SessionResource[];
-  prompts?: string[];
+  prompts?: PromptItem[];
+  reveals?: PredictionReveal[];
 }
 
 export interface LearningSession {

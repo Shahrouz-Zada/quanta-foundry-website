@@ -43,10 +43,10 @@ export const SESSION_01: LearningSession = {
         },
       ],
       prompts: [
-        'What is the prediction target in this problem?',
-        'What data would be available before the prediction date?',
-        'What would make this prediction useful in practice?',
-        'What feature of the data could make the result misleading?',
+        { blockId: 'mock-prep-1', type: 'openQuestion', prompt: 'What is the prediction target in this problem?' },
+        { blockId: 'mock-prep-2', type: 'openQuestion', prompt: 'What data would be available before the prediction date?' },
+        { blockId: 'mock-prep-3', type: 'openQuestion', prompt: 'What would make this prediction useful in practice?' },
+        { blockId: 'mock-prep-4', type: 'openQuestion', prompt: 'What feature of the data could make the result misleading?' },
       ],
     },
     {
@@ -100,6 +100,9 @@ export const SESSION_01: LearningSession = {
           url: undefined,
         },
       ],
+      prompts: [
+        { blockId: 'mock-expr-lock', type: 'predictionLock', prompt: 'Before running the experiment, what do you expect the results to show?' }
+      ]
     },
     {
       id: 'interpret',
@@ -107,11 +110,11 @@ export const SESSION_01: LearningSession = {
       description:
         'Pause before drawing conclusions. Use these prompts to reason about what the results actually show.',
       prompts: [
-        'What patterns do you observe in the model output? Describe what you see numerically.',
-        'What might explain the difference in performance between the naive benchmark and the logistic regression?',
-        'What does a higher accuracy score not prove about the model?',
-        'Which assumption in this experiment matters most to the validity of the result?',
-        'What would you design as the next experiment, and why?',
+        { blockId: 'mock-int-1', type: 'openQuestion', prompt: 'What patterns do you observe in the model output? Describe what you see numerically.' },
+        { blockId: 'mock-int-2', type: 'openQuestion', prompt: 'What might explain the difference in performance between the naive benchmark and the logistic regression?' },
+        { blockId: 'mock-int-3', type: 'openQuestion', prompt: 'What does a higher accuracy score not prove about the model?' },
+        { blockId: 'mock-int-4', type: 'openQuestion', prompt: 'Which assumption in this experiment matters most to the validity of the result?' },
+        { blockId: 'mock-int-5', type: 'openQuestion', prompt: 'What would you design as the next experiment, and why?' },
       ],
     },
     {
@@ -135,11 +138,11 @@ export const SESSION_01: LearningSession = {
       description:
         'Step back from the result. Critical reflection is how experimental work becomes real knowledge.',
       prompts: [
-        'What aspect of this session worked well for your understanding?',
-        'What failed or remained genuinely unclear after the experiment?',
-        'What remains uncertain, even if the model performed well?',
-        'What would you change about the experimental design?',
-        'What did the result not prove, even under the best interpretation?',
+        { blockId: 'mock-refl-1', type: 'openQuestion', prompt: 'What aspect of this session worked well for your understanding?' },
+        { blockId: 'mock-refl-2', type: 'openQuestion', prompt: 'What failed or remained genuinely unclear after the experiment?' },
+        { blockId: 'mock-refl-3', type: 'openQuestion', prompt: 'What remains uncertain, even if the model performed well?' },
+        { blockId: 'mock-refl-4', type: 'openQuestion', prompt: 'What would you change about the experimental design?' },
+        { blockId: 'mock-refl-5', type: 'openQuestion', prompt: 'What did the result not prove, even under the best interpretation?' },
       ],
     },
     {

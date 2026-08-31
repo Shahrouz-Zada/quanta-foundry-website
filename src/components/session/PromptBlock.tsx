@@ -11,9 +11,11 @@
 import { useState } from 'react';
 import { MessageSquare, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
+import type { PromptItem } from '@/types/learning-session';
 
 interface Props {
-  prompts: string[];
+  prompts: PromptItem[];
   withTextarea?: boolean;
   title?: string;
   /** Controlled mode — pass from SessionLayout to preserve across stage switches */
@@ -28,6 +30,8 @@ export default function PromptBlock({
   answers: controlledAnswers,
   onAnswerChange,
 }: Props) {
+  const { t } = useTranslation();
+
   // Uncontrolled fallback for stages that do not need state preservation
   const [localAnswers, setLocalAnswers] = useState<string[]>(() =>
     prompts.map(() => '')
@@ -58,7 +62,10 @@ export default function PromptBlock({
         </h3>
       )}
 
-      {/* Prototype persistence warning */}
+      {/* Prototype notice — responses are persisted server-side; this is a
+          reminder that the UI/interaction design is still a prototype, not
+          a data-loss warning (it used to say notes were NOT saved, which
+          stopped being true once Step 1B wired responses to the database). */}
       {withTextarea && (
         <div
           role="note"
@@ -66,16 +73,15 @@ export default function PromptBlock({
         >
           <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
           <p className="text-xs text-amber-700 leading-relaxed">
-            <span className="font-semibold text-amber-800">Prototype mode:</span> your notes will
-            be lost if you refresh or leave this page. Saving responses to a personal workspace is
-            planned for Phase 2.
+            <span className="font-semibold text-amber-800">{t('proto.label')}:</span>{' '}
+            {t('proto.unsavedNote')}
           </p>
         </div>
       )}
 
-      {prompts.map((prompt, index) => (
+      {prompts.map((item, index) => (
         <div
-          key={index}
+          key={item.blockId}
           className={cn(
             'rounded-xl border bg-white p-5 transition-colors duration-150',
             withTextarea && (answers[index] ?? '')
@@ -91,7 +97,7 @@ export default function PromptBlock({
             >
               {index + 1}
             </span>
-            <p className="text-sm text-[#18242B] leading-relaxed">{prompt}</p>
+            <p className="text-sm text-[#18242B] leading-relaxed">{item.prompt}</p>
           </div>
 
           {/* Textarea (controlled or uncontrolled) */}
