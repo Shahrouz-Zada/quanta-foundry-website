@@ -21,10 +21,6 @@ import ArtifactPanel from './ArtifactPanel';
 import PublicationPathway from './PublicationPathway';
 import StageCompletionPanel from './StageCompletionPanel';
 
-// ── Type alias for the t() function ─────────────────────────────────────────
-
-type TFn = ReturnType<typeof useTranslation>['t'];
-
 // ── Status badge styles ────────────────────────────────────────────────────────
 
 const STATUS_STYLES: Record<string, string> = {
