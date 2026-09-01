@@ -17,9 +17,9 @@ const googleClientId = process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_I
 const googleClientSecret = process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET;
 
 if (!googleClientId || !googleClientSecret) {
-  throw new Error(
+  console.warn(
     'Missing Google OAuth credentials: set AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET ' +
-    '(or GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) in the environment.'
+    '(or GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) in the environment. Google Auth will fail at runtime.'
   );
 }
 
