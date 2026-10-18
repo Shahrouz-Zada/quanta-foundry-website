@@ -150,20 +150,42 @@ async function main() {
   // losing anything — versus creating a new row, which is what stranded
   // them in the first place.
   for (const offering of [cohortOffering, communityOffering]) {
-    const existing = await prisma.offeringSession.findFirst({
+    // findMany + explicit order, not findFirst — this script can run while
+    // duplicates from the OLD bug still exist in the database (that's
+    // exactly the state a prior run of the buggy version left behind).
+    // findFirst with no order would non-deterministically pick either row;
+    // worse, updating the WRONG one to activeVersionId when another row
+    // already holds that exact (offeringId, sessionVersionId) pair would
+    // throw a unique-constraint violation and abort the whole seed run.
+    // Ordering by createdAt desc and always acting on the newest row avoids
+    // that: the newest row is, by construction of the old bug, the one that
+    // was created for the CURRENT published version, so it already holds
+    // (or should hold) activeVersionId — updating it is always safe.
+    const rows = await prisma.offeringSession.findMany({
       where: {
         offeringId: offering.id,
         sessionVersion: { sessionId: session.id },
       },
+      orderBy: { createdAt: 'desc' },
     });
 
-    if (existing) {
-      if (existing.sessionVersionId !== activeVersionId) {
+    if (rows.length > 1) {
+      console.warn(
+        `  ⚠️  ${rows.length} OfferingSession rows found for ${offering.slug} — ` +
+        `left over from a prior run before this fix. Not deleting them here; ` +
+        `run src/scripts/cleanup-duplicate-offering-sessions.ts to remove the stale ones.`
+      );
+    }
+
+    const canonical = rows[0];
+
+    if (canonical) {
+      if (canonical.sessionVersionId !== activeVersionId) {
         await prisma.offeringSession.update({
-          where: { id: existing.id },
+          where: { id: canonical.id },
           data: { sessionVersionId: activeVersionId! },
         });
-        console.log(`  Repointed OfferingSession ${existing.id} (${offering.slug}) to the newly published version.`);
+        console.log(`  Repointed OfferingSession ${canonical.id} (${offering.slug}) to the newly published version.`);
       }
     } else {
       await prisma.offeringSession.create({

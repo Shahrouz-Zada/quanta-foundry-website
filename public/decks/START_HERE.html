@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>IA &amp; Automatisation — Session 1 · Build While Learning</title>
+<style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+width: 0.8em;
+margin: 0 0.8em 0.2em -1em;  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+
+
+<style>
+:root{--bg:#f6f8fc;--ink:#0f1d36;--muted:#4f5e75;--navy:#0b2f67;--blue:#1666d8;--cyan:#53a7ff;--line:#dce5f0;--card:#fff;--soft:#eaf2ff;--good:#e8f7ef;--warn:#fff7e5;--bad:#fff1f0;--shadow:0 10px 28px rgba(21,45,85,.09);--radius:20px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:#071a38;overflow:hidden}
+button,select{font-family:inherit}
+.deck{width:100vw;height:100vh;position:relative}
+.slide{display:none;position:absolute;inset:0;background:linear-gradient(135deg,#f9fbff 0%,#f1f6fd 100%)}
+.slide.active{display:block}
+.slide-inner{height:100%;padding:80px 60px 50px;position:relative}
+.slide-title{font-size:38px;line-height:1.1;margin:0 0 22px;color:var(--navy);letter-spacing:-.03em;max-width:1250px}
+.slide-body{height:calc(100% - 84px);display:flex;flex-direction:column;overflow-y:auto;padding-bottom:36px}
+.title-slide .slide-body{height:100%}
+.slide-body>*,.question-screen>*{flex-shrink:0}
+.slide-footer{position:absolute;left:60px;right:60px;bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:18px;color:#8190a6;font-size:12px;letter-spacing:.03em}
+.footer-right{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48%}
+.instructor-line{margin:6px 0 12px;color:#4f5e75;font-size:15px;font-weight:700;line-height:1.35}
+aside.notes{display:none}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(6,28,60,.97);z-index:30;display:flex;align-items:center;padding:0 14px;color:#fff;gap:12px}
+.brand{font-size:12px;font-weight:800;letter-spacing:.05em;white-space:nowrap}
+.control-group{display:flex;align-items:center;gap:4px}
+.lang-control{margin-left:auto}
+.programme-control{min-width:0;display:flex;align-items:center;gap:6px}
+.programme-select{min-width:250px;max-width:390px;height:32px;border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:0 32px 0 12px;font-size:11px;font-weight:750;outline:none;cursor:pointer}
+.programme-select option{background:#fff;color:var(--ink)}
+.ctl-label{font-size:9px;opacity:.65;text-transform:uppercase;letter-spacing:.11em;margin-right:3px;white-space:nowrap}
+.toggle-btn{border:1px solid rgba(255,255,255,.22);background:transparent;color:#d9e7ff;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:750;cursor:pointer;white-space:nowrap}
+.toggle-btn.active{background:#fff;color:var(--navy);border-color:#fff}
+.progress{position:fixed;top:58px;left:0;height:3px;background:var(--cyan);z-index:31;transition:width .2s}
+.bottom-nav{position:fixed;z-index:35;left:50%;bottom:10px;transform:translateX(-50%);height:34px;padding:2px 8px;display:flex;align-items:center;gap:8px;border-radius:999px;background:rgba(6,28,60,.92)}
+.navbtn{width:28px;height:28px;border:1px solid rgba(255,255,255,.24);background:transparent;color:#fff;border-radius:50%;cursor:pointer;font-size:16px;line-height:1}
+#slideCount{font-size:11px;color:#e9f1ff;min-width:46px;text-align:center;font-variant-numeric:tabular-nums}
+#notesPanel{position:fixed;right:14px;bottom:54px;width:min(440px,92vw);max-height:42vh;overflow:auto;background:#fffbe8;border:1px solid #f2d89d;border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.45;color:#4d4020;z-index:40;box-shadow:var(--shadow);display:none}
+#notesPanel.open{display:block}
+#notesPanel .np-head{font-size:11px;font-weight:900;letter-spacing:.1em;color:#7a5b17;margin-bottom:6px}
+
+.eyebrow{font-size:13px;letter-spacing:.16em;font-weight:800;color:var(--blue);margin-bottom:14px}
+.micro-label{font-size:14px;font-weight:750;text-transform:uppercase;letter-spacing:.08em;color:#708099;margin:0 0 8px}
+.case-kicker{font-size:12px;font-weight:900;letter-spacing:.12em;color:var(--blue);text-transform:uppercase}
+.big-quote{font-size:28px;line-height:1.25;font-weight:750;text-align:center;max-width:1050px;margin:0 auto;color:var(--navy)}
+.big-quote.small{font-size:23px}
+.boxed-quote{padding:18px 24px;background:var(--soft);border:1px solid #cfe0fa;border-radius:18px}
+.bottom-note{margin-top:18px;text-align:center;color:var(--muted);font-size:16px}
+.callout{margin-top:18px;padding:15px 20px;background:var(--soft);border-radius:15px;border-left:5px solid var(--blue);font-size:17px;font-weight:650}
+.chip{display:inline-block;background:var(--soft);border:1px solid #cfe0fa;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:750;color:var(--navy)}
+.chip-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.chip-row>b{font-size:14px;color:var(--blue);min-width:120px;letter-spacing:.04em}
+.source-link{display:block;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;color:var(--blue);font-size:12px;font-weight:800;line-height:1.3}
+.source-link:hover{text-decoration:underline}
+.wide-source{max-width:1120px;width:100%;margin:10px auto 0;background:transparent;border:0;padding:2px 4px;font-size:12px;font-weight:700}
+.answer-drop{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.answer-drop summary{list-style:none;cursor:pointer;padding:13px 16px;font-size:13px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.05em}
+.answer-drop summary::-webkit-details-marker{display:none}
+.answer-drop summary:after{content:"+";float:right;font-size:17px;line-height:1}
+.answer-drop[open] summary:after{content:"–"}
+.answer-body{padding:0 16px 15px;color:var(--muted);font-size:16px;line-height:1.5}
+.large-answer{max-width:1040px;width:100%;margin:14px auto 0}
+.question-focus{max-width:1040px;margin:0 auto;background:#071a38;color:#fff;border-radius:22px;padding:26px 36px;font-size:28px;line-height:1.25;font-weight:780;text-align:center;box-shadow:var(--shadow)}
+.question-focus.small-question{font-size:22px;padding:20px 28px;margin-top:18px}
+.question-screen{justify-content:center;gap:20px}
+
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;align-items:center;height:100%;gap:44px}
+.hero-question{font-size:44px;line-height:1.08;margin:0;color:var(--navy);letter-spacing:-.04em}
+.hero-statement{margin-top:24px;font-size:21px;line-height:1.4;padding-left:18px;border-left:4px solid var(--blue);max-width:720px}
+.vote-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px 22px;box-shadow:var(--shadow)}
+.vote-head{font-size:12px;font-weight:900;letter-spacing:.12em;color:var(--blue);text-transform:uppercase;margin-bottom:4px}
+.vote-row{padding:11px 0;border-bottom:1px solid var(--line)}
+.vote-task{font-weight:800;color:var(--navy);font-size:17px;margin-bottom:8px}
+.vote-opts{display:flex;gap:6px;flex-wrap:wrap}
+.vote-btn,.quiz-btn{border:1px solid #cfe0fa;background:var(--soft);color:var(--navy);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:750;cursor:pointer}
+.vote-btn.selected{background:var(--navy);color:#fff;border-color:var(--navy)}
+.vote-reveal{display:none;margin-top:8px;font-size:15px;color:#0d5a34;background:var(--good);border-radius:10px;padding:8px 11px}
+.vote-card.revealed .vote-reveal{display:block}
+.reveal-btn,.action-btn{border:0;background:var(--blue);color:#fff;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:800;cursor:pointer}
+.reveal-btn{margin-top:14px;width:100%}
+.action-btn.secondary{background:#fff;color:var(--blue);border:1px solid #9bc7ff}
+
+.story-stage{background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px 32px;box-shadow:var(--shadow);max-width:1120px;width:100%;margin:2px auto 0}
+.story-lead{font-size:23px;line-height:1.38;color:var(--navy);font-weight:720;max-width:1040px;margin:12px 0 20px}
+.story-workflow{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin:16px 0}
+.story-workflow span{background:var(--soft);border:1px solid #cfe0fa;border-radius:999px;padding:12px 16px;font-size:15px;font-weight:850;color:var(--navy)}
+.story-workflow i{font-style:normal;color:var(--blue);font-weight:900;font-size:21px}
+.story-workflow.large-flow span{font-size:16px;padding:15px 19px}
+.story-fact{font-size:17px;line-height:1.5;color:var(--muted);border-left:4px solid var(--blue);padding-left:16px;max-width:1000px}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+.metric-story{background:var(--soft);border:1px solid #cfe0fa;border-radius:18px;padding:16px;text-align:center}
+.metric-story strong{display:block;color:var(--navy);font-size:31px;line-height:1;margin-bottom:8px}
+.metric-story span{display:block;color:var(--muted);font-size:15px;line-height:1.3}
+.metric-story.alert{background:var(--bad);border-color:#f3c9c4}
+.metric-story.alert strong{color:#a12a1d}
+.pattern-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 26px}
+.pattern-item{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+.big-num{font-size:28px;font-weight:950;color:#c9dcf7;letter-spacing:-.04em}
+.pattern-item h3{font-size:20px;margin:4px 0 8px;color:var(--navy)}
+.pattern-item p{font-size:15px;line-height:1.45;color:var(--muted);margin:0}
+
+.timeline{display:grid;grid-template-columns:repeat(7,1fr);gap:9px}
+.titem{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;min-height:190px}
+.titem.hot{border:2px solid #8ebeff;background:#f5f9ff}
+.time{font-weight:900;font-size:17px;color:var(--blue);margin-bottom:12px}
+.titem h3{font-size:17px;margin:0 0 7px;color:var(--navy)}
+.titem p{font-size:14.5px;color:var(--muted);line-height:1.4;margin:0}
+.project-spine{display:flex;align-items:center;justify-content:center;gap:7px;margin:14px 0 26px;flex-wrap:wrap}
+.spine-node{background:#fff;border:2px solid #9bc7ff;border-radius:999px;padding:12px 15px;font-size:14px;font-weight:900;color:var(--navy);white-space:nowrap}
+.spine-node.now{background:var(--navy);color:#fff;border-color:var(--navy)}
+.spine-arrow{font-size:19px;color:var(--blue)}
+.final-line{max-width:1050px;margin:0 auto 26px;padding:16px 22px;border:2px dashed #98c2f7;border-radius:16px;text-align:center;color:var(--navy);font-size:18px;font-weight:700;line-height:1.45}
+
+.group-only-note{text-align:right;font-size:13px;color:var(--muted);margin:-4px 0 10px}
+.group-panel{display:none}
+.group-panel.active-group{display:block}
+.case-stage{background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px 34px;box-shadow:var(--shadow);max-width:1120px;margin:6px auto 0;position:relative;overflow:hidden}
+.case-stage:before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--blue)}
+.case-stage h2{font-size:30px;line-height:1.15;color:var(--navy);margin:6px 0 14px}
+.case-stage p{font-size:19px;line-height:1.5;color:var(--muted);margin:0}
+.case-question{margin-top:22px;background:var(--soft);border-radius:16px;padding:17px 20px;color:var(--navy);font-size:19px;font-weight:800}
+.group-idea{display:grid;grid-template-columns:1.1fr 1.2fr .9fr;background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+.group-idea>div{padding:22px;border-right:1px solid var(--line)}
+.group-idea>div:last-child{border-right:0}
+.group-idea h3{font-size:14px;color:var(--blue);margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em}
+.group-idea p{margin:0;font-size:17px;line-height:1.45}
+.master-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.mini-idea{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;min-height:150px}
+.mini-idea b{display:block;font-size:13px;color:var(--blue);margin-bottom:7px}
+.mini-idea p{margin:0;font-size:14.5px;color:var(--muted);line-height:1.42}
+
+.compare{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+.panel-label{font-size:12px;font-weight:900;color:var(--blue);letter-spacing:.12em;margin-bottom:10px}
+.panel h3{font-size:20px;margin:0 0 12px}
+.panel ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.6;font-size:15.5px}
+.quiz-intro{font-size:17px;color:var(--muted);margin:0 0 14px;line-height:1.4}
+.quiz{display:flex;flex-direction:column;gap:9px}
+.quiz-row{background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 16px;display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-items:center}
+.quiz-q{font-size:17px;font-weight:700;color:var(--navy)}
+.quiz-opts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.quiz-btn.is-correct{background:#1c8a4f;color:#fff;border-color:#1c8a4f}
+.quiz-btn.is-wrong{background:#c0392b;color:#fff;border-color:#c0392b}
+.quiz-fb{grid-column:1/-1;display:none;font-size:15px;color:var(--muted)}
+.quiz-row.answered .quiz-fb{display:block}
+.fb-ok,.fb-no{display:none;margin-right:6px}
+.quiz-row.right .fb-ok{display:inline;color:#1c8a4f}
+.quiz-row.wrong .fb-no{display:inline;color:#c0392b}
+.ownership{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
+.ownership>div{border-radius:18px;padding:18px 22px;background:#fff;border:1px solid var(--line)}
+.ownership h3{margin:0 0 8px;color:var(--navy);font-size:19px}
+.ownership ul{margin:0;padding-left:19px;color:var(--muted);line-height:1.6;font-size:15.5px}
+.error-story{margin-top:16px;background:var(--warn);border:1px solid #f2d89d;border-radius:14px;padding:14px 18px;display:flex;gap:14px;align-items:flex-start}
+.error-story b{font-size:12px;letter-spacing:.08em;color:#7a5b17;white-space:nowrap;padding-top:3px}
+.error-story span{font-size:17px;line-height:1.45;color:#5e5238}
+.badgood{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.badgood>div{border-radius:20px;padding:24px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.badgood .bad{background:var(--bad)}
+.badgood .good{background:var(--good)}
+.badgood h3{margin:0 0 14px;font-size:20px}
+.badgood p{font-size:19px;line-height:1.45;margin:0}
+
+.signal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.signal{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+.signal b{display:block;color:var(--blue);font-size:13px;letter-spacing:.05em;margin-bottom:7px}
+.signal p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.45}
+.scope-strip{margin-top:20px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.scope-strip>b{font-size:15px;color:var(--navy)}
+.formula-box{max-width:1000px;width:100%;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px 28px;box-shadow:var(--shadow)}
+.formula-main{font-size:36px;font-weight:900;color:var(--navy);letter-spacing:-.02em;text-align:center}
+.formula-explain{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 8px}
+.formula-explain>div{background:var(--soft);border-radius:14px;padding:13px;text-align:center}
+.formula-explain b{font-size:22px;color:var(--blue)}
+.formula-explain span{display:block;margin-top:4px;font-size:15px;color:var(--muted)}
+.builder{max-width:1040px;width:100%;margin:18px auto 0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px;box-shadow:var(--shadow)}
+.builder h3{margin:0 0 10px;color:var(--navy);font-size:18px}
+.builder-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.builder label{display:block;font-size:13px;font-weight:900;color:var(--blue);margin-bottom:5px}
+.builder input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:15px}
+.builder-out{margin-top:14px;font-size:21px;font-weight:800;color:var(--navy);text-align:center;background:var(--soft);border-radius:12px;padding:14px}
+
+.path{display:flex;gap:8px;align-items:stretch}
+.path-step{flex:1;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
+.path-step b{font-size:12px;color:var(--blue);letter-spacing:.08em;display:block;margin-bottom:6px}
+.path-step span{font-size:16px;line-height:1.4}
+.path-arrow{display:flex;align-items:center;color:var(--blue);font-size:22px}
+.v0-box{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-top:20px}
+.v0-def{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px 24px}
+.v0-def h3{margin:0 0 10px;color:var(--navy);font-size:20px}
+.v0-def ul,.not-v0 ul{margin:0;padding-left:21px;line-height:1.6;font-size:16px}
+.v0-def ul{color:var(--muted)}
+.not-v0{background:var(--warn);border:1px solid #f2d89d;border-radius:20px;padding:20px 24px}
+.not-v0 h3{margin:0 0 10px;color:#7a5b17;font-size:20px}
+.not-v0 ul{color:#6e6246}
+
+.canvas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.canvas-cell{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}
+.canvas-cell:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(22,102,216,.12)}
+.canvas-cell label{font-size:12px;font-weight:900;color:var(--blue);letter-spacing:.06em;margin-bottom:4px}
+.canvas-cell textarea{border:0;resize:none;font:inherit;font-size:14.5px;color:var(--ink);min-height:64px;outline:none;background:transparent;line-height:1.4}
+.canvas-actions{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+.canvas-actions .hint{font-size:14px;color:var(--muted)}
+#canvasStatus{font-size:14px;font-weight:800;color:#1c8a4f;min-width:60px}
+.score{max-width:1000px;width:100%;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.score table{width:100%;border-collapse:collapse}
+.score th,.score td{padding:9px 14px;border-bottom:1px solid var(--line);text-align:center;font-size:16px}
+.score th{background:var(--navy);color:#fff;font-size:14px}
+.score th input{width:100%;padding:7px 9px;border:1px solid rgba(255,255,255,.3);border-radius:8px;background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:14px;text-align:center}
+.score th input::placeholder{color:#b9cdef}
+.score td:first-child{text-align:left;font-weight:750;color:var(--navy)}
+.score-btn{width:46px;height:36px;border-radius:10px;border:1px solid #cfe0fa;background:var(--soft);font-weight:900;color:var(--navy);cursor:pointer;font-size:16px}
+.score-btn[data-v="2"]{background:#bcd8ff}
+.score-btn[data-v="3"]{background:var(--navy);color:#fff}
+.score tr.total td{font-weight:900;font-size:18px;color:var(--navy);background:#f5f9ff;border-bottom:0}
+
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.role{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}
+.role strong{display:block;color:var(--blue);font-size:12px;margin-bottom:7px;text-transform:uppercase;letter-spacing:.05em}
+.role h3{margin:0 0 8px;color:var(--navy);font-size:19px}
+.role p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.45}
+.sprint{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
+.sprint-step{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+.sprint-step.long{border:2px solid #8ebeff}
+.sprint-step .clock{font-size:12px;color:var(--blue);font-weight:900;letter-spacing:.05em}
+.sprint-step h3{font-size:18px;margin:8px 0;color:var(--navy)}
+.sprint-step p{font-size:14.5px;line-height:1.42;margin:0;color:var(--muted)}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.rule{border-radius:16px;padding:14px 18px;font-size:15.5px;line-height:1.45}
+.rule b{display:block;font-size:12px;letter-spacing:.08em;margin-bottom:5px}
+.rule.red{background:var(--bad);border:1px solid #f3c9c4;color:#6b2a22}
+.rule.red b{color:#a12a1d}
+.rule.blue{background:var(--soft);border:1px solid #cfe0fa;color:var(--navy)}
+.rule.blue b{color:var(--blue)}
+.prompt-card{background:#071a38;color:#eaf2ff;border-radius:20px;padding:24px 28px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;line-height:1.55}
+.prompt-card .p-label{color:#72b6ff;font-weight:800}
+.prompt-note{margin-top:16px;color:var(--muted);font-size:16px;text-align:center}
+.check-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+.check{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;display:flex;gap:11px;align-items:flex-start}
+.check .box{width:20px;height:20px;border:2px solid #8bbcff;border-radius:5px;flex:0 0 auto;margin-top:2px}
+.check p{margin:0;color:var(--muted);font-size:16px;line-height:1.45}
+.check b{color:var(--navy)}
+.pitch{max-width:950px;width:100%;margin:0 auto}
+.pitch-line{display:grid;grid-template-columns:80px 200px 1fr;align-items:center;border-bottom:1px solid var(--line);padding:14px 0}
+.pitch-line>span:first-child{font-weight:900;color:var(--blue);font-size:19px}
+.pitch-line b{color:var(--navy);font-size:18px}
+.pitch-line em{font-style:normal;color:var(--muted);font-size:16.5px}
+.deliverables{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.deliverable{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow)}
+.deliverable h2{font-size:24px;margin:0 0 13px;color:var(--navy)}
+.deliverable ul{margin:0;padding-left:20px;color:var(--muted);line-height:1.65;font-size:16px}
+.next-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center;margin-top:20px}
+.next-grid h2{font-size:31px;margin:0 0 12px;color:var(--navy)}
+.lead{font-size:18px;line-height:1.5;color:var(--muted)}
+.prep-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+.prep-card h3{margin:0 0 10px}
+.prep-card ol{margin:0;padding-left:19px;color:var(--muted);line-height:1.65;font-size:16px}
+.closing{text-align:center;margin-top:34px;font-size:24px;font-weight:850;color:var(--navy)}
+
+.real-case-grid{display:grid;grid-template-columns:1.55fr .65fr;gap:22px}
+.real-case-main{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px 28px;box-shadow:var(--shadow)}
+.real-case-main h2{font-size:17px;color:var(--navy);margin:16px 0 7px}
+.real-case-main p{font-size:16.5px;color:var(--muted);line-height:1.5;margin:0}
+.mini-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+.mini-flow span{background:var(--soft);border:1px solid #cfe0fa;border-radius:999px;padding:9px 12px;font-size:14px;font-weight:800;color:var(--navy)}
+.mini-flow i{font-style:normal;color:var(--blue);font-weight:900}
+.real-case-side{display:flex;flex-direction:column;gap:13px}
+.lesson-card{background:#071a38;color:#fff;border-radius:20px;padding:22px}
+.lesson-card b{display:block;color:#72b6ff;font-size:12px;letter-spacing:.1em;margin-bottom:10px}
+.lesson-card p{font-size:18px;line-height:1.45;margin:0}
+@media (max-height:820px){
+.slide-inner{padding-top:72px}
+.slide-title{font-size:32px;margin-bottom:14px}
+.story-stage{padding:16px 26px}
+.story-lead{font-size:19px;margin:8px 0 12px}
+.metric-story{padding:10px}
+.metric-story strong{font-size:25px;margin-bottom:4px}
+.question-focus.small-question{font-size:19px;padding:13px 22px;margin-top:12px}
+.answer-drop summary{padding:10px 16px}
+.answer-body{font-size:15px}
+}
+@media (max-width:1250px){
+.brand{font-size:10px}.toggle-btn{font-size:9px;padding:5px 7px}.programme-select{min-width:200px;max-width:300px;font-size:10px}
+.slide-inner{padding-left:40px;padding-right:40px}.slide-footer{left:40px;right:40px}
+.slide-title{font-size:33px}.hero-question{font-size:38px}
+.timeline{grid-template-columns:repeat(4,1fr)}.titem{min-height:130px}
+.canvas-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:1000px){
+.hero-grid,.real-case-grid,.v0-box,.next-grid{grid-template-columns:1fr}
+.compare,.pattern-grid,.metric-row,.roles,.master-grid,.sprint,.canvas-grid,.signal-grid{grid-template-columns:repeat(2,1fr)}
+.group-idea{grid-template-columns:1fr}.group-idea>div{border-right:0;border-bottom:1px solid var(--line)}
+.path{flex-wrap:wrap}.path-arrow{display:none}.path-step{min-width:45%}
+.quiz-row{grid-template-columns:1fr}.quiz-opts{justify-content:flex-start}
+.builder-grid,.rules,.ownership,.badgood,.deliverables{grid-template-columns:1fr}
+.question-focus{font-size:23px}.story-lead{font-size:20px}
+}
+@media (max-width:900px){
+.brand{display:none}.topbar{height:74px;align-items:flex-start;padding-top:8px;flex-wrap:wrap}
+.programme-control{width:100%;order:3}.programme-select{width:100%;max-width:none;min-width:0}.progress{top:74px}.slide-inner{padding-top:95px}
+.timeline{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+
+
+</head>
+
+<body>
+
+
+
+
+
+<div class="topbar">
+  <div class="brand">IA &amp; AUTOMATISATION · S1</div>
+  <div class="control-group lang-control">
+    <span class="ctl-label">LANG</span>
+    <button class="toggle-btn" data-lang-btn="en">EN</button>
+    <button class="toggle-btn" data-lang-btn="fr">FR</button>
+  </div>
+  <div class="control-group programme-control">
+    <label class="ctl-label" for="groupSelect" data-en="PROGRAMME" data-fr="PROGRAMME">PROGRAMME</label>
+    <select id="groupSelect" class="programme-select" aria-label="Programme selector">
+      <option value="master" data-en="Master" data-fr="Master">Master</option>
+      <option value="g1" data-en="International Financial Analysis" data-fr="Analyse financière internationale">International Financial Analysis</option>
+      <option value="g2" data-en="Audit &amp; Control" data-fr="Audit &amp; Contrôle">Audit &amp; Control</option>
+      <option value="g3" data-en="Corporate Finance &amp; Financial Engineering" data-fr="Finance d’entreprise &amp; Ingénierie financière">Corporate Finance &amp; Financial Engineering</option>
+      <option value="g4" data-en="International Financial Analyst" data-fr="International Financial Analyst">International Financial Analyst</option>
+      <option value="g5" data-en="Markets, Trading &amp; Risk" data-fr="Marchés, Trading &amp; Risque">Markets, Trading &amp; Risk</option>
+    </select>
+  </div>
+</div>
+<div class="progress"></div>
+<div class="bottom-nav">
+  <button aria-label="Previous slide" class="navbtn" id="prev">‹</button>
+  <span id="slideCount"></span>
+  <button aria-label="Next slide" class="navbtn" id="next">›</button>
+</div>
+<div id="notesPanel"><div class="np-head">PRESENTER NOTES · PRESS N TO HIDE</div><div id="notesBody"></div></div>
+
+<div class="deck">
+
+<!-- 1 · Opening vote -->
+<section class="slide title-slide">
+<div class="slide-inner"><div class="slide-body">
+<div class="hero-grid">
+ <div>
+  <div class="eyebrow" data-en="SESSION 1 · 2H · FACE-TO-FACE" data-fr="SÉANCE 1 · 2H · PRÉSENTIEL">SESSION 1 · 2H · FACE-TO-FACE</div>
+  <!-- EDIT: replace the instructor placeholder below -->
+  <div class="instructor-line"><span data-en="Instructor:" data-fr="Intervenant :">Instructor:</span> <span> Shahrouz JAFARZADEH </span></div>
+  <p class="micro-label" data-en="A true story from finance" data-fr="Une histoire vraie de la finance">A true story from finance</p>
+  <h1 class="hero-question" data-en="A Morgan Stanley adviser finishes a client meeting. What should happen next?" data-fr="Un conseiller de Morgan Stanley termine un rendez-vous client. Que devrait-il se passer ensuite ?">A Morgan Stanley adviser finishes a client meeting. What should happen next?</h1>
+  <p class="hero-statement" data-en="Four things must happen after the meeting. For each one, vote: automate it, let AI assist, or keep it human?" data-fr="Quatre choses doivent se passer après le rendez-vous. Pour chacune, votez : automatiser, IA en appui, ou garder humain ?">Four things must happen after the meeting. For each one, vote: automate it, let AI assist, or keep it human?</p>
+ </div>
+ <div class="vote-card" id="voteCard">
+  <div class="vote-head" data-en="Your vote" data-fr="Votre vote">Your vote</div>
+  <div class="vote-row">
+   <div class="vote-task" data-en="1 · Write the meeting notes" data-fr="1 · Rédiger les notes du rendez-vous">1 · Write the meeting notes</div>
+   <div class="vote-opts"><button class="vote-btn" data-en="Automate" data-fr="Automatiser">Automate</button><button class="vote-btn" data-en="AI assists" data-fr="IA en appui">AI assists</button><button class="vote-btn" data-en="Human only" data-fr="Humain seul">Human only</button></div>
+   <div class="vote-reveal" data-en="Debrief: AI generates the notes, with client consent." data-fr="Debrief : l’IA génère les notes, avec le consentement du client.">Debrief: AI generates the notes, with client consent.</div>
+  </div>
+  <div class="vote-row">
+   <div class="vote-task" data-en="2 · List the action items" data-fr="2 · Relever les actions à mener">2 · List the action items</div>
+   <div class="vote-opts"><button class="vote-btn" data-en="Automate" data-fr="Automatiser">Automate</button><button class="vote-btn" data-en="AI assists" data-fr="IA en appui">AI assists</button><button class="vote-btn" data-en="Human only" data-fr="Humain seul">Human only</button></div>
+   <div class="vote-reveal" data-en="Debrief: AI surfaces the action items." data-fr="Debrief : l’IA fait ressortir les actions à mener.">Debrief: AI surfaces the action items.</div>
+  </div>
+  <div class="vote-row">
+   <div class="vote-task" data-en="3 · Draft and send the follow-up email" data-fr="3 · Rédiger et envoyer l’e-mail de suivi">3 · Draft and send the follow-up email</div>
+   <div class="vote-opts"><button class="vote-btn" data-en="Automate" data-fr="Automatiser">Automate</button><button class="vote-btn" data-en="AI assists" data-fr="IA en appui">AI assists</button><button class="vote-btn" data-en="Human only" data-fr="Humain seul">Human only</button></div>
+   <div class="vote-reveal" data-en="Debrief: AI drafts the email. The adviser edits it and decides whether to send it." data-fr="Debrief : l’IA rédige l’e-mail. Le conseiller le modifie et décide de l’envoyer ou non.">Debrief: AI drafts the email. The adviser edits it and decides whether to send it.</div>
+  </div>
+  <div class="vote-row">
+   <div class="vote-task" data-en="4 · Update the CRM" data-fr="4 · Mettre à jour le CRM">4 · Update the CRM</div>
+   <div class="vote-opts"><button class="vote-btn" data-en="Automate" data-fr="Automatiser">Automate</button><button class="vote-btn" data-en="AI assists" data-fr="IA en appui">AI assists</button><button class="vote-btn" data-en="Human only" data-fr="Humain seul">Human only</button></div>
+   <div class="vote-reveal" data-en="Debrief: a note is saved into Salesforce (the CRM)." data-fr="Debrief : une note est enregistrée dans Salesforce (le CRM).">Debrief: a note is saved into Salesforce (the CRM).</div>
+  </div>
+  <button class="reveal-btn" id="revealVote" data-en="Reveal what Morgan Stanley built" data-fr="Voir ce que Morgan Stanley a construit">Reveal what Morgan Stanley built</button>
+ </div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">About 3 minutes. Let students vote row by row (show of hands, or teams click). Then click Reveal. Key point: no step is &quot;send automatically&quot;. AI drafts; the adviser decides.</aside>
+</section>
+
+<!-- 2 · Morgan Stanley -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="What Morgan Stanley actually built" data-fr="Ce que Morgan Stanley a réellement construit">What Morgan Stanley actually built</h1>
+<div class="slide-body">
+<div class="story-stage">
+ <div class="case-kicker" data-en="MORGAN STANLEY WEALTH MANAGEMENT · JUNE 2024" data-fr="MORGAN STANLEY WEALTH MANAGEMENT · JUIN 2024">MORGAN STANLEY WEALTH MANAGEMENT · JUNE 2024</div>
+ <div class="story-lead" data-en="With client consent, AI @ Morgan Stanley Debrief turns a client meeting into notes, action items and a draft follow-up email." data-fr="Avec le consentement du client, AI @ Morgan Stanley Debrief transforme un rendez-vous client en notes, actions à mener et projet d’e-mail de suivi.">With client consent, AI @ Morgan Stanley Debrief turns a client meeting into notes, action items and a draft follow-up email.</div>
+ <div class="story-workflow">
+  <span data-en="Client meeting" data-fr="Rendez-vous client">Client meeting</span><i>→</i>
+  <span data-en="AI notes + action items" data-fr="Notes IA + actions">AI notes + action items</span><i>→</i>
+  <span data-en="Draft email" data-fr="Projet d’e-mail">Draft email</span><i>→</i>
+  <span data-en="Adviser reviews" data-fr="Revue du conseiller">Adviser reviews</span><i>→</i>
+  <span data-en="Client + CRM" data-fr="Client + CRM">Client + CRM</span>
+ </div>
+ <div class="story-fact" data-en="The adviser edits the email and sends it at their discretion. Morgan Stanley also tells users to always verify AI-generated output." data-fr="Le conseiller modifie l’e-mail et l’envoie à sa discrétion. Morgan Stanley demande aussi de toujours vérifier les résultats générés par l’IA.">The adviser edits the email and sends it at their discretion. Morgan Stanley also tells users to always verify AI-generated output.</div>
+</div>
+<a class="source-link wide-source" href="https://www.morganstanley.com/press-releases/ai-at-morgan-stanley-debrief-launch" target="_blank" rel="noopener">Source · Morgan Stanley · Launch of AI @ Morgan Stanley Debrief (26 June 2024)</a>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">1 minute. Stress two phrases: &quot;with client consent&quot; and &quot;at their discretion&quot;. The human decides what the client receives.</aside>
+</section>
+
+<!-- 3 · Human in the loop -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Why keep the human in the loop?" data-fr="Pourquoi garder l’humain dans la boucle ?">Why keep the human in the loop?</h1>
+<div class="slide-body question-screen">
+<div class="question-focus" data-en="If AI can write the notes and draft the email, why not let it send the message automatically?" data-fr="Si l’IA peut rédiger les notes et préparer l’e-mail, pourquoi ne pas la laisser envoyer le message automatiquement ?">If AI can write the notes and draft the email, why not let it send the message automatically?</div>
+<details class="answer-drop large-answer">
+ <summary data-en="Suggested answer" data-fr="Piste de réponse">Suggested answer</summary>
+ <div class="answer-body"><span data-en="Because the output can be incomplete, inaccurate or wrong for this client. The adviser owns the relationship, suitability, compliance and the final judgment. Morgan Stanley tells users to always verify AI output, and advisers review and edit Debrief drafts before anything is sent." data-fr="Parce que la sortie peut être incomplète, inexacte ou inadaptée à ce client. Le conseiller reste responsable de la relation, de l’adéquation, de la conformité et du jugement final. Morgan Stanley demande de toujours vérifier les sorties de l’IA, et les conseillers relisent et modifient les brouillons de Debrief avant tout envoi.">Because the output can be incomplete, inaccurate or wrong for this client. The adviser owns the relationship, suitability, compliance and the final judgment. Morgan Stanley tells users to always verify AI output, and advisers review and edit Debrief drafts before anything is sent.</span></div>
+</details>
+<div class="chip-row" style="justify-content:center">
+ <span class="chip" data-en="Automation handles the repeatable work." data-fr="L’automatisation prend en charge le travail répétitif.">Automation handles the repeatable work.</span>
+ <span class="chip" data-en="AI helps interpret and generate." data-fr="L’IA aide à interpréter et générer.">AI helps interpret and generate.</span>
+ <span class="chip" data-en="A human owns the important decision." data-fr="Un humain assume la décision importante.">A human owns the important decision.</span>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">1–2 minutes. Take 2–3 student answers before opening the suggested answer.</aside>
+</section>
+
+<!-- 4 · Prysmian story -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="A second true story: Prysmian’s treasury problem" data-fr="Une deuxième histoire vraie : le problème de trésorerie de Prysmian">A second true story: Prysmian’s treasury problem</h1>
+<div class="slide-body">
+<div class="story-stage">
+ <div class="case-kicker">PRYSMIAN · TREASURY · J.P. MORGAN CASH FLOW INTELLIGENCE</div>
+ <div class="story-lead" data-en="Cash forecasting across many entities needed repetitive data work, reconciliation and manual effort. Prysmian introduced an AI-supported cash-flow forecasting workflow." data-fr="La prévision de trésorerie sur de nombreuses entités exigeait des travaux de données répétitifs, des rapprochements et beaucoup d’efforts manuels. Prysmian a introduit un workflow de prévision de trésorerie assisté par l’IA.">Cash forecasting across many entities needed repetitive data work, reconciliation and manual effort. Prysmian introduced an AI-supported cash-flow forecasting workflow.</div>
+ <div class="metric-row">
+  <div class="metric-story"><strong>&lt;1%</strong><span data-en="reported error rate" data-fr="taux d’erreur rapporté">reported error rate</span></div>
+  <div class="metric-story"><strong>10 h</strong><span data-en="weekly workload reduction" data-fr="réduction hebdomadaire de charge">weekly workload reduction</span></div>
+  <div class="metric-story"><strong>$100k</strong><span data-en="reported annual savings" data-fr="économies annuelles rapportées">reported annual savings</span></div>
+ </div>
+</div>
+<div class="question-focus small-question" data-en="These numbers look impressive. Who reported them—and compared to what?" data-fr="Ces chiffres sont impressionnants. Qui les a publiés — et par rapport à quoi ?">These numbers look impressive. Who reported them—and compared to what?</div>
+<details class="answer-drop large-answer">
+ <summary data-en="Suggested answer" data-fr="Piste de réponse">Suggested answer</summary>
+ <div class="answer-body"><span data-en="They come from J.P. Morgan, which sells the solution. They may be true, but they are not independent. Good questions: What was the baseline? How was the error rate measured? Over which period? Your own project will face exactly these questions in Session 9." data-fr="Ils viennent de J.P. Morgan, qui vend la solution. Ils sont peut-être exacts, mais ils ne sont pas indépendants. Bonnes questions : quelle était la référence ? Comment le taux d’erreur a-t-il été mesuré ? Sur quelle période ? Votre propre projet devra répondre à ces mêmes questions en séance 9.">They come from J.P. Morgan, which sells the solution. They may be true, but they are not independent. Good questions: What was the baseline? How was the error rate measured? Over which period? Your own project will face exactly these questions in Session 9.</span></div>
+</details>
+<a class="source-link wide-source" href="https://www.jpmorgan.com/insights/payments/data-intelligence/prysmian-ai-cash-flow-optimization" target="_blank" rel="noopener">Source · J.P. Morgan · Prysmian AI-driven cash-flow optimization case</a>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">2 minutes. Ask the question before opening the answer. This is the first link to &quot;baseline&quot;: compared to what?</aside>
+</section>
+
+<!-- 5 · Prysmian value -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="What actually created value at Prysmian?" data-fr="Qu’est-ce qui a réellement créé de la valeur chez Prysmian ?">What actually created value at Prysmian?</h1>
+<div class="slide-body question-screen">
+<div class="story-workflow large-flow">
+ <span data-en="Cash data" data-fr="Données de trésorerie">Cash data</span><i>→</i>
+ <span data-en="Clean + structure" data-fr="Nettoyer + structurer">Clean + structure</span><i>→</i>
+ <span data-en="Forecast" data-fr="Prévoir">Forecast</span><i>→</i>
+ <span data-en="Detect outliers" data-fr="Détecter les anomalies">Detect outliers</span><i>→</i>
+ <span data-en="Treasury review" data-fr="Revue trésorerie">Treasury review</span>
+</div>
+<div class="question-focus" data-en="Which step is the model—and which steps are simply good process design and automation?" data-fr="Quelle étape correspond au modèle — et quelles étapes relèvent simplement d’un bon design de processus et de l’automatisation ?">Which step is the model—and which steps are simply good process design and automation?</div>
+<details class="answer-drop large-answer">
+ <summary data-en="Suggested answer" data-fr="Piste de réponse">Suggested answer</summary>
+ <div class="answer-body"><span data-en="The forecast may use machine learning. But most business value comes from the whole chain: reliable inputs, repeatable transformations, automatic refresh, exception detection and a usable review process. This is why the course starts from the financial workflow, not from a model." data-fr="La prévision peut utiliser le Machine Learning. Mais l’essentiel de la valeur métier vient de toute la chaîne : entrées fiables, transformations répétables, actualisation automatique, détection des exceptions et processus de revue utilisable. C’est pourquoi le cours part du workflow financier, et non d’un modèle.">The forecast may use machine learning. But most business value comes from the whole chain: reliable inputs, repeatable transformations, automatic refresh, exception detection and a usable review process. This is why the course starts from the financial workflow, not from a model.</span></div>
+</details>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">2 minutes. Target answer: only &quot;Forecast&quot; is the model. Everything else is data work, automation and human review.</aside>
+</section>
+
+<!-- 6 · Knight Capital -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="A warning story: when automation goes wrong" data-fr="Une histoire d’alerte : quand l’automatisation déraille">A warning story: when automation goes wrong</h1>
+<div class="slide-body">
+<div class="story-stage">
+ <div class="case-kicker" data-en="KNIGHT CAPITAL · US EQUITY TRADING · 1 AUGUST 2012" data-fr="KNIGHT CAPITAL · ACTIONS US · 1ER AOÛT 2012">KNIGHT CAPITAL · US EQUITY TRADING · 1 AUGUST 2012</div>
+ <div class="story-lead" data-en="Knight Capital deployed new code in its automated order router. The deployment was wrong, and an old, unused function woke up when the market opened." data-fr="Knight Capital a déployé un nouveau code dans son routeur d’ordres automatisé. Le déploiement était défectueux, et une ancienne fonction inutilisée s’est réactivée à l’ouverture du marché.">Knight Capital deployed new code in its automated order router. The deployment was wrong, and an old, unused function woke up when the market opened.</div>
+ <div class="metric-row">
+  <div class="metric-story alert"><strong>45 min</strong><span data-en="of runaway orders after the open" data-fr="d’ordres incontrôlés après l’ouverture">of runaway orders after the open</span></div>
+  <div class="metric-story alert"><strong>4M+</strong><span data-en="orders sent to fill 212 customer orders" data-fr="ordres envoyés pour exécuter 212 ordres clients">orders sent to fill 212 customer orders</span></div>
+  <div class="metric-story alert"><strong>$460M+</strong><span data-en="loss" data-fr="de pertes">loss</span></div>
+ </div>
+</div>
+<div class="question-focus small-question" data-en="Before the open, the system sent 97 automated emails pointing to an error. Nobody acted. What controls were missing?" data-fr="Avant l’ouverture, le système a envoyé 97 e-mails automatiques signalant une erreur. Personne n’a réagi. Quels contrôles manquaient ?">Before the open, the system sent 97 automated emails pointing to an error. Nobody acted. What controls were missing?</div>
+<details class="answer-drop large-answer">
+ <summary data-en="Suggested answer" data-fr="Piste de réponse">Suggested answer</summary>
+ <div class="answer-body"><span data-en="The SEC found weak controls on code deployment and testing, no effective limit on total orders and exposure, and no clear procedure for responding to incidents. Knight paid a $12 million penalty. Lesson: automation does not remove risk. It can make one error very large, very fast. Test before release, set hard limits, and make sure a human can stop the system." data-fr="La SEC a constaté des contrôles faibles sur le déploiement et les tests du code, aucune limite efficace sur le volume total d’ordres et l’exposition, et aucune procédure claire de réponse aux incidents. Knight a payé une amende de 12 millions de dollars. Leçon : l’automatisation ne supprime pas le risque. Elle peut rendre une erreur énorme, très vite. Testez avant la mise en production, fixez des limites strictes, et assurez-vous qu’un humain peut arrêter le système.">The SEC found weak controls on code deployment and testing, no effective limit on total orders and exposure, and no clear procedure for responding to incidents. Knight paid a $12 million penalty. Lesson: automation does not remove risk. It can make one error very large, very fast. Test before release, set hard limits, and make sure a human can stop the system.</span></div>
+</details>
+<a class="source-link wide-source" href="https://www.sec.gov/newsroom/press-releases/2013-222" target="_blank" rel="noopener">Source · U.S. SEC · SEC Charges Knight Capital With Violations of Market Access Rule (16 Oct 2013)</a>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">2–3 minutes. This case has no AI on purpose: automation risk exists without AI. The 97 emails are the key detail: the signal existed, but no process turned it into action. Come back to this story in Session 8.</aside>
+</section>
+
+<!-- 7 · Pattern -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="What these stories teach us" data-fr="Ce que ces histoires nous apprennent">What these stories teach us</h1>
+<div class="slide-body">
+<div class="pattern-grid">
+ <div class="pattern-item"><div class="big-num">01</div><h3 data-en="Start with real work" data-fr="Partir du travail réel">Start with real work</h3><p data-en="A client meeting. A cash forecast. An order router." data-fr="Un rendez-vous client. Une prévision de trésorerie. Un routeur d’ordres.">A client meeting. A cash forecast. An order router.</p></div>
+ <div class="pattern-item"><div class="big-num">02</div><h3 data-en="Redesign the workflow" data-fr="Redessiner le workflow">Redesign the workflow</h3><p data-en="Connect data, automation and intelligence around one concrete task." data-fr="Relier données, automatisation et intelligence autour d’une tâche concrète.">Connect data, automation and intelligence around one concrete task.</p></div>
+ <div class="pattern-item"><div class="big-num">03</div><h3 data-en="Measure value honestly" data-fr="Mesurer la valeur honnêtement">Measure value honestly</h3><p data-en="Time, accuracy, detection or another outcome. Ask who measured it, and against what." data-fr="Temps, précision, détection ou autre résultat. Demandez qui l’a mesuré, et par rapport à quoi.">Time, accuracy, detection or another outcome. Ask who measured it, and against what.</p></div>
+ <div class="pattern-item"><div class="big-num">04</div><h3 data-en="Keep control" data-fr="Garder le contrôle">Keep control</h3><p data-en="Test before release. A person owns the important decision—and can stop the system." data-fr="Tester avant la mise en production. Une personne assume la décision importante — et peut arrêter le système.">Test before release. A person owns the important decision—and can stop the system.</p></div>
+</div>
+<div class="big-quote small boxed-quote" data-en="This is also the logic of your project: problem → workflow → prototype → evidence → decision." data-fr="C’est aussi la logique de votre projet : problème → workflow → prototype → preuve → décision.">This is also the logic of your project: problem → workflow → prototype → evidence → decision.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">30 seconds. Summarise and move on quickly.</aside>
+</section>
+
+<!-- 8 · Today -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Today: 120 minutes from a real workflow to Prototype v0" data-fr="Aujourd’hui : 120 minutes d’un workflow réel au Prototype v0">Today: 120 minutes from a real workflow to Prototype v0</h1>
+<div class="slide-body">
+<div class="timeline">
+ <div class="titem"><div class="time">00–15</div><h3 data-en="Real stories" data-fr="Histoires réelles">Real stories</h3><p data-en="Three finance cases: two successes, one failure." data-fr="Trois cas en finance : deux réussites, un échec.">Three finance cases: two successes, one failure.</p></div>
+ <div class="titem"><div class="time">15–25</div><h3 data-en="Name the tools" data-fr="Nommer les outils">Name the tools</h3><p data-en="Automation, analytics, ML, NLP/GenAI—and who stays responsible." data-fr="Automatisation, analytique, ML, NLP/IA générative — et qui reste responsable.">Automation, analytics, ML, NLP/GenAI—and who stays responsible.</p></div>
+ <div class="titem"><div class="time">25–45</div><h3 data-en="Frame your project" data-fr="Cadrer votre projet">Frame your project</h3><p data-en="Problem, user, question, baseline. Pick one idea." data-fr="Problème, utilisateur, question, référence. Choisir une idée.">Problem, user, question, baseline. Pick one idea.</p></div>
+ <div class="titem"><div class="time">45–50</div><h3 data-en="Watch a v0" data-fr="Voir un v0">Watch a v0</h3><p data-en="A tiny prototype built live." data-fr="Un petit prototype construit en direct.">A tiny prototype built live.</p></div>
+ <div class="titem hot"><div class="time">50–95</div><h3 data-en="Build Sprint" data-fr="Sprint de construction">Build Sprint</h3><p data-en="45 minutes to a rough but runnable v0." data-fr="45 minutes pour un v0 brut mais exécutable.">45 minutes to a rough but runnable v0.</p></div>
+ <div class="titem"><div class="time">95–115</div><h3 data-en="Demos" data-fr="Démos">Demos</h3><p data-en="60 seconds per team. Show it running." data-fr="60 secondes par équipe. Montrez-le en marche.">60 seconds per team. Show it running.</p></div>
+ <div class="titem"><div class="time">115–120</div><h3 data-en="Next step" data-fr="Prochaine étape">Next step</h3><p data-en="What must work by Session 2?" data-fr="Qu’est-ce qui doit fonctionner à la séance 2 ?">What must work by Session 2?</p></div>
+</div>
+<div class="bottom-note" data-en="Almost half of today is building. You will leave with something that runs." data-fr="Presque la moitié de la séance est consacrée à construire. Vous repartirez avec quelque chose qui s’exécute.">Almost half of today is building. You will leave with something that runs.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">30 seconds. Show the plan. Say clearly: we build today.</aside>
+</section>
+
+<!-- 9 · Roadmap -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="The project is the course" data-fr="Le projet est le cours">The project is the course</h1>
+<div class="slide-body" style="justify-content:center">
+<div class="project-spine">
+ <div class="spine-node now" data-en="S1 · PROBLEM + v0" data-fr="S1 · PROBLÈME + v0">S1 · PROBLEM + v0</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S2 · DATA" data-fr="S2 · DONNÉES">S2 · DATA</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S3 · AI BUILD" data-fr="S3 · BUILD IA">S3 · AI BUILD</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S4 · INTELLIGENCE" data-fr="S4 · INTELLIGENCE">S4 · INTELLIGENCE</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S5 · GENAI" data-fr="S5 · IA GÉN.">S5 · GENAI</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S6 · PRODUCT" data-fr="S6 · PRODUIT">S6 · PRODUCT</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S7 · INTEGRATE" data-fr="S7 · INTÉGRER">S7 · INTEGRATE</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S8 · VALIDATE" data-fr="S8 · VALIDER">S8 · VALIDATE</div><div class="spine-arrow">→</div>
+ <div class="spine-node" data-en="S9 · DEMO" data-fr="S9 · DÉMO">S9 · DEMO</div>
+</div>
+<div class="final-line" data-en="By Session 9: realistic input → useful logic → repeatable automation → usable output. Around everything: testing, evidence, limitations and human control." data-fr="À la séance 9 : entrée réaliste → logique utile → automatisation répétable → sortie utilisable. Autour de tout : tests, preuves, limites et contrôle humain.">By Session 9: realistic input → useful logic → repeatable automation → usable output. Around everything: testing, evidence, limitations and human control.</div>
+<div class="big-quote small" data-en="The project is not an assignment at the end of the course. The project is the course." data-fr="Le projet n’est pas un devoir à la fin du cours. Le projet est le cours.">The project is not an assignment at the end of the course. The project is the course.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">30 seconds. One sentence per session is enough. If grading weights are ready, mention where students can find them.</aside>
+</section>
+
+<!-- 10 · Your role -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Now translate the pattern into your finance role" data-fr="Maintenant, transposez ce schéma à votre métier financier">Now translate the pattern into your finance role</h1>
+<div class="slide-body">
+<div class="group-panel" data-group="master"><div class="case-stage">
+ <div class="case-kicker" data-en="YOUR PROJECT" data-fr="VOTRE PROJET">YOUR PROJECT</div>
+ <h2 data-en="Find one workflow worth improving" data-fr="Trouvez un workflow qui mérite d’être amélioré">Find one workflow worth improving</h2>
+ <p data-en="Look for repeated manual work, scattered data, slow analysis, recurring controls, document-heavy tasks, or decisions that need better evidence." data-fr="Cherchez un travail manuel répétitif, des données dispersées, une analyse lente, des contrôles récurrents, des tâches documentaires ou des décisions qui manquent de preuves.">Look for repeated manual work, scattered data, slow analysis, recurring controls, document-heavy tasks, or decisions that need better evidence.</p>
+ <div class="case-question" data-en="What is one finance task you would really like to make faster, safer or more useful?" data-fr="Quelle tâche financière aimeriez-vous vraiment rendre plus rapide, plus sûre ou plus utile ?">What is one finance task you would really like to make faster, safer or more useful?</div>
+</div></div>
+<div class="group-panel" data-group="g1"><div class="case-stage">
+ <div class="case-kicker" data-en="INTERNATIONAL FINANCIAL ANALYSIS" data-fr="ANALYSE FINANCIÈRE INTERNATIONALE">INTERNATIONAL FINANCIAL ANALYSIS</div>
+ <h2 data-en="Six companies, three currencies, one comparison" data-fr="Six entreprises, trois devises, une comparaison">Six companies, three currencies, one comparison</h2>
+ <p data-en="Annual reports use different formats, currencies and reporting rules. The analyst must standardise the information before a fair comparison is possible." data-fr="Les rapports annuels utilisent des formats, devises et normes de reporting différents. L’analyste doit standardiser l’information avant toute comparaison pertinente.">Annual reports use different formats, currencies and reporting rules. The analyst must standardise the information before a fair comparison is possible.</p>
+ <div class="case-question" data-en="What would you automate without weakening the analyst’s judgment?" data-fr="Qu’automatiseriez-vous sans affaiblir le jugement de l’analyste ?">What would you automate without weakening the analyst’s judgment?</div>
+</div></div>
+<div class="group-panel" data-group="g2"><div class="case-stage">
+ <div class="case-kicker" data-en="AUDIT &amp; CONTROL" data-fr="AUDIT &amp; CONTRÔLE">AUDIT &amp; CONTROL</div>
+ <h2 data-en="50,000 transactions. Which 100 deserve attention?" data-fr="50 000 transactions. Lesquelles méritent vraiment l’attention ?">50,000 transactions. Which 100 deserve attention?</h2>
+ <p data-en="Fixed rules create hundreds of alerts, and review capacity is limited." data-fr="Des règles fixes génèrent des centaines d’alertes, et la capacité de revue est limitée.">Fixed rules create hundreds of alerts, and review capacity is limited.</p>
+ <div class="case-question" data-en="How could a system prioritise review and still keep full traceability?" data-fr="Comment un système pourrait-il prioriser la revue tout en gardant une traçabilité complète ?">How could a system prioritise review and still keep full traceability?</div>
+</div></div>
+<div class="group-panel" data-group="g3"><div class="case-stage">
+ <div class="case-kicker" data-en="CORPORATE FINANCE &amp; FINANCIAL ENGINEERING" data-fr="FINANCE D’ENTREPRISE &amp; INGÉNIERIE FINANCIÈRE">CORPORATE FINANCE &amp; FINANCIAL ENGINEERING</div>
+ <h2 data-en="The CFO wants six financing scenarios before the meeting" data-fr="Le CFO veut six scénarios de financement avant la réunion">The CFO wants six financing scenarios before the meeting</h2>
+ <p data-en="A linked valuation and financing model is slow to update by hand, and small formula errors can spread." data-fr="Un modèle lié de valorisation et de financement est lent à mettre à jour à la main, et de petites erreurs de formule peuvent se propager.">A linked valuation and financing model is slow to update by hand, and small formula errors can spread.</p>
+ <div class="case-question" data-en="What can be parameterised and automated while the finance logic stays transparent?" data-fr="Que peut-on paramétrer et automatiser tout en gardant la logique financière transparente ?">What can be parameterised and automated while the finance logic stays transparent?</div>
+</div></div>
+<div class="group-panel" data-group="g4"><div class="case-stage">
+ <div class="case-kicker">INTERNATIONAL FINANCIAL ANALYST</div>
+ <h2 data-en="Earnings were released 15 minutes ago" data-fr="Les résultats ont été publiés il y a 15 minutes">Earnings were released 15 minutes ago</h2>
+ <p data-en="The first analyst note is due soon: key numbers, comparison with past periods, management comments and a short view." data-fr="La première note d’analyste est attendue rapidement : chiffres clés, comparaison avec les périodes passées, commentaires du management et avis court.">The first analyst note is due soon: key numbers, comparison with past periods, management comments and a short view.</p>
+ <div class="case-question" data-en="Which steps can go faster without letting AI invent the conclusion?" data-fr="Quelles étapes peuvent aller plus vite sans laisser l’IA inventer la conclusion ?">Which steps can go faster without letting AI invent the conclusion?</div>
+</div></div>
+<div class="group-panel" data-group="g5"><div class="case-stage">
+ <div class="case-kicker" data-en="MARKETS, TRADING &amp; RISK" data-fr="MARCHÉS, TRADING &amp; RISQUE">MARKETS, TRADING &amp; RISK</div>
+ <h2 data-en="Thirty assets move at once" data-fr="Trente actifs bougent en même temps">Thirty assets move at once</h2>
+ <p data-en="A risk analyst watches prices, volatility and limit breaches across a portfolio." data-fr="Un analyste risque surveille les prix, la volatilité et les dépassements de limites sur un portefeuille.">A risk analyst watches prices, volatility and limit breaches across a portfolio.</p>
+ <div class="case-question" data-en="Which signals should be automated—and which still need a human to interpret them?" data-fr="Quels signaux devraient être automatisés — et lesquels nécessitent encore une interprétation humaine ?">Which signals should be automated—and which still need a human to interpret them?</div>
+</div></div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">2 minutes, pair discussion. Select the class programme in the top bar before the session.</aside>
+</section>
+
+<!-- 11 · Concepts -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Do not call everything AI" data-fr="N’appelez pas tout « IA »">Do not call everything AI</h1>
+<div class="slide-body">
+<div class="compare">
+ <div class="panel"><div class="panel-label" data-en="AUTOMATION" data-fr="AUTOMATISATION">AUTOMATION</div><h3 data-en="Known steps" data-fr="Étapes connues">Known steps</h3><ul><li data-en="Import files" data-fr="Importer des fichiers">Import files</li><li data-en="Apply fixed rules" data-fr="Appliquer des règles fixes">Apply fixed rules</li><li data-en="Refresh reports" data-fr="Actualiser des rapports">Refresh reports</li></ul></div>
+ <div class="panel"><div class="panel-label" data-en="ANALYTICS" data-fr="ANALYTIQUE">ANALYTICS</div><h3 data-en="Known calculations" data-fr="Calculs connus">Known calculations</h3><ul><li data-en="Ratios" data-fr="Ratios">Ratios</li><li data-en="Variance analysis" data-fr="Analyse des écarts">Variance analysis</li><li data-en="Scenario calculations" data-fr="Calculs de scénarios">Scenario calculations</li></ul></div>
+ <div class="panel"><div class="panel-label">ML</div><h3 data-en="Patterns learned from data" data-fr="Motifs appris à partir des données">Patterns learned from data</h3><ul><li data-en="Predict" data-fr="Prédire">Predict</li><li data-en="Classify" data-fr="Classer">Classify</li><li data-en="Detect anomalies" data-fr="Détecter des anomalies">Detect anomalies</li></ul></div>
+ <div class="panel"><div class="panel-label" data-en="NLP / GENAI" data-fr="NLP / IA GÉNÉRATIVE">NLP / GENAI</div><h3 data-en="Read and generate language" data-fr="Lire et générer du langage">Read and generate language</h3><ul><li data-en="Extract from documents" data-fr="Extraire des documents">Extract from documents</li><li data-en="Summarise" data-fr="Résumer">Summarise</li><li data-en="Draft text or code" data-fr="Rédiger du texte ou du code">Draft text or code</li></ul></div>
+</div>
+<div class="callout" data-en="Example: calculating EBITDA margin is analytics. Refreshing it every month is automation. Predicting next quarter’s margin may be ML. Explaining the change from a report may use GenAI." data-fr="Exemple : calculer la marge d’EBITDA relève de l’analytique. L’actualiser chaque mois relève de l’automatisation. Prédire la marge du prochain trimestre peut relever du ML. Expliquer la variation à partir d’un rapport peut utiliser l’IA générative.">Example: calculating EBITDA margin is analytics. Refreshing it every month is automation. Predicting next quarter’s margin may be ML. Explaining the change from a report may use GenAI.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">2 minutes. Read the EBITDA example aloud. It carries the whole slide.</aside>
+</section>
+
+<!-- 12 · Quiz -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Quick check: which tool is it?" data-fr="Vérification rapide : de quel outil s’agit-il ?">Quick check: which tool is it?</h1>
+<div class="slide-body">
+<p class="quiz-intro" data-en="Choose first. Then see the answer." data-fr="Choisissez d’abord. Puis voyez la réponse.">Choose first. Then see the answer.</p>
+<div class="quiz">
+ <div class="quiz-row" data-answer="auto">
+  <div class="quiz-q" data-en="Every morning, import 40 bank statements into one table." data-fr="Chaque matin, importer 40 relevés bancaires dans un seul tableau.">Every morning, import 40 bank statements into one table.</div>
+  <div class="quiz-opts"><button class="quiz-btn" data-choice="auto" data-en="Automation" data-fr="Automatisation">Automation</button><button class="quiz-btn" data-choice="analytics" data-en="Analytics" data-fr="Analytique">Analytics</button><button class="quiz-btn" data-choice="ml" data-en="ML" data-fr="ML">ML</button><button class="quiz-btn" data-choice="genai" data-en="NLP / GenAI" data-fr="NLP / IA gén.">NLP / GenAI</button></div>
+  <div class="quiz-fb"><b class="fb-ok" data-en="Correct." data-fr="Correct.">Correct.</b><b class="fb-no" data-en="Not quite." data-fr="Pas tout à fait.">Not quite.</b><span data-en="Automation: known steps, repeated. Nothing is learned." data-fr="Automatisation : des étapes connues, répétées. Rien n’est appris.">Automation: known steps, repeated. Nothing is learned.</span></div>
+ </div>
+ <div class="quiz-row" data-answer="analytics">
+  <div class="quiz-q" data-en="Calculate the current ratio for six companies." data-fr="Calculer le ratio de liquidité générale de six entreprises.">Calculate the current ratio for six companies.</div>
+  <div class="quiz-opts"><button class="quiz-btn" data-choice="auto" data-en="Automation" data-fr="Automatisation">Automation</button><button class="quiz-btn" data-choice="analytics" data-en="Analytics" data-fr="Analytique">Analytics</button><button class="quiz-btn" data-choice="ml" data-en="ML" data-fr="ML">ML</button><button class="quiz-btn" data-choice="genai" data-en="NLP / GenAI" data-fr="NLP / IA gén.">NLP / GenAI</button></div>
+  <div class="quiz-fb"><b class="fb-ok" data-en="Correct." data-fr="Correct.">Correct.</b><b class="fb-no" data-en="Not quite." data-fr="Pas tout à fait.">Not quite.</b><span data-en="Analytics: a known formula applied to data." data-fr="Analytique : une formule connue appliquée aux données.">Analytics: a known formula applied to data.</span></div>
+ </div>
+ <div class="quiz-row" data-answer="auto">
+  <div class="quiz-q" data-en="Flag every payment above €10,000." data-fr="Signaler chaque paiement supérieur à 10 000 €.">Flag every payment above €10,000.</div>
+  <div class="quiz-opts"><button class="quiz-btn" data-choice="auto" data-en="Automation" data-fr="Automatisation">Automation</button><button class="quiz-btn" data-choice="analytics" data-en="Analytics" data-fr="Analytique">Analytics</button><button class="quiz-btn" data-choice="ml" data-en="ML" data-fr="ML">ML</button><button class="quiz-btn" data-choice="genai" data-en="NLP / GenAI" data-fr="NLP / IA gén.">NLP / GenAI</button></div>
+  <div class="quiz-fb"><b class="fb-ok" data-en="Correct." data-fr="Correct.">Correct.</b><b class="fb-no" data-en="Not quite." data-fr="Pas tout à fait.">Not quite.</b><span data-en="Automation with a fixed rule. Simple, clear and auditable—often the best baseline." data-fr="Automatisation avec une règle fixe. Simple, claire et auditable — souvent la meilleure référence.">Automation with a fixed rule. Simple, clear and auditable—often the best baseline.</span></div>
+ </div>
+ <div class="quiz-row" data-answer="ml">
+  <div class="quiz-q" data-en="Flag payments that look unusual for this supplier." data-fr="Signaler les paiements inhabituels pour ce fournisseur.">Flag payments that look unusual for this supplier.</div>
+  <div class="quiz-opts"><button class="quiz-btn" data-choice="auto" data-en="Automation" data-fr="Automatisation">Automation</button><button class="quiz-btn" data-choice="analytics" data-en="Analytics" data-fr="Analytique">Analytics</button><button class="quiz-btn" data-choice="ml" data-en="ML" data-fr="ML">ML</button><button class="quiz-btn" data-choice="genai" data-en="NLP / GenAI" data-fr="NLP / IA gén.">NLP / GenAI</button></div>
+  <div class="quiz-fb"><b class="fb-ok" data-en="Correct." data-fr="Correct.">Correct.</b><b class="fb-no" data-en="Not quite." data-fr="Pas tout à fait.">Not quite.</b><span data-en="ML: “unusual” is learned from past data. This is anomaly detection. Compare it with the fixed rule above." data-fr="ML : « inhabituel » est appris à partir des données passées. C’est de la détection d’anomalies. Comparez avec la règle fixe ci-dessus.">ML: “unusual” is learned from past data. This is anomaly detection. Compare it with the fixed rule above.</span></div>
+ </div>
+ <div class="quiz-row" data-answer="ml">
+  <div class="quiz-q" data-en="Predict which invoices will be paid late." data-fr="Prédire quelles factures seront payées en retard.">Predict which invoices will be paid late.</div>
+  <div class="quiz-opts"><button class="quiz-btn" data-choice="auto" data-en="Automation" data-fr="Automatisation">Automation</button><button class="quiz-btn" data-choice="analytics" data-en="Analytics" data-fr="Analytique">Analytics</button><button class="quiz-btn" data-choice="ml" data-en="ML" data-fr="ML">ML</button><button class="quiz-btn" data-choice="genai" data-en="NLP / GenAI" data-fr="NLP / IA gén.">NLP / GenAI</button></div>
+  <div class="quiz-fb"><b class="fb-ok" data-en="Correct." data-fr="Correct.">Correct.</b><b class="fb-no" data-en="Not quite." data-fr="Pas tout à fait.">Not quite.</b><span data-en="ML: a prediction learned from historical patterns." data-fr="ML : une prédiction apprise à partir de l’historique.">ML: a prediction learned from historical patterns.</span></div>
+ </div>
+ <div class="quiz-row" data-answer="genai">
+  <div class="quiz-q" data-en="Extract revenue and net debt from a 200-page annual report." data-fr="Extraire le chiffre d’affaires et la dette nette d’un rapport annuel de 200 pages.">Extract revenue and net debt from a 200-page annual report.</div>
+  <div class="quiz-opts"><button class="quiz-btn" data-choice="auto" data-en="Automation" data-fr="Automatisation">Automation</button><button class="quiz-btn" data-choice="analytics" data-en="Analytics" data-fr="Analytique">Analytics</button><button class="quiz-btn" data-choice="ml" data-en="ML" data-fr="ML">ML</button><button class="quiz-btn" data-choice="genai" data-en="NLP / GenAI" data-fr="NLP / IA gén.">NLP / GenAI</button></div>
+  <div class="quiz-fb"><b class="fb-ok" data-en="Correct." data-fr="Correct.">Correct.</b><b class="fb-no" data-en="Not quite." data-fr="Pas tout à fait.">Not quite.</b><span data-en="NLP / GenAI: reading unstructured text. Always check every extracted number." data-fr="NLP / IA générative : lire un texte non structuré. Vérifiez toujours chaque chiffre extrait.">NLP / GenAI: reading unstructured text. Always check every extracted number.</span></div>
+ </div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">3 minutes. Ask for a show of hands per row, then click the majority answer. Rows 3 and 4 are the key contrast: fixed rule versus learned &quot;unusual&quot;.</aside>
+</section>
+
+<!-- 13 · Building with AI -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Building with AI is faster—but you still own the result" data-fr="Construire avec l’IA va plus vite — mais le résultat reste le vôtre">Building with AI is faster—but you still own the result</h1>
+<div class="slide-body">
+<div class="story-workflow" style="margin-top:0">
+ <span data-en="Ask" data-fr="Demander">Ask</span><i>→</i><span data-en="Generate" data-fr="Générer">Generate</span><i>→</i><span data-en="Understand" data-fr="Comprendre">Understand</span><i>→</i><span data-en="Run" data-fr="Exécuter">Run</span><i>→</i><span data-en="Inspect" data-fr="Inspecter">Inspect</span><i>→</i><span data-en="Test" data-fr="Tester">Test</span>
+</div>
+<div class="ownership">
+ <div><h3 data-en="A coding assistant can" data-fr="Un assistant de code peut">A coding assistant can</h3><ul><li data-en="build the first version of an app" data-fr="construire la première version d’une application">build the first version of an app</li><li data-en="write data connectors and transformations" data-fr="écrire des connecteurs et transformations de données">write data connectors and transformations</li><li data-en="explain errors" data-fr="expliquer des erreurs">explain errors</li><li data-en="suggest tests" data-fr="suggérer des tests">suggest tests</li></ul></div>
+ <div><h3 data-en="Your team still owns" data-fr="Votre équipe reste responsable de">Your team still owns</h3><ul><li data-en="the finance logic" data-fr="la logique financière">the finance logic</li><li data-en="the data and assumptions" data-fr="les données et hypothèses">the data and assumptions</li><li data-en="whether the outputs make sense" data-fr="la cohérence des résultats">whether the outputs make sense</li><li data-en="the final recommendation" data-fr="la recommandation finale">the final recommendation</li></ul></div>
+</div>
+<div class="error-story"><b data-en="MINI-SCENARIO" data-fr="MINI-SCÉNARIO">MINI-SCENARIO</b><span data-en="The generated app runs perfectly—but converts EUR to USD in the wrong direction. No syntax error. A financial error. Who catches it, and how?" data-fr="L’application générée fonctionne parfaitement — mais convertit les EUR en USD dans le mauvais sens. Aucune erreur de syntaxe. Une erreur financière. Qui la détecte, et comment ?">The generated app runs perfectly—but converts EUR to USD in the wrong direction. No syntax error. A financial error. Who catches it, and how?</span></div>
+<details class="answer-drop">
+ <summary data-en="Suggested answer" data-fr="Piste de réponse">Suggested answer</summary>
+ <div class="answer-body"><span data-en="Your team’s Finance Check—with one number you can verify by hand. If EUR/USD is 1.10, then 100 EUR must give 110 USD. If the app shows 90.91 USD, it divided instead of multiplied." data-fr="Le « Contrôle finance » de votre équipe — avec un chiffre vérifiable à la main. Si EUR/USD vaut 1,10, alors 100 EUR doivent donner 110 USD. Si l’application affiche 90,91 USD, elle a divisé au lieu de multiplier.">Your team’s Finance Check—with one number you can verify by hand. If EUR/USD is 1.10, then 100 EUR must give 110 USD. If the app shows 90.91 USD, it divided instead of multiplied.</span></div>
+</details>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">2 minutes. Ask &quot;Who catches it?&quot; before opening the answer. This introduces the Finance Check role used in the sprint.</aside>
+</section>
+
+<!-- 14 · Problem not tool -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Start with a problem, not a tool" data-fr="Commencer par un problème, pas par un outil">Start with a problem, not a tool</h1>
+<div class="slide-body">
+<div class="badgood">
+ <div class="bad"><h3 data-en="Weak framing" data-fr="Cadrage faible">Weak framing</h3><p data-en="“We want to use GenAI to build a finance chatbot.”" data-fr="« Nous voulons utiliser l’IA générative pour créer un chatbot financier. »">“We want to use GenAI to build a finance chatbot.”</p></div>
+ <div class="good"><h3 data-en="Useful framing" data-fr="Cadrage utile">Useful framing</h3><p data-en="“Analysts spend 90 minutes extracting the same fields from financial reports. Can we reduce that work and keep the numbers accurate?”" data-fr="« Les analystes passent 90 minutes à extraire les mêmes champs des rapports financiers. Peut-on réduire ce travail tout en gardant des chiffres exacts ? »">“Analysts spend 90 minutes extracting the same fields from financial reports. Can we reduce that work and keep the numbers accurate?”</p></div>
+</div>
+<div class="callout" data-en="Technology is a design choice. The business problem is the starting point." data-fr="La technologie est un choix de conception. Le problème métier est le point de départ.">Technology is a design choice. The business problem is the starting point.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">30 seconds.</aside>
+</section>
+
+<!-- 15 · Promising project -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="What makes a promising project?" data-fr="Qu’est-ce qui fait un projet prometteur ?">What makes a promising project?</h1>
+<div class="slide-body">
+<div class="signal-grid">
+ <div class="signal"><b data-en="REPEATED" data-fr="RÉPÉTÉ">REPEATED</b><p data-en="The work happens often enough that improving it matters." data-fr="Le travail se répète assez souvent pour que l’améliorer compte.">The work happens often enough that improving it matters.</p></div>
+ <div class="signal"><b data-en="DATA AVAILABLE" data-fr="DONNÉES DISPONIBLES">DATA AVAILABLE</b><p data-en="Inputs exist, or can be realistically simulated." data-fr="Les entrées existent, ou peuvent être simulées de manière réaliste.">Inputs exist, or can be realistically simulated.</p></div>
+ <div class="signal"><b data-en="FRICTION" data-fr="FRICTION">FRICTION</b><p data-en="There is a visible cost, delay, error or mental load." data-fr="Il existe un coût, un délai, une erreur ou une charge mentale visible.">There is a visible cost, delay, error or mental load.</p></div>
+ <div class="signal"><b data-en="DECISION LINK" data-fr="LIEN AVEC UNE DÉCISION">DECISION LINK</b><p data-en="The output changes an action, a review, a priority or a recommendation." data-fr="La sortie modifie une action, une revue, une priorité ou une recommandation.">The output changes an action, a review, a priority or a recommendation.</p></div>
+ <div class="signal"><b data-en="BASELINE EXISTS" data-fr="RÉFÉRENCE EXISTANTE">BASELINE EXISTS</b><p data-en="There is a current method or a simple alternative to compare with." data-fr="Il existe une méthode actuelle ou une alternative simple à laquelle se comparer.">There is a current method or a simple alternative to compare with.</p></div>
+ <div class="signal"><b data-en="TESTABLE" data-fr="TESTABLE">TESTABLE</b><p data-en="The team can collect evidence before Session 9." data-fr="L’équipe peut recueillir des preuves avant la séance 9.">The team can collect evidence before Session 9.</p></div>
+</div>
+<div class="scope-strip">
+ <b data-en="Keep the scope small:" data-fr="Gardez un périmètre réduit :">Keep the scope small:</b>
+ <span class="chip" data-en="One user" data-fr="Un utilisateur">One user</span>
+ <span class="chip" data-en="One workflow" data-fr="Un workflow">One workflow</span>
+ <span class="chip" data-en="One baseline" data-fr="Une référence">One baseline</span>
+ <span class="chip" data-en="One measurable claim" data-fr="Une affirmation mesurable">One measurable claim</span>
+</div>
+<div class="bottom-note" data-en="A small system that is complete and tested beats a huge unfinished idea." data-fr="Un petit système complet et testé vaut mieux qu’une énorme idée inachevée.">A small system that is complete and tested beats a huge unfinished idea.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">1 minute. Use it as a checklist, not a lecture. Teams will use these criteria again on the scoring slide.</aside>
+</section>
+
+<!-- 16 · X/Y/Z -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Your research question in one line" data-fr="Votre question de recherche en une ligne">Your research question in one line</h1>
+<div class="slide-body">
+<div class="formula-box">
+ <div class="formula-main" data-en="Can X improve Y relative to Z?" data-fr="X peut-il améliorer Y par rapport à Z ?">Can X improve Y relative to Z?</div>
+ <div class="formula-explain">
+  <div><b>X</b><span data-en="Your proposed solution" data-fr="Votre solution proposée">Your proposed solution</span></div>
+  <div><b>Y</b><span data-en="One measurable business outcome" data-fr="Un résultat métier mesurable">One measurable business outcome</span></div>
+  <div><b>Z</b><span data-en="The baseline: current or simplest method" data-fr="La référence : méthode actuelle ou la plus simple">The baseline: current or simplest method</span></div>
+ </div>
+ <div class="chip-row"><b data-en="Y COULD BE" data-fr="Y PEUT ÊTRE">Y COULD BE</b>
+  <span class="chip" data-en="Time saved" data-fr="Temps gagné">Time saved</span><span class="chip" data-en="Accuracy" data-fr="Précision">Accuracy</span><span class="chip" data-en="Detection" data-fr="Détection">Detection</span><span class="chip" data-en="Consistency" data-fr="Cohérence">Consistency</span><span class="chip" data-en="Workload" data-fr="Charge de travail">Workload</span><span class="chip" data-en="Usability" data-fr="Utilisabilité">Usability</span>
+ </div>
+ <div class="chip-row"><b data-en="Z COULD BE" data-fr="Z PEUT ÊTRE">Z COULD BE</b>
+  <span class="chip" data-en="Current manual process" data-fr="Processus manuel actuel">Current manual process</span><span class="chip" data-en="A simple rule" data-fr="Une règle simple">A simple rule</span><span class="chip" data-en="A simple model (e.g. historical average)" data-fr="Un modèle simple (ex. moyenne historique)">A simple model (e.g. historical average)</span><span class="chip" data-en="No automation" data-fr="Sans automatisation">No automation</span>
+ </div>
+</div>
+<div class="callout" data-en="Without a baseline, “our project works” is not the same as “our project improves something.” Measure time honestly: time the manual task once, then time your tool on the same input." data-fr="Sans référence, « notre projet fonctionne » n’est pas la même chose que « notre projet améliore quelque chose ». Mesurez le temps honnêtement : chronométrez la tâche manuelle une fois, puis votre outil sur la même entrée.">Without a baseline, “our project works” is not the same as “our project improves something.” Measure time honestly: time the manual task once, then time your tool on the same input.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">2 minutes. No academic novelty needed: a clear question, a fair comparison, and evidence. Insist on the time-measurement method.</aside>
+</section>
+
+<!-- 17 · Programme question + builder -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="An example—then write yours" data-fr="Un exemple — puis écrivez la vôtre">An example—then write yours</h1>
+<div class="slide-body">
+<p class="group-only-note" data-en="Switch programme in the top bar to see a tailored example." data-fr="Changez de programme dans la barre du haut pour voir un exemple adapté.">Switch programme in the top bar to see a tailored example.</p>
+<div class="group-panel" data-group="master"><div class="big-quote small" data-en="Can an automated exception checker reduce unnecessary reviews compared with the current fixed-rule process?" data-fr="Un contrôleur automatisé d’exceptions peut-il réduire les revues inutiles par rapport au processus actuel à règles fixes ?">Can an automated exception checker reduce unnecessary reviews compared with the current fixed-rule process?</div></div>
+<div class="group-panel" data-group="g1"><div class="big-quote small" data-en="Can an automated comparison workflow reduce the time to analyse companies across reporting formats, without lower calculation accuracy than the current spreadsheet process?" data-fr="Un workflow automatisé de comparaison peut-il réduire le temps d’analyse d’entreprises entre formats de reporting, sans perte de précision des calculs par rapport au processus Excel actuel ?">Can an automated comparison workflow reduce the time to analyse companies across reporting formats, without lower calculation accuracy than the current spreadsheet process?</div></div>
+<div class="group-panel" data-group="g2"><div class="big-quote small" data-en="Can an automated exception workflow find the relevant transactions with fewer unnecessary reviews than the current fixed-rule process?" data-fr="Un workflow automatisé d’exceptions peut-il trouver les transactions pertinentes avec moins de revues inutiles que le processus actuel à règles fixes ?">Can an automated exception workflow find the relevant transactions with fewer unnecessary reviews than the current fixed-rule process?</div></div>
+<div class="group-panel" data-group="g3"><div class="big-quote small" data-en="Can an interactive scenario engine reduce valuation update time, with the same calculation consistency as a standard spreadsheet workflow?" data-fr="Un moteur interactif de scénarios peut-il réduire le temps de mise à jour d’une valorisation, avec la même cohérence de calcul qu’un workflow Excel standard ?">Can an interactive scenario engine reduce valuation update time, with the same calculation consistency as a standard spreadsheet workflow?</div></div>
+<div class="group-panel" data-group="g4"><div class="big-quote small" data-en="Can an automated first-pass financial analysis reduce analyst preparation time, with the same factual accuracy as a manual review?" data-fr="Une première analyse financière automatisée peut-elle réduire le temps de préparation de l’analyste, avec la même exactitude factuelle qu’une revue manuelle ?">Can an automated first-pass financial analysis reduce analyst preparation time, with the same factual accuracy as a manual review?</div></div>
+<div class="group-panel" data-group="g5"><div class="big-quote small" data-en="Can automated market-risk monitoring detect limit breaches faster, and miss fewer events, than a periodic manual review?" data-fr="Un suivi automatisé du risque de marché peut-il détecter les dépassements de limites plus vite, et en manquer moins, qu’une revue manuelle périodique ?">Can automated market-risk monitoring detect limit breaches faster, and miss fewer events, than a periodic manual review?</div></div>
+<div class="builder">
+ <h3 data-en="Write your team’s question" data-fr="Écrivez la question de votre équipe">Write your team’s question</h3>
+ <div class="builder-grid">
+  <div><label for="bx" data-en="X · your solution" data-fr="X · votre solution">X · your solution</label><input id="bx" type="text" data-ph-en="e.g. an automated exception checker" data-ph-fr="ex. un contrôleur automatisé d’exceptions"></div>
+  <div><label for="by" data-en="Y · the outcome" data-fr="Y · le résultat">Y · the outcome</label><input id="by" type="text" data-ph-en="e.g. review workload" data-ph-fr="ex. la charge de revue"></div>
+  <div><label for="bz" data-en="Z · the baseline" data-fr="Z · la référence">Z · the baseline</label><input id="bz" type="text" data-ph-en="e.g. the current fixed-rule process" data-ph-fr="ex. le processus actuel à règles fixes"></div>
+ </div>
+ <div class="builder-out" id="bout"></div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">3 minutes. Teams write their X/Y/Z on paper or on their own laptop (the class screen is shared). Check that Y is measurable and Z is fair.</aside>
+</section>
+
+<!-- 18 · Prototype v0 -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Prototype v0: one thin path that runs" data-fr="Prototype v0 : un chemin minimal qui s’exécute">Prototype v0: one thin path that runs</h1>
+<div class="slide-body">
+<div class="path">
+ <div class="path-step"><b data-en="INPUT" data-fr="ENTRÉE">INPUT</b><span data-en="One file, a few parameters or one document." data-fr="Un fichier, quelques paramètres ou un document.">One file, a few parameters or one document.</span></div><div class="path-arrow">→</div>
+ <div class="path-step"><b data-en="PROCESS" data-fr="TRAITEMENT">PROCESS</b><span data-en="One calculation, rule or transformation." data-fr="Un calcul, une règle ou une transformation.">One calculation, rule or transformation.</span></div><div class="path-arrow">→</div>
+ <div class="path-step"><b data-en="OUTPUT" data-fr="SORTIE">OUTPUT</b><span data-en="One table, metric, chart or alert." data-fr="Un tableau, une métrique, un graphique ou une alerte.">One table, metric, chart or alert.</span></div><div class="path-arrow">→</div>
+ <div class="path-step"><b data-en="REPEATABLE" data-fr="RÉPÉTABLE">REPEATABLE</b><span data-en="Run it again without rebuilding it." data-fr="Le relancer sans le reconstruire.">Run it again without rebuilding it.</span></div>
+</div>
+<div class="v0-box">
+ <div class="v0-def"><h3 data-en="It counts as v0 if…" data-fr="C’est un v0 si…">It counts as v0 if…</h3><ul>
+  <li data-en="it starts without a developer fixing it first;" data-fr="il démarre sans qu’un développeur doive d’abord le réparer ;">it starts without a developer fixing it first;</li>
+  <li data-en="it accepts at least one simple input;" data-fr="il accepte au moins une entrée simple ;">it accepts at least one simple input;</li>
+  <li data-en="one end-to-end interaction works;" data-fr="une interaction de bout en bout fonctionne ;">one end-to-end interaction works;</li>
+  <li data-en="it shows one visible output—even if the logic is simple;" data-fr="il affiche une sortie visible — même si la logique est simple ;">it shows one visible output—even if the logic is simple;</li>
+  <li data-en="the team can say what is real, fake and still missing." data-fr="l’équipe peut dire ce qui est réel, simulé et encore manquant.">the team can say what is real, fake and still missing.</li>
+ </ul></div>
+ <div class="not-v0"><h3 data-en="Not required today" data-fr="Pas requis aujourd’hui">Not required today</h3><ul>
+  <li data-en="A polished design" data-fr="Un design finalisé">A polished design</li>
+  <li data-en="A trained ML model" data-fr="Un modèle ML entraîné">A trained ML model</li>
+  <li data-en="Production deployment" data-fr="Un déploiement en production">Production deployment</li>
+  <li data-en="Perfect data" data-fr="Des données parfaites">Perfect data</li>
+  <li data-en="Every planned feature" data-fr="Toutes les fonctionnalités prévues">Every planned feature</li>
+ </ul></div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">1 minute. A spreadsheet with one input sheet, formulas and one output also counts as v0.</aside>
+</section>
+
+<!-- 19 · v0 examples -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Prototype v0 examples by programme" data-fr="Exemples de Prototype v0 selon le programme">Prototype v0 examples by programme</h1>
+<div class="slide-body">
+<p class="group-only-note" data-en="The goal is a thin working path, not the final application." data-fr="L’objectif est un chemin minimal qui fonctionne, pas l’application finale.">The goal is a thin working path, not the final application.</p>
+<div class="group-panel" data-group="master"><div class="master-grid">
+ <div class="mini-idea"><b data-en="International Financial Analysis" data-fr="Analyse financière internationale">International Financial Analysis</b><p data-en="Upload a sample company file → calculate three ratios → show a comparison card." data-fr="Téléverser un fichier d’entreprise → calculer trois ratios → afficher une carte comparative.">Upload a sample company file → calculate three ratios → show a comparison card.</p></div>
+ <div class="mini-idea"><b data-en="Audit &amp; Control" data-fr="Audit &amp; Contrôle">Audit &amp; Control</b><p data-en="Upload transactions → apply two rules → show flagged rows and their count." data-fr="Téléverser des transactions → appliquer deux règles → afficher les lignes signalées et leur nombre.">Upload transactions → apply two rules → show flagged rows and their count.</p></div>
+ <div class="mini-idea"><b data-en="Corporate Finance &amp; Financial Engineering" data-fr="Finance d’entreprise &amp; Ingénierie financière">Corporate Finance &amp; Financial Engineering</b><p data-en="Enter assumptions → calculate one valuation or financing output → show a scenario summary." data-fr="Saisir des hypothèses → calculer un résultat de valorisation ou de financement → afficher un résumé de scénario.">Enter assumptions → calculate one valuation or financing output → show a scenario summary.</p></div>
+ <div class="mini-idea"><b>International Financial Analyst</b><p data-en="Upload a simplified P&amp;L and balance sheet → calculate ratios → show a first-pass summary." data-fr="Téléverser un compte de résultat et un bilan simplifiés → calculer des ratios → afficher un premier résumé.">Upload a simplified P&amp;L and balance sheet → calculate ratios → show a first-pass summary.</p></div>
+ <div class="mini-idea"><b data-en="Markets, Trading &amp; Risk" data-fr="Marchés, Trading &amp; Risque">Markets, Trading &amp; Risk</b><p data-en="Upload price history → calculate return and volatility → flag a limit breach." data-fr="Téléverser un historique de prix → calculer rendement et volatilité → signaler un dépassement de limite.">Upload price history → calculate return and volatility → flag a limit breach.</p></div>
+</div></div>
+<div class="group-panel" data-group="g1"><div class="big-quote small" data-en="Today: upload a sample company file → calculate three ratios → show a comparison card. Later: richer data, normalisation, document extraction and evidence." data-fr="Aujourd’hui : téléverser un fichier d’entreprise → calculer trois ratios → afficher une carte comparative. Plus tard : données plus riches, normalisation, extraction documentaire et preuves.">Today: upload a sample company file → calculate three ratios → show a comparison card. Later: richer data, normalisation, document extraction and evidence.</div></div>
+<div class="group-panel" data-group="g2"><div class="big-quote small" data-en="Today: upload transactions → apply two simple controls → show flagged rows and their count. Later: anomaly methods, prioritisation, traceability and validation." data-fr="Aujourd’hui : téléverser des transactions → appliquer deux contrôles simples → afficher les lignes signalées et leur nombre. Plus tard : méthodes d’anomalie, priorisation, traçabilité et validation.">Today: upload transactions → apply two simple controls → show flagged rows and their count. Later: anomaly methods, prioritisation, traceability and validation.</div></div>
+<div class="group-panel" data-group="g3"><div class="big-quote small" data-en="Today: enter a few assumptions → calculate one valuation or financing output → show a scenario summary. Later: richer scenarios, sensitivity, automation and evidence." data-fr="Aujourd’hui : saisir quelques hypothèses → calculer un résultat de valorisation ou de financement → afficher un résumé de scénario. Plus tard : scénarios plus riches, sensibilité, automatisation et preuves.">Today: enter a few assumptions → calculate one valuation or financing output → show a scenario summary. Later: richer scenarios, sensitivity, automation and evidence.</div></div>
+<div class="group-panel" data-group="g4"><div class="big-quote small" data-en="Today: upload simplified financial statements → calculate core ratios → show a first-pass analyst summary. Later: forecasting, document intelligence, commentary and validation." data-fr="Aujourd’hui : téléverser des états financiers simplifiés → calculer les ratios clés → afficher un premier résumé d’analyste. Plus tard : prévision, intelligence documentaire, commentaire et validation.">Today: upload simplified financial statements → calculate core ratios → show a first-pass analyst summary. Later: forecasting, document intelligence, commentary and validation.</div></div>
+<div class="group-panel" data-group="g5"><div class="big-quote small" data-en="Today: upload price history → calculate return and volatility → flag one limit breach. Later: APIs, richer risk metrics, alerts, monitoring and robustness." data-fr="Aujourd’hui : téléverser un historique de prix → calculer rendement et volatilité → signaler un dépassement de limite. Plus tard : API, métriques de risque plus riches, alertes, suivi et robustesse.">Today: upload price history → calculate return and volatility → flag one limit breach. Later: APIs, richer risk metrics, alerts, monitoring and robustness.</div></div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">1 minute.</aside>
+</section>
+
+<!-- 20 · Canvas -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Your use-case canvas: this becomes your Project Charter" data-fr="Votre canevas : il devient votre Project Charter">Your use-case canvas: this becomes your Project Charter</h1>
+<div class="slide-body">
+<div class="canvas-grid" id="canvasGrid">
+ <div class="canvas-cell"><label data-en="USER" data-fr="UTILISATEUR">USER</label><textarea data-ph-en="Who is the primary user?" data-ph-fr="Qui est l’utilisateur principal ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="TASK" data-fr="TÂCHE">TASK</label><textarea data-ph-en="What recurring work is done?" data-ph-fr="Quel travail récurrent est réalisé ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="CURRENT FLOW" data-fr="FLUX ACTUEL">CURRENT FLOW</label><textarea data-ph-en="How is it done today?" data-ph-fr="Comment est-ce fait aujourd’hui ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="PAIN" data-fr="IRRITANT">PAIN</label><textarea data-ph-en="Where is time, quality or control lost?" data-ph-fr="Où perd-on du temps, de la qualité ou du contrôle ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="DECISION" data-fr="DÉCISION">DECISION</label><textarea data-ph-en="What action should the output support?" data-ph-fr="Quelle action la sortie doit-elle soutenir ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="DATA" data-fr="DONNÉES">DATA</label><textarea data-ph-en="What realistic input can you use?" data-ph-fr="Quelle entrée réaliste pouvez-vous utiliser ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="SOLUTION" data-fr="SOLUTION">SOLUTION</label><textarea data-ph-en="What will you build?" data-ph-fr="Qu’allez-vous construire ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="QUESTION" data-fr="QUESTION">QUESTION</label><textarea data-ph-en="Can X improve Y relative to Z?" data-ph-fr="X peut-il améliorer Y par rapport à Z ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="BASELINE" data-fr="RÉFÉRENCE">BASELINE</label><textarea data-ph-en="What is the current or simplest method?" data-ph-fr="Quelle est la méthode actuelle ou la plus simple ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="EVIDENCE" data-fr="PREUVE">EVIDENCE</label><textarea data-ph-en="Which one outcome will you measure?" data-ph-fr="Quel résultat unique allez-vous mesurer ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="RISK &amp; CONTROL" data-fr="RISQUE &amp; CONTRÔLE">RISK &amp; CONTROL</label><textarea data-ph-en="What could mislead? Who checks?" data-ph-fr="Qu’est-ce qui pourrait tromper ? Qui vérifie ?"></textarea></div>
+ <div class="canvas-cell"><label data-en="NEXT BUILD" data-fr="PROCHAIN BUILD">NEXT BUILD</label><textarea data-ph-en="What must work by Session 2?" data-ph-fr="Qu’est-ce qui doit fonctionner à la séance 2 ?"></textarea></div>
+</div>
+<div class="canvas-actions">
+ <button class="action-btn" id="prepareCanvas" data-en="Prepare text for manual copy" data-fr="Préparer le texte à copier manuellement">Prepare text for manual copy</button>
+ <span class="hint" data-en="Nothing is saved when you close this page. Click the button, then copy the text manually with Ctrl+C / Cmd+C." data-fr="Rien n’est enregistré à la fermeture de la page. Cliquez sur le bouton, puis copiez le texte manuellement avec Ctrl+C / Cmd+C.">Nothing is saved when you close this page. Click the button, then copy the text manually with Ctrl+C / Cmd+C.</span>
+</div>
+<textarea id="canvasExportText" readonly aria-label="Project Charter text" style="display:none;width:100%;min-height:170px;margin-top:12px;padding:12px;border:1px solid #dce5f0;border-radius:12px;font:14px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.45;background:#fff;color:#0f1d36;"></textarea>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">10 minutes. Each team opens this deck on one laptop and fills the canvas. Click “Prepare text for manual copy”, then use Ctrl+C / Cmd+C before closing the page.</aside>
+</section>
+
+<!-- 21 · Pick the idea -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Pick the idea you can finish" data-fr="Choisissez l’idée que vous pouvez terminer">Pick the idea you can finish</h1>
+<div class="slide-body">
+<p class="quiz-intro" data-en="Two or three ideas? Click each box to score it from 1 (low) to 3 (high). Build the strongest one." data-fr="Deux ou trois idées ? Cliquez sur chaque case pour noter de 1 (faible) à 3 (élevé). Construisez la plus solide.">Two or three ideas? Click each box to score it from 1 (low) to 3 (high). Build the strongest one.</p>
+<div class="score">
+<table class="caption-top">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"><input type="text" data-ph-en="Idea A" data-ph-fr="Idée A"></th>
+<th data-quarto-table-cell-role="th"><input type="text" data-ph-en="Idea B" data-ph-fr="Idée B"></th>
+<th data-quarto-table-cell-role="th"><input type="text" data-ph-en="Idea C" data-ph-fr="Idée C"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-en="Clear financial problem" data-fr="Problème financier clair">Clear financial problem</td>
+<td><button class="score-btn" data-col="0" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="1" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="2" data-v="0">
+–
+</button></td>
+</tr>
+<tr class="even">
+<td data-en="Real user and real decision" data-fr="Vrai utilisateur et vraie décision">Real user and real decision</td>
+<td><button class="score-btn" data-col="0" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="1" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="2" data-v="0">
+–
+</button></td>
+</tr>
+<tr class="odd">
+<td data-en="Realistic data access" data-fr="Accès réaliste aux données">Realistic data access</td>
+<td><button class="score-btn" data-col="0" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="1" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="2" data-v="0">
+–
+</button></td>
+</tr>
+<tr class="even">
+<td data-en="A fair baseline exists" data-fr="Une référence équitable existe">A fair baseline exists</td>
+<td><button class="score-btn" data-col="0" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="1" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="2" data-v="0">
+–
+</button></td>
+</tr>
+<tr class="odd">
+<td data-en="Outcome can be measured" data-fr="Résultat mesurable">Outcome can be measured</td>
+<td><button class="score-btn" data-col="0" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="1" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="2" data-v="0">
+–
+</button></td>
+</tr>
+<tr class="even">
+<td data-en="A thin v0 is possible today" data-fr="Un v0 minimal est possible aujourd’hui">A thin v0 is possible today</td>
+<td><button class="score-btn" data-col="0" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="1" data-v="0">
+–
+</button></td>
+<td><button class="score-btn" data-col="2" data-v="0">
+–
+</button></td>
+</tr>
+<tr class="total odd">
+<td data-en="Total (out of 18)" data-fr="Total (sur 18)">Total (out of 18)</td>
+<td id="tot0">0</td>
+<td id="tot1">0</td>
+<td id="tot2">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="bottom-note" data-en="Do not choose the idea with the most AI. Choose the one with the strongest problem → evidence → product chain." data-fr="Ne choisissez pas l’idée avec le plus d’IA. Choisissez celle dont la chaîne problème → preuve → produit est la plus solide.">Do not choose the idea with the most AI. Choose the one with the strongest problem → evidence → product chain.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">3 minutes. Only needed if a team has more than one idea. Teams with one idea can use it as a quick self-check.</aside>
+</section>
+
+<!-- 22 · Watch a v0 -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Watch first: a v0 in four minutes" data-fr="Regardez d’abord : un v0 en quatre minutes">Watch first: a v0 in four minutes</h1>
+<div class="slide-body question-screen">
+<div class="story-workflow large-flow">
+ <span data-en="One CSV of prices" data-fr="Un CSV de prix">One CSV of prices</span><i>→</i>
+ <span data-en="One prompt" data-fr="Un prompt">One prompt</span><i>→</i>
+ <span data-en="Run" data-fr="Exécuter">Run</span><i>→</i>
+ <span data-en="Check one number by hand" data-fr="Vérifier un chiffre à la main">Check one number by hand</span><i>→</i>
+ <span data-en="One visible alert" data-fr="Une alerte visible">One visible alert</span>
+</div>
+<div class="question-focus small-question" data-en="What did the AI do well—and what did we still have to decide and check?" data-fr="Qu’est-ce que l’IA a bien fait — et que devions-nous encore décider et vérifier ?">What did the AI do well—and what did we still have to decide and check?</div>
+<details class="answer-drop large-answer">
+ <summary data-en="Suggested answer" data-fr="Piste de réponse">Suggested answer</summary>
+ <div class="answer-body"><span data-en="It wrote working code very fast. But we chose the data, the formula and the alert threshold, and we checked one result by hand. That balance is the method for the whole course." data-fr="Elle a écrit du code qui fonctionne, très vite. Mais c’est nous qui avons choisi les données, la formule et le seuil d’alerte, et nous avons vérifié un résultat à la main. Cet équilibre est la méthode de tout le cours.">It wrote working code very fast. But we chose the data, the formula and the alert threshold, and we checked one result by hand. That balance is the method for the whole course.</span></div>
+</details>
+<div class="bottom-note" data-en="Next: you do the same for your own problem." data-fr="Ensuite : vous faites la même chose pour votre propre problème.">Next: you do the same for your own problem.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Live demo, 4 minutes. Suggested script: price CSV → daily returns → 20-day volatility → flag if above a threshold. Recompute one daily return by hand in front of the class. Prepare the files before class, and have a screen recording as backup.</aside>
+</section>
+
+<!-- 23 · Roles -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Team roles for the sprint" data-fr="Rôles d’équipe pour le sprint">Team roles for the sprint</h1>
+<div class="slide-body">
+<div class="roles">
+ <div class="role"><strong data-en="PRODUCT OWNER" data-fr="RESPONSABLE PRODUIT">PRODUCT OWNER</strong><h3 data-en="Protect the problem" data-fr="Protéger le problème">Protect the problem</h3><p data-en="Keeps the user, the decision and the scope clear. Stops extra features." data-fr="Garde clairs l’utilisateur, la décision et le périmètre. Arrête les fonctionnalités en trop.">Keeps the user, the decision and the scope clear. Stops extra features.</p></div>
+ <div class="role"><strong data-en="BUILDER" data-fr="BUILDER">BUILDER</strong><h3 data-en="Drive the tool" data-fr="Piloter l’outil">Drive the tool</h3><p data-en="Works with the coding assistant or spreadsheet and gets the prototype running." data-fr="Travaille avec l’assistant de code ou le tableur et fait fonctionner le prototype.">Works with the coding assistant or spreadsheet and gets the prototype running.</p></div>
+ <div class="role"><strong data-en="FINANCE CHECK" data-fr="CONTRÔLE FINANCE">FINANCE CHECK</strong><h3 data-en="Protect the logic" data-fr="Protéger la logique">Protect the logic</h3><p data-en="Checks calculations, assumptions and labels. Verifies one number by hand." data-fr="Vérifie calculs, hypothèses et libellés. Contrôle un chiffre à la main.">Checks calculations, assumptions and labels. Verifies one number by hand.</p></div>
+ <div class="role"><strong data-en="TESTER / SCRIBE" data-fr="TESTEUR / RAPPORTEUR">TESTER / SCRIBE</strong><h3 data-en="Protect the evidence" data-fr="Protéger la preuve">Protect the evidence</h3><p data-en="Tries bad inputs, notes failures and what AI generated, and prepares the 60-second demo." data-fr="Teste de mauvaises entrées, note les échecs et ce que l’IA a généré, et prépare la démo de 60 secondes.">Tries bad inputs, notes failures and what AI generated, and prepares the 60-second demo.</p></div>
+</div>
+<div class="bottom-note" data-en="Small teams can combine roles. Everyone must still understand the final system." data-fr="Les petites équipes peuvent cumuler les rôles. Chacun doit néanmoins comprendre le système final.">Small teams can combine roles. Everyone must still understand the final system.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">1 minute. Teams assign roles now.</aside>
+</section>
+
+<!-- 24 · Sprint -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Build Sprint · 45 minutes" data-fr="Sprint de construction · 45 minutes">Build Sprint · 45 minutes</h1>
+<div class="slide-body">
+<div class="sprint">
+ <div class="sprint-step"><div class="clock">0–5 MIN</div><h3 data-en="Open your workspace" data-fr="Ouvrir votre espace">Open your workspace</h3><p data-en="Tools are set up before class. Open the starter dataset for your programme. Write a three-line README." data-fr="Les outils sont installés avant le cours. Ouvrez le jeu de données de départ de votre programme. Écrivez un README de trois lignes.">Tools are set up before class. Open the starter dataset for your programme. Write a three-line README.</p></div>
+ <div class="sprint-step"><div class="clock">5–10 MIN</div><h3 data-en="Specify v0" data-fr="Spécifier le v0">Specify v0</h3><p data-en="Write the one end-to-end interaction that must work before time is up." data-fr="Écrivez l’unique interaction de bout en bout qui doit fonctionner avant la fin.">Write the one end-to-end interaction that must work before time is up.</p></div>
+ <div class="sprint-step long"><div class="clock">10–30 MIN</div><h3 data-en="Generate &amp; run" data-fr="Générer &amp; exécuter">Generate &amp; run</h3><p data-en="Use an AI coding assistant, low-code tool or spreadsheet to build the smallest solution. Run it right away." data-fr="Utilisez un assistant de code IA, un outil low-code ou un tableur pour construire la plus petite solution. Exécutez-la tout de suite.">Use an AI coding assistant, low-code tool or spreadsheet to build the smallest solution. Run it right away.</p></div>
+ <div class="sprint-step"><div class="clock">30–40 MIN</div><h3 data-en="Inspect &amp; check" data-fr="Inspecter &amp; vérifier">Inspect &amp; check</h3><p data-en="Try one normal and one bad input. Check one number by hand. Fix the most obvious failure." data-fr="Testez une entrée normale et une mauvaise. Vérifiez un chiffre à la main. Corrigez l’échec le plus évident.">Try one normal and one bad input. Check one number by hand. Fix the most obvious failure.</p></div>
+ <div class="sprint-step"><div class="clock">40–45 MIN</div><h3 data-en="Prepare the demo" data-fr="Préparer la démo">Prepare the demo</h3><p data-en="Be ready to show: problem → input → output → what is still fake or missing." data-fr="Soyez prêts à montrer : problème → entrée → sortie → ce qui est encore simulé ou manquant.">Be ready to show: problem → input → output → what is still fake or missing.</p></div>
+</div>
+<div class="rules">
+ <div class="rule red"><b data-en="DATA RULE" data-fr="RÈGLE DONNÉES">DATA RULE</b><span data-en="Use the starter dataset or public/sample data only. Never paste confidential client or company data into an AI tool." data-fr="Utilisez uniquement le jeu de données fourni ou des données publiques/d’exemple. Ne collez jamais de données confidentielles de clients ou d’entreprise dans un outil d’IA.">Use the starter dataset or public/sample data only. Never paste confidential client or company data into an AI tool.</span></div>
+ <div class="rule blue"><b data-en="STUCK?" data-fr="BLOQUÉS ?">STUCK?</b><span data-en="Stuck for more than 5 minutes? Ask for help, or switch to the fallback: a spreadsheet v0 (input sheet → formulas → output) also counts." data-fr="Bloqués plus de 5 minutes ? Demandez de l’aide, ou passez au plan B : un v0 dans un tableur (feuille d’entrée → formules → sortie) compte aussi.">Stuck for more than 5 minutes? Ask for help, or switch to the fallback: a spreadsheet v0 (input sheet → formulas → output) also counts.</span></div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Start a visible timer. Walk between teams. At minute 20 of the sprint, check which teams have nothing running and push them to the spreadsheet fallback. Starter datasets must be ready before class (one per programme).</aside>
+</section>
+
+<!-- 25 · Prompt -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="A useful first prompt for your AI coding assistant" data-fr="Un premier prompt utile pour votre assistant de code IA">A useful first prompt for your AI coding assistant</h1>
+<div class="slide-body">
+<div class="prompt-card">
+ <span class="p-label" data-en="CONTEXT" data-fr="CONTEXTE">CONTEXT</span><br>
+ <span data-en="We are building a small finance prototype for [USER]. The problem is [PROBLEM]." data-fr="Nous construisons un petit prototype financier pour [UTILISATEUR]. Le problème est [PROBLÈME].">We are building a small finance prototype for [USER]. The problem is [PROBLEM].</span><br><br>
+ <span class="p-label" data-en="V0 GOAL" data-fr="OBJECTIF V0">V0 GOAL</span><br>
+ <span data-en="Create the smallest runnable application that lets a user [INPUT/ACTION] and shows [OUTPUT]." data-fr="Crée la plus petite application exécutable qui permet à un utilisateur de [ENTRÉE/ACTION] et affiche [SORTIE].">Create the smallest runnable application that lets a user [INPUT/ACTION] and shows [OUTPUT].</span><br><br>
+ <span class="p-label" data-en="CONSTRAINTS" data-fr="CONTRAINTES">CONSTRAINTS</span><br>
+ <span data-en="Keep the architecture simple. Use only the sample data I provide. Do not add features we did not ask for. Explain each file you create and how to run the project. Add basic input checks and one simple test." data-fr="Garde une architecture simple. Utilise uniquement les données d’exemple que je fournis. N’ajoute pas de fonctionnalités non demandées. Explique chaque fichier créé et comment exécuter le projet. Ajoute des contrôles d’entrée simples et un test simple.">Keep the architecture simple. Use only the sample data I provide. Do not add features we did not ask for. Explain each file you create and how to run the project. Add basic input checks and one simple test.</span>
+</div>
+<div class="prompt-note" data-en="Then work in small steps: one change → run → inspect → test. Do not ask for the whole final project at once." data-fr="Travaillez ensuite par petites étapes : un changement → exécuter → inspecter → tester. Ne demandez pas tout le projet final d’un coup.">Then work in small steps: one change → run → inspect → test. Do not ask for the whole final project at once.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Leave this slide visible during the first part of the sprint. Teams can copy the prompt.</aside>
+</section>
+
+<!-- 26 · Checks -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Before you call it a demo, check these six things" data-fr="Avant de parler de démo, vérifiez ces six points">Before you call it a demo, check these six things</h1>
+<div class="slide-body">
+<div class="check-grid">
+ <div class="check"><div class="box"></div><p><b data-en="Runs" data-fr="S’exécute">Runs</b> — <span data-en="the project starts, and the team knows the exact command or action." data-fr="le projet démarre, et l’équipe connaît la commande ou l’action exacte.">the project starts, and the team knows the exact command or action.</span></p></div>
+ <div class="check"><div class="box"></div><p><b data-en="Input works" data-fr="L’entrée fonctionne">Input works</b> — <span data-en="one realistic example can be entered or uploaded." data-fr="un exemple réaliste peut être saisi ou téléversé.">one realistic example can be entered or uploaded.</span></p></div>
+ <div class="check"><div class="box"></div><p><b data-en="Output appears" data-fr="La sortie apparaît">Output appears</b> — <span data-en="the user sees a result linked to the problem." data-fr="l’utilisateur voit un résultat lié au problème.">the user sees a result linked to the problem.</span></p></div>
+ <div class="check"><div class="box"></div><p><b data-en="Finance logic checked" data-fr="Logique financière vérifiée">Finance logic checked</b> — <span data-en="at least one number or rule was verified by hand." data-fr="au moins un chiffre ou une règle a été vérifié à la main.">at least one number or rule was verified by hand.</span></p></div>
+ <div class="check"><div class="box"></div><p><b data-en="Bad input tried" data-fr="Mauvaise entrée testée">Bad input tried</b> — <span data-en="the team knows at least one way the prototype can fail." data-fr="l’équipe connaît au moins une façon dont le prototype peut échouer.">the team knows at least one way the prototype can fail.</span></p></div>
+ <div class="check"><div class="box"></div><p><b data-en="Honest status" data-fr="Statut honnête">Honest status</b> — <span data-en="the team can say what works, what is fake and what is missing." data-fr="l’équipe peut dire ce qui fonctionne, ce qui est simulé et ce qui manque.">the team can say what works, what is fake and what is missing.</span></p></div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Show this at minute 40 of the sprint, just before demos.</aside>
+</section>
+
+<!-- 27 · Demo -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="The 60-second demo" data-fr="La démo de 60 secondes">The 60-second demo</h1>
+<div class="slide-body">
+<div class="pitch">
+ <div class="pitch-line"><span>10 s</span><b data-en="Problem" data-fr="Problème">Problem</b><em data-en="Who has what problem?" data-fr="Qui a quel problème ?">Who has what problem?</em></div>
+ <div class="pitch-line"><span>10 s</span><b data-en="Question" data-fr="Question">Question</b><em data-en="Can X improve Y relative to Z?" data-fr="X peut-il améliorer Y par rapport à Z ?">Can X improve Y relative to Z?</em></div>
+ <div class="pitch-line"><span>30 s</span><b data-en="Live v0" data-fr="v0 en direct">Live v0</b><em data-en="Input → output. Show it running. No screenshots." data-fr="Entrée → sortie. Montrez-le en marche. Pas de captures d’écran.">Input → output. Show it running. No screenshots.</em></div>
+ <div class="pitch-line"><span>10 s</span><b data-en="Next build" data-fr="Prochain build">Next build</b><em data-en="What must work by Session 2?" data-fr="Qu’est-ce qui doit fonctionner à la séance 2 ?">What must work by Session 2?</em></div>
+</div>
+<div class="bottom-note" data-en="If it breaks during the demo, say what you learned. That is evidence too." data-fr="Si ça casse pendant la démo, dites ce que vous avez appris. C’est aussi une preuve.">If it breaks during the demo, say what you learned. That is evidence too.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Strict 60-second timer, then 30 seconds of feedback at most. With more than about 12 teams, use a gallery walk: half the teams demo at their tables while the other half visit, then swap.</aside>
+</section>
+
+<!-- 28 · Milestone -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Session 1 milestone: Project Charter + Prototype v0" data-fr="Jalon de la séance 1 : Project Charter + Prototype v0">Session 1 milestone: Project Charter + Prototype v0</h1>
+<div class="slide-body">
+<div class="deliverables">
+ <div class="deliverable"><h2 data-en="A. One-page Project Charter" data-fr="A. Project Charter d’une page">A. One-page Project Charter</h2><ul>
+  <li data-en="Problem and primary user" data-fr="Problème et utilisateur principal">Problem and primary user</li>
+  <li data-en="Current workflow and pain point" data-fr="Workflow actuel et irritant">Current workflow and pain point</li>
+  <li data-en="Research question: X / Y / Z" data-fr="Question de recherche : X / Y / Z">Research question: X / Y / Z</li>
+  <li data-en="Proposed solution and small architecture" data-fr="Solution proposée et petite architecture">Proposed solution and small architecture</li>
+  <li data-en="Realistic data source" data-fr="Source de données réaliste">Realistic data source</li>
+  <li data-en="Baseline and primary metric" data-fr="Référence et métrique principale">Baseline and primary metric</li>
+ </ul></div>
+ <div class="deliverable"><h2 data-en="B. Prototype v0" data-fr="B. Prototype v0">B. Prototype v0</h2><ul>
+  <li data-en="Runnable project skeleton" data-fr="Squelette de projet exécutable">Runnable project skeleton</li>
+  <li data-en="One input → one processing step → one visible output" data-fr="Une entrée → une étape de traitement → une sortie visible">One input → one processing step → one visible output</li>
+  <li data-en="Short README: how to run it" data-fr="README court : comment l’exécuter">Short README: how to run it</li>
+  <li data-en="One finance calculation or rule checked by hand" data-fr="Un calcul ou une règle financière vérifié à la main">One finance calculation or rule checked by hand</li>
+  <li data-en="One known failure or limitation" data-fr="Un échec ou une limite connue">One known failure or limitation</li>
+  <li data-en="Next feature to build in Session 2" data-fr="Prochaine fonctionnalité à construire en séance 2">Next feature to build in Session 2</li>
+ </ul></div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Say where and by when teams submit the charter (the canvas text is the draft).</aside>
+</section>
+
+<!-- 29 · Next -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Next: make the data flow" data-fr="Suite : faire circuler les données">Next: make the data flow</h1>
+<div class="slide-body">
+<div class="next-grid">
+ <div>
+  <div class="eyebrow" data-en="SESSION 2" data-fr="SÉANCE 2">SESSION 2</div>
+  <h2 data-en="Financial data &amp; workflow design" data-fr="Données financières &amp; conception du workflow">Financial data &amp; workflow design</h2>
+  <p class="lead" data-en="Your Prototype v0 becomes a real workflow: realistic inputs, cleaning, validation, transformations and a repeatable data flow." data-fr="Votre Prototype v0 devient un vrai workflow : entrées réalistes, nettoyage, validation, transformations et flux de données reproductible.">Your Prototype v0 becomes a real workflow: realistic inputs, cleaning, validation, transformations and a repeatable data flow.</p>
+ </div>
+ <div class="prep-card"><h3 data-en="Before Session 2" data-fr="Avant la séance 2">Before Session 2</h3><ol>
+  <li data-en="Keep Prototype v0 runnable." data-fr="Gardez le Prototype v0 exécutable.">Keep Prototype v0 runnable.</li>
+  <li data-en="Find one realistic data source or sample dataset." data-fr="Trouvez une source de données réaliste ou un jeu de données exemple.">Find one realistic data source or sample dataset.</li>
+  <li data-en="List three possible data-quality problems." data-fr="Listez trois problèmes possibles de qualité des données.">List three possible data-quality problems.</li>
+  <li data-en="Write down the next thin end-to-end feature." data-fr="Écrivez la prochaine fonctionnalité minimale de bout en bout.">Write down the next thin end-to-end feature.</li>
+ </ol></div>
+</div>
+<div class="closing" data-en="Do not leave today with only an idea. Leave with something that runs." data-fr="Ne repartez pas avec seulement une idée. Repartez avec quelque chose qui s’exécute.">Do not leave today with only an idea. Leave with something that runs.</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Close on time.</aside>
+</section>
+
+<!-- 30 · Extra case -->
+<section class="slide">
+<div class="slide-inner">
+<h1 class="slide-title" data-en="Extra case: Nasdaq market surveillance" data-fr="Cas complémentaire : la surveillance des marchés chez Nasdaq">Extra case: Nasdaq market surveillance</h1>
+<div class="slide-body">
+<div class="real-case-grid">
+ <div class="real-case-main">
+  <div class="case-kicker">ML · ANOMALY DETECTION · INVESTIGATION</div>
+  <h2 data-en="The problem" data-fr="Le problème">The problem</h2>
+  <p data-en="Surveillance teams process huge volumes of trading activity. They must surface possible market abuse without flooding investigators with low-value alerts." data-fr="Les équipes de surveillance traitent d’énormes volumes d’activité de trading. Elles doivent faire ressortir les abus de marché possibles sans submerger les enquêteurs d’alertes peu utiles.">Surveillance teams process huge volumes of trading activity. They must surface possible market abuse without flooding investigators with low-value alerts.</p>
+  <h2 data-en="The workflow" data-fr="Le workflow">The workflow</h2>
+  <div class="mini-flow"><span data-en="Market data" data-fr="Données de marché">Market data</span><i>→</i><span data-en="Rules + ML" data-fr="Règles + ML">Rules + ML</span><i>→</i><span data-en="Prioritised alerts" data-fr="Alertes priorisées">Prioritised alerts</span><i>→</i><span data-en="Investigator" data-fr="Enquêteur">Investigator</span></div>
+  <h2 data-en="The lesson" data-fr="La leçon">The lesson</h2>
+  <p data-en="AI can help rank and surface cases. It does not remove the need for investigation and judgment." data-fr="L’IA peut aider à classer et faire remonter les cas. Elle ne supprime pas le besoin d’enquête et de jugement.">AI can help rank and surface cases. It does not remove the need for investigation and judgment.</p>
+ </div>
+ <div class="real-case-side">
+  <div class="lesson-card"><b data-en="DISCUSSION" data-fr="DISCUSSION">DISCUSSION</b><p data-en="If a model creates fewer alerts but misses one serious case, is it really better?" data-fr="Si un modèle produit moins d’alertes mais manque un cas grave, est-il vraiment meilleur ?">If a model creates fewer alerts but misses one serious case, is it really better?</p></div>
+  <details class="answer-drop" style="margin-top:0">
+   <summary data-en="Suggested answer" data-fr="Piste de réponse">Suggested answer</summary>
+   <div class="answer-body"><span data-en="Not necessarily. The right metric depends on the cost of each type of error. In high-risk surveillance, catching serious cases may matter more than reducing alert volume. Compare the model with the current process, using metrics linked to the real decision." data-fr="Pas nécessairement. La bonne métrique dépend du coût de chaque type d’erreur. En surveillance à risque élevé, détecter les cas graves peut compter davantage que réduire le volume d’alertes. Comparez le modèle au processus actuel, avec des métriques liées à la vraie décision.">Not necessarily. The right metric depends on the cost of each type of error. In high-risk surveillance, catching serious cases may matter more than reducing alert volume. Compare the model with the current process, using metrics linked to the real decision.</span></div>
+  </details>
+  <a class="source-link" href="https://www.nasdaq.com/products/fintech/surveillance/market-surveillance" target="_blank" rel="noopener">Source · Nasdaq Market Surveillance (product page)</a>
+ </div>
+</div>
+</div>
+<div class="slide-footer"><span>IA &amp; Automatisation · Session 1</span><span class="footer-right"></span></div>
+</div>
+<aside class="notes">Optional. Use if time allows, as pre-reading, or as the opening of Session 4 (evaluation metrics) or Session 8 (false positives and false negatives).</aside>
+</section>
+
+</div>
+
+<script>
+(function(){
+ var idx=0;
+ var slides=[].slice.call(document.querySelectorAll('.slide'));
+ var lang='en';
+ var group='master';
+
+ // EDIT ONCE: footer statement shown at the bottom-right of every slide.
+ var footerEN='Powered by QuantaFoundry';
+ var footerFR='Propulsé par QuantaFoundry';
+
+ if(['en','fr'].indexOf(lang)<0) lang='en';
+ if(['master','g1','g2','g3','g4','g5'].indexOf(group)<0) group='master';
+
+ var bx=document.getElementById('bx'),by=document.getElementById('by'),bz=document.getElementById('bz'),bout=document.getElementById('bout');
+ function renderBuilder(){
+   if(!bout) return;
+   var x=bx.value.trim()||'[X]', y=by.value.trim()||'[Y]', z=bz.value.trim()||'[Z]';
+   bout.textContent = lang==='fr' ? (x+' peut-il améliorer '+y+' par rapport à '+z+' ?') : ('Can '+x+' improve '+y+' relative to '+z+'?');
+ }
+ [bx,by,bz].forEach(function(el){ if(el) el.addEventListener('input',renderBuilder); });
+
+ function renderFooter(){
+   document.querySelectorAll('.footer-right').forEach(function(el){el.textContent=(lang==='fr'?footerFR:footerEN)});
+ }
+ function applyLang(){
+   document.documentElement.lang=lang;
+   document.querySelectorAll('[data-en]').forEach(function(el){
+     var v=el.getAttribute('data-'+lang)||el.getAttribute('data-en');
+     if(el.tagName==='BUTTON'||el.tagName==='OPTION') el.innerHTML=v; else el.textContent=v;
+   });
+   document.querySelectorAll('[data-ph-en]').forEach(function(el){
+     el.placeholder=(lang==='fr'?el.getAttribute('data-ph-fr'):null)||el.getAttribute('data-ph-en');
+   });
+   document.querySelectorAll('[data-lang-btn]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-lang-btn')===lang)});
+   renderFooter();
+   renderBuilder();
+ }
+ function applyGroup(){
+   document.querySelectorAll('[data-group]').forEach(function(el){el.classList.toggle('active-group',el.getAttribute('data-group')===group)});
+   var sel=document.getElementById('groupSelect');
+   if(sel) sel.value=group;
+ }
+ var notesPanel=document.getElementById('notesPanel'), notesBody=document.getElementById('notesBody');
+ function show(n){
+   idx=Math.max(0,Math.min(slides.length-1,n));
+   slides.forEach(function(s,i){s.classList.toggle('active',i===idx)});
+   document.querySelector('.progress').style.width=((idx+1)/slides.length*100)+'%';
+   document.getElementById('slideCount').textContent=(idx+1)+' / '+slides.length;
+   var a=slides[idx].querySelector('aside.notes');
+   notesBody.textContent=a?a.textContent.trim():'';
+ }
+
+ document.querySelectorAll('[data-lang-btn]').forEach(function(b){b.addEventListener('click',function(){lang=b.getAttribute('data-lang-btn');applyLang()})});
+ var groupSelect=document.getElementById('groupSelect');
+ if(groupSelect) groupSelect.addEventListener('change',function(){group=groupSelect.value;applyGroup()});
+ document.getElementById('prev').addEventListener('click',function(){show(idx-1)});
+ document.getElementById('next').addEventListener('click',function(){show(idx+1)});
+
+ function isTyping(t){return t && t.closest && t.closest('input,textarea,select,[contenteditable="true"]')}
+ document.addEventListener('keydown',function(e){
+   var t=e.target;
+   if(isTyping(t)) return;
+   var onControl=t && t.closest && t.closest('button,summary,a');
+   if(e.key==='ArrowRight'||e.key==='PageDown'||((e.key===' '||e.key==='Enter')&&!onControl)){e.preventDefault();show(idx+1);return}
+   if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();show(idx-1);return}
+   if(e.key==='Home'){show(0);return}
+   if(e.key==='End'){show(slides.length-1);return}
+   var k=(e.key||'').toLowerCase();
+   if(k==='n'){notesPanel.classList.toggle('open')}
+ });
+ var sx=null;
+ document.addEventListener('touchstart',function(e){sx=isTyping(e.target)?null:e.touches[0].clientX},{passive:true});
+ document.addEventListener('touchend',function(e){if(sx===null)return;var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>60)show(idx+(dx<0?1:-1));sx=null},{passive:true});
+
+ /* opening vote */
+ document.querySelectorAll('.vote-row').forEach(function(row){
+   row.querySelectorAll('.vote-btn').forEach(function(b){
+     b.addEventListener('click',function(){
+       row.querySelectorAll('.vote-btn').forEach(function(x){x.classList.remove('selected')});
+       b.classList.add('selected');
+     });
+   });
+ });
+ var rv=document.getElementById('revealVote');
+ if(rv) rv.addEventListener('click',function(){document.getElementById('voteCard').classList.toggle('revealed')});
+
+ /* quiz */
+ document.querySelectorAll('.quiz-row').forEach(function(row){
+   var ans=row.getAttribute('data-answer');
+   var btns=row.querySelectorAll('.quiz-btn');
+   btns.forEach(function(b){
+     b.addEventListener('click',function(){
+       btns.forEach(function(x){x.classList.remove('is-correct','is-wrong')});
+       row.classList.remove('right','wrong');
+       row.classList.add('answered');
+       if(b.getAttribute('data-choice')===ans){b.classList.add('is-correct');row.classList.add('right')}
+       else{
+         b.classList.add('is-wrong');row.classList.add('wrong');
+         btns.forEach(function(x){if(x.getAttribute('data-choice')===ans)x.classList.add('is-correct')});
+       }
+     });
+   });
+ });
+
+ /* canvas text preview — manual copy only */
+ function canvasText(){
+   var lines=[lang==='fr'?'PROJECT CHARTER — BROUILLON':'PROJECT CHARTER — DRAFT',''];
+   document.querySelectorAll('#canvasGrid .canvas-cell').forEach(function(c){
+     var label=c.querySelector('label').textContent.trim();
+     var val=c.querySelector('textarea').value.trim();
+     lines.push(label+': '+(val||'—'));
+   });
+   return lines.join('\n');
+ }
+ var pc=document.getElementById('prepareCanvas');
+ var exportBox=document.getElementById('canvasExportText');
+ if(pc && exportBox) pc.addEventListener('click',function(){
+   exportBox.value=canvasText();
+   exportBox.style.display='block';
+   exportBox.focus();
+   exportBox.select();
+ });
+
+ /* idea scoring */
+ function updateTotals(){
+   for(var c=0;c<3;c++){
+     var sum=0;
+     document.querySelectorAll('.score-btn[data-col="'+c+'"]').forEach(function(b){sum+=parseInt(b.getAttribute('data-v'),10)||0});
+     document.getElementById('tot'+c).textContent=sum;
+   }
+ }
+ document.querySelectorAll('.score-btn').forEach(function(b){
+   b.addEventListener('click',function(){
+     var v=((parseInt(b.getAttribute('data-v'),10)||0)+1)%4;
+     b.setAttribute('data-v',v);
+     b.textContent=v?String(v):'–';
+     updateTotals();
+   });
+ });
+
+ applyLang(); applyGroup(); show(0);
+})();
+</script>
+
+
+
+
+</body></html>
