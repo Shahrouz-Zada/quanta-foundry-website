@@ -356,3 +356,70 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// =============================================================================
+// Course materials (the public "Courses" tab)
+//
+// Deliberately separate from the Track/Session/Offering model above: this is
+// a simple download area for slide decks and handouts, managed from
+// /courses/admin. Files themselves live in Vercel Blob; these rows hold the
+// metadata and the blob URL.
+// =============================================================================
+
+enum CourseEventType {
+  PAGE_VIEW
+  MATERIAL_VIEW
+  MATERIAL_DOWNLOAD
+}
+
+model Course {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  order       Int              @default(0)
+  isPublished Boolean          @default(true)
+
+  materials   CourseMaterial[]
+  events      CourseEvent[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([order])
+}
+
+model CourseMaterial {
+  id           String        @id @default(cuid())
+  courseId     String
+  title        String
+  sessionLabel String?
+  fileName     String
+  blobUrl      String
+  blobPathname String
+  contentType  String?
+  sizeBytes    Int           @default(0)
+  order        Int           @default(0)
+
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  events       CourseEvent[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([courseId, order])
+}
+
+// One row per view / download / page visit. Counts are computed from these
+// rows, which also makes "last 7 days" style stats possible. No personal
+// data is stored: no user id, no IP address.
+model CourseEvent {
+  id         String          @id @default(cuid())
+  type       CourseEventType
+  courseId   String?
+  materialId String?
+
+  course     Course?         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  material   CourseMaterial? @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@index([materialId, type])
+  @@index([type, createdAt])
+}

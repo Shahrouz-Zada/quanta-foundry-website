@@ -6,6 +6,7 @@ import { NavItem, FooterSection } from '@/types';
 
 export const mainNavItems: NavItem[] = [
   { label: 'Focus Areas', href: '/focus-areas' },
+  { label: 'Courses', href: '/courses' },
   { label: 'Reading Club', href: '/community' },
   { label: 'Insights', href: '/insights' },
   { label: 'For Partners', href: '/companies' },
@@ -34,6 +35,7 @@ export const footerSections: FooterSection[] = [
   {
     title: 'Resources',
     links: [
+      { label: 'Courses', href: '/courses' },
       { label: 'Insights & Research', href: '/insights' },
       { label: 'Reading Club', href: '/community' },
       { label: 'Privacy Policy', href: '/privacy' },
