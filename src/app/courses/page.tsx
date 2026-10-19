@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import { BookOpen, Download, ExternalLink, FileText } from 'lucide-react';
+import Link from 'next/link';
+import { BookOpen, Download, ExternalLink, FileText, Settings } from 'lucide-react';
 import CoursePageTracker from '@/components/courses/CoursePageTracker';
-import { getPublishedCourses, type PublishedCourse } from '@/lib/courses';
+import { checkCourseAdmin, getPublishedCourses, type PublishedCourse } from '@/lib/courses';
 import { fileTypeLabel, formatBytes, inlineViewKind } from '@/lib/course-files';
 
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function CoursesPage() {
-  const courses = await getPublishedCourses();
+  const [courses, adminCheck] = await Promise.all([getPublishedCourses(), checkCourseAdmin()]);
+  const isAdmin = adminCheck.status === 'ok';
 
   return (
     <>
@@ -28,6 +30,18 @@ export default async function CoursesPage() {
           <p className="mx-auto max-w-2xl text-lg text-gray-400">
             Find your course below to open or download the materials for each session.
           </p>
+
+          {isAdmin && (
+            <div className="mt-6">
+              <Link
+                href="/courses/admin"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-2 text-sm font-medium text-[#D4AF37] transition hover:border-[#D4AF37]/60 hover:bg-[#D4AF37]/20"
+              >
+                <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+                Manage courses
+              </Link>
+            </div>
+          )}
 
           {courses.length > 1 && (
             <nav aria-label="Jump to a course" className="mt-8 flex flex-wrap justify-center gap-2">
