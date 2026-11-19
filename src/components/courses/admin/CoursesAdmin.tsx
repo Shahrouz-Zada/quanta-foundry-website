@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, BarChart3, Download, ExternalLink, Eye, Plus, Users } from 'lucide-react';
+import { AlertTriangle, BarChart3, Download, ExternalLink, Eye, LogOut, Plus, Users } from 'lucide-react';
 import type { AdminCourse, CourseStatsSummary } from '@/lib/courses';
 import { createCourse } from '@/app/courses/admin/actions';
+import { signOutToCourses, switchAccount } from '@/app/courses/admin/auth-actions';
 import CourseCard from './CourseCard';
 import { Button, ErrorText, inputClass, useAction } from './ui';
 
@@ -24,14 +25,30 @@ export default function CoursesAdmin({ courses, stats, adminEmail, storageConnec
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Manage courses</h1>
             <p className="mt-2 text-sm text-gray-400">Signed in as {adminEmail}</p>
           </div>
-          <Link
-            href="/courses"
-            target="_blank"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6BA4E8] hover:text-white"
-          >
-            View the public Courses page
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link
+              href="/courses"
+              target="_blank"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6BA4E8] hover:text-white"
+            >
+              View the public Courses page
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <form action={switchAccount}>
+              <button type="submit" className="text-sm font-medium text-gray-400 hover:text-white">
+                Switch account
+              </button>
+            </form>
+            <form action={signOutToCourses}>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-sm font-medium text-gray-200 transition hover:border-white/40 hover:text-white"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 

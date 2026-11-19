@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ShieldAlert } from 'lucide-react';
+import { LogOut, ShieldAlert } from 'lucide-react';
 import CoursesAdmin from '@/components/courses/admin/CoursesAdmin';
 import { checkCourseAdmin, getAllCoursesForAdmin, getCourseStats } from '@/lib/courses';
+import { switchAccount } from './auth-actions';
 
 export const metadata: Metadata = {
   title: 'Manage courses',
@@ -30,7 +31,16 @@ export default async function CoursesAdminPage() {
             You&apos;re signed in as <strong>{check.email ?? 'an unknown account'}</strong>, which doesn&apos;t
             have permission to manage courses.
           </p>
-          <Link href="/courses" className="mt-6 inline-block text-sm font-medium text-[#3A7BD0] hover:underline">
+          <form action={switchAccount} className="mt-6">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#0A1929] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0D2137]"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              Sign in with a different account
+            </button>
+          </form>
+          <Link href="/courses" className="mt-4 inline-block text-sm font-medium text-[#3A7BD0] hover:underline">
             Go to the Courses page
           </Link>
         </div>

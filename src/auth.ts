@@ -74,6 +74,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // created by a script or another provider (e.g. the admin enrollment
       // script). Without this, NextAuth throws OAuthAccountNotLinked.
       allowDangerousEmailAccountLinking: true,
+      // Always show Google's account chooser instead of silently reusing
+      // whichever Google account the browser is currently signed in to.
+      // Without this, someone signed in to the wrong Google account can't
+      // switch to another one after signing out of this site.
+      authorization: { params: { prompt: 'select_account' } },
     }),
     Nodemailer({
       server: process.env.EMAIL_SERVER || 'smtp://localhost:25',
