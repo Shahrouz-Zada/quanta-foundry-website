@@ -64,10 +64,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const wantsInline = request.nextUrl.searchParams.get('inline') === '1';
   const inlineType = wantsInline ? inlineContentType(version.fileName) : null;
 
+  // No Content-Length: storage may send text files compressed, and then the size it
+  // reports is not the size of what we stream (it was 0 for HTML decks on Vercel,
+  // which showed an empty page). Streaming without a length is always correct.
   const headers = new Headers({
     'Content-Type': inlineType ?? 'application/octet-stream',
     'Content-Disposition': contentDisposition(inlineType ? 'inline' : 'attachment', version.fileName),
-    'Content-Length': String(stored.blob.size),
     'Cache-Control': 'private, no-store',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',

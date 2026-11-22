@@ -48,13 +48,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
   }
   if (!stored || stored.statusCode !== 200) return notFound;
 
+  // No Content-Length: see the materials file route (compressed storage responses).
   const ext = version.fileName.split('.').pop()?.toLowerCase() ?? '';
   return new NextResponse(stored.stream, {
     status: 200,
     headers: {
       'Content-Type': TYPES[ext] ?? 'application/octet-stream',
       'Content-Disposition': contentDisposition('attachment', version.fileName),
-      'Content-Length': String(stored.blob.size),
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
       'X-Robots-Tag': 'noindex',

@@ -54,10 +54,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
   if (!stored || stored.statusCode !== 200) return new NextResponse('This file is no longer available.', { status: 404 });
 
+  // No Content-Length: storage may send text files compressed, and then the size it
+  // reports is not the size of what we stream (it was 0 for HTML decks on Vercel,
+  // which showed an empty page). Streaming without a length is always correct.
   const headers = new Headers({
     'Content-Type': inlineType ?? 'application/octet-stream',
     'Content-Disposition': contentDisposition(inlineType ? 'inline' : 'attachment', version.fileName),
-    'Content-Length': String(stored.blob.size),
     'Cache-Control': 'private, no-store',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
@@ -66,7 +68,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Decks run their own scripts (navigation, EN/FR switch) in an isolated
     // origin: no access to this site's cookies or the signed-in account.
     // Only this site may frame them.
-    headers.set('Content-Security-Policy', "frame-ancestors 'self'");
+    headers.set('Content-Security-Policy', "sandbox allow-scripts allow-popups allow-modals allow-downloads; frame-ancestors 'self'");
   } else if (inlineType === 'application/pdf') {
     // The browser's PDF viewer does not work inside a sandbox.
     headers.set('Content-Security-Policy', "frame-ancestors 'self'");
