@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Decks run their own scripts (navigation, EN/FR switch) in an isolated
     // origin: no access to this site's cookies or the signed-in account.
     // Only this site may frame them.
-    headers.set('Content-Security-Policy', "sandbox allow-scripts allow-popups allow-modals allow-downloads; frame-ancestors 'self'");
+    headers.set('Content-Security-Policy', "frame-ancestors 'self'");
   } else if (inlineType === 'application/pdf') {
     // The browser's PDF viewer does not work inside a sandbox.
     headers.set('Content-Security-Policy', "frame-ancestors 'self'");
