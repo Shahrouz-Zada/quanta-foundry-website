@@ -9,6 +9,7 @@ import 'server-only';
 import type { FileShareLevel, Prisma, PrismaClient } from '@prisma/client';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { isPlatformAdmin } from '@/lib/courses';
 import {
   PENDING_UPLOAD_TTL_MS,
   canDeleteFile,
@@ -68,7 +69,7 @@ export async function getClassViewer(offeringId: string): Promise<ClassViewerChe
 
   const enrolment = user.enrollments[0];
   let role: FileViewer['role'] | null = null;
-  if (user.globalRole === 'ADMIN' || enrolment?.role === 'INSTRUCTOR') role = 'staff';
+  if (isPlatformAdmin(user) || enrolment?.role === 'INSTRUCTOR') role = 'staff';
   else if (enrolment?.role === 'LEARNER') role = 'learner';
   else if (enrolment?.role === 'OBSERVER') role = 'observer';
   if (!role) return { status: 'not-enrolled', email: user.email };
@@ -232,7 +233,7 @@ export async function audit(
     offeringId: string;
     actorId: string;
     action: string;
-    entity: 'StudentFile' | 'Team' | 'TeamMember';
+    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'Offering' | 'Enrollment';
     entityId: string;
     details?: Prisma.InputJsonValue;
   },

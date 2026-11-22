@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { AlertTriangle, FolderOpen, Search, Users } from 'lucide-react';
+import Link from 'next/link';
+import { AlertTriangle, FolderOpen, Search, Settings, Users } from 'lucide-react';
 import { formatBytes as formatBytesOrDash } from '@/lib/course-files';
 
 // Storage figures read better as "0 B" than as a dash.
@@ -14,7 +15,7 @@ import TeamsPanel from './TeamsPanel';
 import { fieldClass } from './ui';
 import type { FileView, RosterEntry, StorageInfo, TeamInfo, ViewerInfo } from './types';
 
-type Tab = 'mine' | 'team' | 'class' | 'all' | 'teams';
+export type Tab = 'mine' | 'team' | 'class' | 'all' | 'teams';
 
 export default function FilesWorkspace({
   offering,
@@ -24,6 +25,7 @@ export default function FilesWorkspace({
   roster,
   storage,
   storageConnected,
+  initialTab,
 }: {
   offering: { id: string; name: string };
   viewer: ViewerInfo;
@@ -32,12 +34,13 @@ export default function FilesWorkspace({
   roster: RosterEntry[];
   storage: StorageInfo;
   storageConnected: boolean;
+  initialTab?: Tab;
 }) {
   const { t } = useTranslation();
   const isStaff = viewer.role === 'staff';
   const isLearner = viewer.role === 'learner';
   const tabs: Tab[] = isStaff ? ['all', 'teams'] : isLearner ? ['mine', 'team', 'class'] : ['class'];
-  const [tab, setTab] = useState<Tab>(tabs[0]);
+  const [tab, setTab] = useState<Tab>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
   const myTeam = teams.find((team) => team.id === viewer.teamId) ?? null;
 
   const groups = useMemo(() => {
@@ -73,6 +76,15 @@ export default function FilesWorkspace({
               {isStaff ? t('files.staffNote') : t('files.subtitle')}
             </p>
           </div>
+          {isStaff && (
+            <Link
+              href={`/workspace-q/${offering.id}/manage`}
+              className="inline-flex items-center gap-1.5 self-start rounded-lg border border-[var(--wq-border)] px-3 py-1.5 text-sm font-medium text-[var(--wq-text)] hover:border-[var(--wq-border-hover)] sm:self-auto"
+            >
+              <Settings className="h-4 w-4" aria-hidden="true" />
+              Pass code &amp; students
+            </Link>
+          )}
           {isLearner && (
             <div className="text-xs text-[var(--wq-text-muted)] sm:text-right">
               {myTeam && <p className="font-medium text-[var(--wq-text)]">{t('files.yourTeam', { team: myTeam.name })}</p>}

@@ -48,7 +48,7 @@ const resourceIconMap: Record<string, React.ComponentType<{ size?: number; class
   faq: HelpCircle,
 };
 
-export default function WorkspaceDashboard() {
+export default function WorkspaceDashboard({ classesSlot, inClass = false }: { classesSlot?: React.ReactNode; inClass?: boolean }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [activeCourseId, setActiveCourseId] = useState('applied-ai');
@@ -98,8 +98,11 @@ export default function WorkspaceDashboard() {
           </p>
         </div>
 
+        {/* Classes: join with a pass code, your classes, create a class (admins) */}
+        {classesSlot}
+
         {/* Lock Gate Screen */}
-        {!isRegistered && (
+        {!isRegistered && !inClass && (
           <div className="relative mb-20">
             {/* Registration Overlay Card */}
             <div className="absolute inset-0 z-20 flex items-start justify-center pt-8 sm:pt-16 px-4">
@@ -152,7 +155,7 @@ export default function WorkspaceDashboard() {
         )}
 
         {/* Dashboard Content - Shown Only When Registered */}
-        {isRegistered && (
+        {(isRegistered || inClass) && (
           <div className="space-y-16 animate-fade-in-up">
             {/* Registered Banner */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#4A90E2]/15 via-white/5 to-[#D4AF37]/15 border border-white/10 shadow-lg shadow-black/10">

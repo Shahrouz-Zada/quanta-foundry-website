@@ -8,13 +8,16 @@ function SignInContent() {
   const searchParams = useSearchParams();
   // Fall back to the dashboard only if there's genuinely nowhere else to send them.
   const callbackUrl = searchParams.get('callbackUrl') || '/workspace-q';
+  const joining = searchParams.get('join') === '1';
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-slate-950 text-slate-50">
       <div className="w-full max-w-sm space-y-6 text-center">
         <h1 className="text-2xl font-semibold">Sign in to Workspace Q</h1>
         <p className="text-sm text-slate-400">
-          Sign in with the Google account associated with your enrollment.
+          {joining
+            ? 'Step 1 of 2: sign in with Google. Next you will enter your full name and the class pass code.'
+            : 'Sign in with the Google account associated with your enrollment.'}
         </p>
         <button
           type="button"

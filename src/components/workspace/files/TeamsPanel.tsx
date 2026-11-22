@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { assignTeam, createTeam, deleteTeam, renameTeam } from '@/app/workspace-q/[offeringId]/files/actions';
+import { removeStudent } from '@/app/workspace-q/classes/actions';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { Button, ErrorText, fieldClass, useAction } from './ui';
@@ -14,10 +15,13 @@ export default function TeamsPanel({
   offeringId,
   teams,
   roster,
+  canRemove = false,
 }: {
   offeringId: string;
   teams: TeamInfo[];
   roster: RosterEntry[];
+  /** Class settings page: show a button to take a student out of the class. */
+  canRemove?: boolean;
 }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -74,7 +78,7 @@ export default function TeamsPanel({
         ) : (
           <ul className="divide-y divide-[var(--wq-border)] rounded-xl border border-[var(--wq-border)] bg-[var(--wq-card)]">
             {roster.map((student) => (
-              <StudentItem key={student.userId} offeringId={offeringId} student={student} teams={teams} />
+              <StudentItem key={student.userId} offeringId={offeringId} student={student} teams={teams} canRemove={canRemove} />
             ))}
           </ul>
         )}
@@ -160,37 +164,76 @@ function TeamItem({ team }: { team: TeamInfo }) {
   );
 }
 
-function StudentItem({ offeringId, student, teams }: { offeringId: string; student: RosterEntry; teams: TeamInfo[] }) {
-  const { t } = useTranslation();
+function StudentItem({
+  offeringId,
+  student,
+  teams,
+  canRemove,
+}: {
+  offeringId: string;
+  student: RosterEntry;
+  teams: TeamInfo[];
+  canRemove: boolean;
+}) {
+  const { t, lang } = useTranslation();
   const router = useRouter();
   const action = useAction();
+  const [confirm, setConfirm] = useState(false);
 
   return (
-    <li className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-[var(--wq-text)]">{student.name}</p>
-        <p className="truncate text-xs text-[var(--wq-text-muted)]">{student.email}</p>
-        <ErrorText>{action.error}</ErrorText>
+    <li className="px-4 py-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-[var(--wq-text)]">{student.name}</p>
+          <p className="truncate text-xs text-[var(--wq-text-muted)]">
+            {student.email}
+            {student.joinedAt && ` · joined ${new Date(student.joinedAt).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' })}`}
+          </p>
+          <ErrorText>{action.error}</ErrorText>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <select
+            className={cn(fieldClass, 'py-1.5 sm:w-48')}
+            value={student.teamId ?? ''}
+            aria-label={`${t('files.teams.assign')}: ${student.name}`}
+            disabled={action.pending}
+            onChange={(e) =>
+              action.run(
+                () => assignTeam({ offeringId, userId: student.userId, teamId: e.target.value || null }),
+                () => router.refresh(),
+              )
+            }
+          >
+            <option value="">{t('files.teams.none')}</option>
+            {teams.map((team) => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
+          {canRemove && !confirm && (
+            <Button size="sm" variant="ghost" onClick={() => setConfirm(true)} aria-label={`${t('files.delete')}: ${student.name}`}>
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
       </div>
-      <select
-        className={cn(fieldClass, 'py-1.5 sm:w-48')}
-        value={student.teamId ?? ''}
-        aria-label={`${t('files.teams.assign')}: ${student.name}`}
-        disabled={action.pending}
-        onChange={(e) =>
-          action.run(
-            () => assignTeam({ offeringId, userId: student.userId, teamId: e.target.value || null }),
-            () => router.refresh(),
-          )
-        }
-      >
-        <option value="">{t('files.teams.none')}</option>
-        {teams.map((team) => (
-          <option key={team.id} value={team.id}>
-            {team.name}
-          </option>
-        ))}
-      </select>
+      {confirm && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+          <span>Remove {student.name} from this class? Their files stay; you can still see and delete them.</span>
+          <Button
+            size="sm"
+            variant="danger"
+            pending={action.pending}
+            onClick={() => action.run(() => removeStudent({ offeringId, userId: student.userId }), () => router.refresh())}
+          >
+            Remove
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setConfirm(false)}>
+            {t('files.cancel')}
+          </Button>
+        </div>
+      )}
     </li>
   );
 }

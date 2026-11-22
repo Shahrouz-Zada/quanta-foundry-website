@@ -27,6 +27,11 @@ function adminEmailsFromEnv(): string[] {
     .filter(Boolean);
 }
 
+/** Platform administrator: globalRole ADMIN, or an email listed in ADMIN_EMAILS. */
+export function isPlatformAdmin(user: { email: string; globalRole: string }): boolean {
+  return user.globalRole === 'ADMIN' || adminEmailsFromEnv().includes(user.email.toLowerCase());
+}
+
 /**
  * Who may manage courses: anyone whose User row has globalRole ADMIN (the
  * same rule the rest of the platform uses), plus any email listed in the
@@ -44,8 +49,7 @@ export async function checkCourseAdmin(): Promise<CourseAdminCheck> {
   });
   if (!user) return { status: 'signed-out' };
 
-  const isAdmin =
-    user.globalRole === 'ADMIN' || adminEmailsFromEnv().includes(user.email.toLowerCase());
+  const isAdmin = isPlatformAdmin(user);
 
   return isAdmin
     ? { status: 'ok', user: { id: user.id, email: user.email } }

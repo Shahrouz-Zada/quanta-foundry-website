@@ -64,6 +64,7 @@ model User {
   evaluations   Evaluation[]
   audits        PredictionLockAudit[]
   teamMemberships TeamMember[]
+  joinAttempts    JoinAttempt[]
   studentFiles    StudentFile[]        @relation("StudentFileOwner")
   fileUploads     StudentFileVersion[] @relation("StudentFileUploader")
   pendingUploads  PendingUpload[]
@@ -128,6 +129,10 @@ model Offering {
   gradingEnabled   Boolean           @default(false)
   startsAt         DateTime?
   endsAt           DateTime?
+  // Pass code students enter to join this class (null = joining is off).
+  // 8 characters from an alphabet without look-alikes; see lib/workspace-classes.ts.
+  joinCode          String?           @unique
+  joinCodeExpiresAt DateTime?
   
   track            Track?            @relation(fields: [trackId], references: [id])
   enrollments      Enrollment[]
@@ -556,4 +561,17 @@ model WorkspaceAuditLog {
   createdAt  DateTime @default(now())
 
   @@index([offeringId, createdAt])
+}
+
+/// One try at joining a class with a pass code. Wrong tries are counted to
+/// slow down anyone guessing codes (5 wrong in 15 minutes locks that person out).
+model JoinAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

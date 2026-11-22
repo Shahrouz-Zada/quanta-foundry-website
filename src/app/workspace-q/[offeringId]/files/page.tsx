@@ -11,8 +11,15 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-export default async function FilesPage({ params }: { params: Promise<{ offeringId: string }> }) {
+export default async function FilesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ offeringId: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { offeringId } = await params;
+  const { tab } = await searchParams;
   const check = await getClassViewer(offeringId);
 
   if (check.status === 'signed-out') {
@@ -81,6 +88,7 @@ export default async function FilesPage({ params }: { params: Promise<{ offering
         .sort((a, b) => a.name.localeCompare(b.name))}
       storage={{ personalUsed, teamUsed, quota: storageQuotaBytes() }}
       storageConnected={Boolean(studentFilesToken())}
+      initialTab={tab === 'teams' ? 'teams' : undefined}
     />
   );
 }

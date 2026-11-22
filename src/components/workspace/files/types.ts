@@ -19,6 +19,8 @@ export interface RosterEntry {
   name: string;
   email: string;
   teamId: string | null;
+  /** ISO date the student joined (shown on the class settings page). */
+  joinedAt?: string;
 }
 
 export interface StorageInfo {
