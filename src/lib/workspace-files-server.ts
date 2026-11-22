@@ -233,7 +233,7 @@ export async function audit(
     offeringId: string;
     actorId: string;
     action: string;
-    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'Offering' | 'Enrollment';
+    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'Offering' | 'Enrollment' | 'ClassSession' | 'ClassMaterial' | 'ClassTool';
     entityId: string;
     details?: Prisma.InputJsonValue;
   },
@@ -259,11 +259,13 @@ export async function sweepAbandonedUploads(del: (pathnames: string[]) => Promis
     select: { id: true, blobPathname: true },
   });
   if (stale.length === 0) return 0;
-  const saved = await filesDb.studentFileVersion.findMany({
-    where: { blobPathname: { in: stale.map((p) => p.blobPathname) } },
-    select: { blobPathname: true },
-  });
-  const savedSet = new Set(saved.map((v) => v.blobPathname));
+  // The same store holds student files and class materials: a path saved as either is never touched.
+  const paths = stale.map((p) => p.blobPathname);
+  const [savedFiles, savedMaterials] = await Promise.all([
+    filesDb.studentFileVersion.findMany({ where: { blobPathname: { in: paths } }, select: { blobPathname: true } }),
+    filesDb.classMaterialVersion.findMany({ where: { blobPathname: { in: paths } }, select: { blobPathname: true } }),
+  ]);
+  const savedSet = new Set([...savedFiles, ...savedMaterials].map((v) => v.blobPathname));
   const toDelete = stale.map((p) => p.blobPathname).filter((p) => !savedSet.has(p));
   if (toDelete.length > 0) {
     try {
@@ -275,4 +277,20 @@ export async function sweepAbandonedUploads(del: (pathnames: string[]) => Promis
   }
   await filesDb.pendingUpload.deleteMany({ where: { id: { in: stale.map((p) => p.id) } } });
   return toDelete.length;
+}
+
+// -----------------------------------------------------------------------------
+// Class addresses: id or slug
+// -----------------------------------------------------------------------------
+
+/**
+ * The interactive session pages use the class's slug in their address
+ * (/workspace-q/<slug>/session/…), while the class pages use its id. When a
+ * class page is opened with the slug (for example from the header on a
+ * session page), this gives the id so the page can redirect.
+ */
+export async function offeringIdForSlug(param: string): Promise<string | null> {
+  if (!/^[A-Za-z0-9_-]{1,120}$/.test(param)) return null;
+  const bySlug = await filesDb.offering.findUnique({ where: { slug: param }, select: { id: true } });
+  return bySlug && bySlug.id !== param ? bySlug.id : null;
 }

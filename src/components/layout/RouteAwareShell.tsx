@@ -12,7 +12,9 @@ import type { ReactNode } from 'react';
 // Routes on which the full public website chrome is suppressed
 const SUPPRESS_CHROME_PREFIXES = ['/workspace-q/learning-sessions'];
 // Dynamic offering routes: /workspace-q/<offeringId>/session/<sessionSlug> and /workspace-q/<offeringId>/files and /manage
-const SUPPRESS_CHROME_PATTERN = /^\/workspace-q\/[^/]+\/(session\/|files(\/|$)|manage(\/|$))/;
+const SUPPRESS_CHROME_PATTERN = /^\/workspace-q\/[^/]+\/(session\/|files(\/|$)|manage(\/|$)|materials\/)/;
+// The class home page /workspace-q/<offeringId> (but not the fixed pages next to it)
+const CLASS_HOME_PATTERN = /^\/workspace-q\/(?!join$|signin$|classes$|learning-sessions$|teach$)[^/]+\/?$/;
 
 interface Props {
   navbar:    ReactNode;
@@ -25,7 +27,8 @@ export default function RouteAwareShell({ navbar, footer, chat, children }: Prop
   const pathname = usePathname();
   const suppress =
     SUPPRESS_CHROME_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
-    SUPPRESS_CHROME_PATTERN.test(pathname);
+    SUPPRESS_CHROME_PATTERN.test(pathname) ||
+    CLASS_HOME_PATTERN.test(pathname);
 
   return (
     <>

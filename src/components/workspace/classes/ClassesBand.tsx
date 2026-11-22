@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FolderOpen, KeyRound, Settings } from 'lucide-react';
+import { BookOpen, FolderOpen, KeyRound, Settings } from 'lucide-react';
 import type { MyClasses } from '@/lib/workspace-classes-server';
 import CreateClassForm from './CreateClassForm';
 
@@ -43,10 +43,16 @@ export default function ClassesBand({ signedIn, admin, classes }: MyClasses) {
           {classes.map((c) => (
             <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">
-                <p className="font-semibold text-white">{c.name}</p>
+                <Link href={`/workspace-q/${c.id}`} className="font-semibold text-white hover:underline">
+                  {c.name}
+                </Link>
                 <p className="text-xs text-gray-400">{c.roleLabel}</p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Link href={`/workspace-q/${c.id}`} className={pill}>
+                  <BookOpen className="h-4 w-4" aria-hidden="true" />
+                  Open class
+                </Link>
                 <Link href={`/workspace-q/${c.id}/files`} className={pill}>
                   <FolderOpen className="h-4 w-4" aria-hidden="true" />
                   Files

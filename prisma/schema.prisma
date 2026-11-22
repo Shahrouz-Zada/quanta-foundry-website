@@ -65,6 +65,7 @@ model User {
   audits        PredictionLockAudit[]
   teamMemberships TeamMember[]
   joinAttempts    JoinAttempt[]
+  materialUploads ClassMaterialVersion[]
   studentFiles    StudentFile[]        @relation("StudentFileOwner")
   fileUploads     StudentFileVersion[] @relation("StudentFileUploader")
   pendingUploads  PendingUpload[]
@@ -142,6 +143,9 @@ model Offering {
   studentFiles     StudentFile[]
   pendingUploads   PendingUpload[]
   auditLogs        WorkspaceAuditLog[]
+  classSessions    ClassSession[]
+  materials        ClassMaterial[]
+  tools            ClassTool[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -176,6 +180,7 @@ model OfferingSession {
   progress             Progress[]
   responses            Response[]
   artifacts            Artifact[]
+  classSessions        ClassSession[]
   
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
@@ -574,4 +579,117 @@ model JoinAttempt {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+// =============================================================================
+// Workspace Q: class sessions, materials library and tools (spec F1.3, F4, F5)
+//
+// A ClassSession is one meeting of a class (number, EN/FR title, date, room,
+// release time for its materials). It may point to an interactive learning
+// session (OfferingSession) but does not need one. Materials live in the same
+// PRIVATE Blob store as student files (path materials/<offeringId>/<uuid>/<name>)
+// and are only served by /api/workspace-q/materials/<id>/file after a check.
+// =============================================================================
+
+enum MaterialKind {
+  DECK      // HTML slide deck, opens full screen
+  PREREAD   // HTML or PDF reading
+  NOTEBOOK  // .ipynb, with Open in Colab when a GitHub URL is set
+  DATASET   // CSV / XLSX, with an optional unguessable link for notebooks
+  DOCUMENT  // DOCX, PDF, anything else
+  LINK      // external address, no file
+}
+
+enum MaterialLanguage {
+  EN
+  FR
+  BOTH
+}
+
+enum MaterialAudience {
+  STUDENTS
+  STAFF
+}
+
+model ClassSession {
+  id                 String           @id @default(cuid())
+  offeringId         String
+  number             Int
+  titleEn            String
+  titleFr            String?
+  startsAt           DateTime?
+  room               String?
+  /// Materials of this session become visible to students at this time (null = at once).
+  materialsReleaseAt DateTime?
+  offeringSessionId  String?
+
+  offering           Offering         @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  offeringSession    OfferingSession? @relation(fields: [offeringSessionId], references: [id], onDelete: SetNull)
+  materials          ClassMaterial[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([id, offeringId])
+  @@index([offeringId, number])
+}
+
+model ClassMaterial {
+  id           String           @id @default(cuid())
+  offeringId   String
+  /// null = general material of the class, not tied to one session
+  sessionId    String?
+  kind         MaterialKind
+  titleEn      String
+  titleFr      String?
+  language     MaterialLanguage @default(BOTH)
+  audience     MaterialAudience @default(STUDENTS)
+  /// Overrides the session's release time (null = follow the session).
+  releaseAt    DateTime?
+  downloadable Boolean          @default(true)
+  /// LINK materials only
+  externalUrl  String?
+  /// NOTEBOOK: the notebook on public GitHub, for Open in Colab
+  githubUrl    String?
+  /// DATASET: long random token for a read-only link notebooks can use (null = no link)
+  publicToken  String?          @unique
+  order        Int              @default(0)
+
+  offering     Offering         @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  // Composite key: a material can only belong to a session of the same class.
+  session      ClassSession?    @relation(fields: [sessionId, offeringId], references: [id, offeringId], onDelete: Restrict)
+  versions     ClassMaterialVersion[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([offeringId, sessionId, order])
+}
+
+model ClassMaterialVersion {
+  id           String        @id @default(cuid())
+  materialId   String
+  fileName     String
+  blobPathname String        @unique
+  contentType  String?
+  sizeBytes    Int
+  uploadedById String
+
+  material     ClassMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  uploadedBy   User          @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime      @default(now())
+
+  @@index([materialId, createdAt])
+}
+
+/// Links students need all term (Colab, the course GitHub, a Python primer…).
+model ClassTool {
+  id         String   @id @default(cuid())
+  offeringId String
+  label      String
+  url        String
+  order      Int      @default(0)
+
+  offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([offeringId, order])
 }

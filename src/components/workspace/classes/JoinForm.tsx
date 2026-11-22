@@ -35,7 +35,7 @@ export default function JoinForm({
         setError(null);
         start(async () => {
           const result = await joinClass({ fullName: name, code });
-          if (result.ok && result.offeringId) router.push(`/workspace-q/${result.offeringId}/files`);
+          if (result.ok && result.offeringId) router.push(`/workspace-q/${result.offeringId}`);
           else if (!result.ok) setError(result.error);
         });
       }}

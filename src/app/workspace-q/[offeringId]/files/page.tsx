@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import FilesWorkspace from '@/components/workspace/files/FilesWorkspace';
-import { filesDb, getClassViewer, getVisibleFiles, storageUsedBytes, studentFilesToken } from '@/lib/workspace-files-server';
+import { filesDb, getClassViewer, getVisibleFiles, storageUsedBytes, studentFilesToken, offeringIdForSlug } from '@/lib/workspace-files-server';
 import { storageQuotaBytes } from '@/lib/workspace-files';
 
 export const metadata: Metadata = {
@@ -25,7 +25,11 @@ export default async function FilesPage({
   if (check.status === 'signed-out') {
     redirect(`/workspace-q/signin?callbackUrl=${encodeURIComponent(`/workspace-q/${offeringId}/files`)}`);
   }
-  if (check.status === 'not-found') notFound();
+  if (check.status === 'not-found') {
+    const id = await offeringIdForSlug(offeringId);
+    if (id) redirect(`/workspace-q/${id}/files${tab ? `?tab=${encodeURIComponent(tab)}` : ''}`);
+    notFound();
+  }
   if (check.status === 'not-enrolled') {
     return (
       <div className="flex flex-1 items-center justify-center bg-[var(--wq-canvas)] px-4 py-16">

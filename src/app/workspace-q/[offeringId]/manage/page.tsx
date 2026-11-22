@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { FolderOpen } from 'lucide-react';
+import { BookOpen, FolderOpen } from 'lucide-react';
 import JoinCodeCard from '@/components/workspace/classes/JoinCodeCard';
 import TeamsPanel from '@/components/workspace/files/TeamsPanel';
-import { filesDb, getClassViewer } from '@/lib/workspace-files-server';
+import { filesDb, getClassViewer, offeringIdForSlug } from '@/lib/workspace-files-server';
 import { joinCodeStatus } from '@/lib/workspace-classes';
 
 export const metadata: Metadata = {
@@ -21,7 +21,11 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
   if (check.status === 'signed-out') {
     redirect(`/workspace-q/signin?callbackUrl=${encodeURIComponent(`/workspace-q/${offeringId}/manage`)}`);
   }
-  if (check.status === 'not-found') notFound();
+  if (check.status === 'not-found') {
+    const id = await offeringIdForSlug(offeringId);
+    if (id) redirect(`/workspace-q/${id}/manage`);
+    notFound();
+  }
   if (check.status === 'not-enrolled' || check.viewer.role !== 'staff') {
     return (
       <div className="flex flex-1 items-center justify-center bg-[var(--wq-canvas)] px-4 py-16">
@@ -70,6 +74,14 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
               in teams.
             </p>
           </div>
+          <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+          <Link
+            href={`/workspace-q/${offeringId}`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--wq-border)] px-3 py-1.5 text-sm font-medium text-[var(--wq-text)] hover:border-[var(--wq-border-hover)]"
+          >
+            <BookOpen className="h-4 w-4" aria-hidden="true" />
+            Class page
+          </Link>
           <Link
             href={`/workspace-q/${offeringId}/files`}
             className="inline-flex items-center gap-1.5 self-start rounded-lg border border-[var(--wq-border)] px-3 py-1.5 text-sm font-medium text-[var(--wq-text)] hover:border-[var(--wq-border-hover)] sm:self-auto"
@@ -77,6 +89,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
             <FolderOpen className="h-4 w-4" aria-hidden="true" />
             Class files
           </Link>
+          </div>
         </header>
 
         <JoinCodeCard

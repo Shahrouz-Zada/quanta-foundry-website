@@ -158,7 +158,14 @@ export async function createClass(input: { name: string; copyFromOfferingId?: st
     const source = data.copyFromOfferingId
       ? await db.offering.findUnique({
           where: { id: data.copyFromOfferingId },
-          select: { trackId: true, offeringSessions: { select: { sessionVersionId: true, order: true } } },
+          select: {
+            trackId: true,
+            offeringSessions: { select: { sessionVersionId: true, order: true } },
+            classSessions: {
+              select: { number: true, titleEn: true, titleFr: true, room: true, offeringSession: { select: { sessionVersionId: true } } },
+            },
+            tools: { select: { label: true, url: true, order: true } },
+          },
         })
       : null;
     if (data.copyFromOfferingId && !source) throw new UserError('The class to copy from no longer exists.');
@@ -186,6 +193,25 @@ export async function createClass(input: { name: string; copyFromOfferingId?: st
                 order: s.order,
               })),
             });
+          }
+          if (source && source.classSessions.length > 0) {
+            // Sessions are copied without dates (F1.2: the instructor sets them); a link to an
+            // interactive session follows the copied interactive session.
+            const copied = await tx.offeringSession.findMany({ where: { offeringId: created.id }, select: { id: true, sessionVersionId: true } });
+            const byVersion = new Map(copied.map((o) => [o.sessionVersionId, o.id]));
+            await tx.classSession.createMany({
+              data: source.classSessions.map((cs) => ({
+                offeringId: created.id,
+                number: cs.number,
+                titleEn: cs.titleEn,
+                titleFr: cs.titleFr,
+                room: cs.room,
+                offeringSessionId: cs.offeringSession ? byVersion.get(cs.offeringSession.sessionVersionId) ?? null : null,
+              })),
+            });
+          }
+          if (source && source.tools.length > 0) {
+            await tx.classTool.createMany({ data: source.tools.map((t) => ({ offeringId: created.id, label: t.label, url: t.url, order: t.order })) });
           }
           await audit(tx, {
             offeringId: created.id, actorId: admin.user.id, action: 'class.create', entity: 'Offering', entityId: created.id,
