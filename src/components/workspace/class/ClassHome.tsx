@@ -14,17 +14,21 @@ import MaterialItem, { type SessionOption } from './MaterialItem';
 import MaterialUploader from './MaterialUploader';
 import SessionForm from './SessionForm';
 import ToolsPanel from './ToolsPanel';
+import ActivityList from '@/components/workspace/activities/ActivityList';
+import type { ActivitySummary } from '@/lib/workspace-activities-server';
 
 export default function ClassHome({
   offering,
   staff,
   data,
+  activities,
   nextSessionId,
   storageConnected,
 }: {
   offering: { id: string; name: string };
   staff: boolean;
   data: ClassHomeData;
+  activities: ActivitySummary[];
   nextSessionId: string | null;
   storageConnected: boolean;
 }) {
@@ -35,7 +39,8 @@ export default function ClassHome({
     label: `${t('class.session', { n: s.number })} · ${pickTitle(s, lang)}`,
   }));
   const nextNumber = data.sessions.length > 0 ? Math.max(...data.sessions.map((s) => s.number)) + 1 : 1;
-  const showGeneral = staff || data.general.length > 0;
+  const generalActivities = activities.filter((a) => a.sessionId === null);
+  const showGeneral = staff || data.general.length > 0 || generalActivities.length > 0;
 
   return (
     <div className="flex-1 bg-[var(--wq-canvas)] pb-20">
@@ -107,6 +112,7 @@ export default function ClassHome({
                   sessionOptions={sessionOptions}
                   interactiveOptions={data.interactiveOptions}
                   storageConnected={storageConnected}
+                  activities={activities.filter((a) => a.sessionId === s.id)}
                 />
               ))}
             </ol>
@@ -120,6 +126,7 @@ export default function ClassHome({
             </h2>
             <MaterialList materials={data.general} offeringId={offering.id} staff={staff} sessionOptions={sessionOptions} />
             {staff && <MaterialUploader offeringId={offering.id} sessionId={null} disabled={!storageConnected} />}
+            <ActivityList offeringId={offering.id} sessionId={null} activities={generalActivities} staff={staff} />
           </section>
         )}
       </div>
@@ -157,6 +164,7 @@ function SessionBlock({
   sessionOptions,
   interactiveOptions,
   storageConnected,
+  activities,
 }: {
   session: SessionView;
   offeringId: string;
@@ -165,6 +173,7 @@ function SessionBlock({
   sessionOptions: SessionOption[];
   interactiveOptions: { id: string; label: string }[];
   storageConnected: boolean;
+  activities: ActivitySummary[];
 }) {
   const { t, lang } = useTranslation();
   const router = useRouter();
@@ -267,6 +276,12 @@ function SessionBlock({
           <MaterialList materials={session.materials} offeringId={offeringId} staff={staff} sessionOptions={sessionOptions} />
         )}
         {staff && <MaterialUploader offeringId={offeringId} sessionId={session.id} disabled={!storageConnected} />}
+        {(staff || activities.length > 0) && (
+          <div className="space-y-2 pt-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--wq-text-muted)]">{t('activity.activities')}</h4>
+            <ActivityList offeringId={offeringId} sessionId={session.id} activities={activities} staff={staff} />
+          </div>
+        )}
       </div>
     </li>
   );

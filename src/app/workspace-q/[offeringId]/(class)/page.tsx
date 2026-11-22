@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import ClassHome from '@/components/workspace/class/ClassHome';
 import { getClassViewer, studentFilesToken, offeringIdForSlug } from '@/lib/workspace-files-server';
 import { loadClassHome } from '@/lib/workspace-materials-server';
+import { loadActivitySummaries } from '@/lib/workspace-activities-server';
 import NotInClass from './NotInClass';
 
 export const metadata: Metadata = {
@@ -29,7 +30,10 @@ export default async function ClassHomePage({ params }: { params: Promise<{ offe
   if (check.status === 'not-enrolled') return <NotInClass email={check.email} />;
 
   const now = new Date();
-  const data = await loadClassHome(offeringId, check.viewer.role, now);
+  const [data, activities] = await Promise.all([
+    loadClassHome(offeringId, check.viewer.role, now),
+    loadActivitySummaries(offeringId, check.viewer, now),
+  ]);
   const next = data.sessions.find((s) => s.startsAt && new Date(s.startsAt).getTime() + SESSION_LENGTH_MS > now.getTime());
 
   return (
@@ -37,6 +41,7 @@ export default async function ClassHomePage({ params }: { params: Promise<{ offe
       offering={check.offering}
       staff={check.viewer.role === 'staff'}
       data={data}
+      activities={activities}
       nextSessionId={next?.id ?? null}
       storageConnected={Boolean(studentFilesToken())}
     />

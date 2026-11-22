@@ -29,7 +29,7 @@ import {
 } from '@/lib/workspace-files';
 import { titleFromFileName } from '@/lib/course-files';
 
-export type ActionResult = { ok: true } | { ok: false; error: string };
+export type ActionResult = { ok: true; fileId?: string } | { ok: false; error: string };
 
 class UserError extends Error {}
 
@@ -139,6 +139,7 @@ export async function registerUpload(input: z.input<typeof registerSchema>): Pro
     };
     const space = teamId ? ({ kind: 'team', teamId } as const) : ({ kind: 'personal', userId: viewer.userId } as const);
 
+    let savedFileId = existing?.id;
     await db.$transaction(async (tx) => {
       // One save at a time per storage space, so the quota check below can't race.
       const lockKey = `workspace-files:${data.offeringId}:${teamId ?? viewer.userId}`;
@@ -174,6 +175,7 @@ export async function registerUpload(input: z.input<typeof registerSchema>): Pro
           versions: { create: version },
         },
       });
+      savedFileId = file.id;
       await audit(tx, {
         offeringId: data.offeringId,
         actorId: user.id,
@@ -185,7 +187,7 @@ export async function registerUpload(input: z.input<typeof registerSchema>): Pro
     });
 
     refresh(data.offeringId);
-    return { ok: true };
+    return { ok: true, fileId: savedFileId };
   } catch (error) {
     if (cleanupPathname) await discardUnsavedUpload(cleanupPathname);
     return fail(error);
@@ -265,6 +267,10 @@ export async function deleteFile(input: { fileId: string }): Promise<ActionResul
     if (!file) throw new UserError('This file no longer exists. Refresh the page.');
     const { viewer, user } = await requireViewer(file.offeringId, ['learner', 'staff']);
     if (!canDeleteFile(viewer, accessFacts(file))) throw new UserError('You can’t delete this file.');
+    const attached = await db.activitySubmissionFile.count({ where: { fileVersion: { fileId: file.id } } });
+    if (attached > 0) {
+      throw new UserError('This file is attached to an activity. Remove it from the activity first, so submitted work is not lost.');
+    }
     await db.$transaction([
       db.studentFile.delete({ where: { id: file.id } }),
       db.workspaceAuditLog.create({
@@ -341,6 +347,9 @@ export async function deleteTeam(input: { teamId: string }): Promise<ActionResul
     const { user } = await requireViewer(team.offeringId, ['staff']);
     if (team._count.files > 0) {
       throw new UserError('This team still has files. Delete them first, so no student work is lost by accident.');
+    }
+    if ((await db.activitySubmission.count({ where: { teamId: team.id } })) > 0) {
+      throw new UserError('This team has activity answers, so it can’t be deleted (its work would be lost). Rename it instead.');
     }
     await db.$transaction([
       db.team.delete({ where: { id: team.id } }), // memberships go with it

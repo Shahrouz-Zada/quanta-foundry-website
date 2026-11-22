@@ -22,6 +22,8 @@ export async function uploadOne(
     fileId?: string;
     onProgress?: (percentage: number) => void;
     onSaving?: () => void;
+    /** Called with the saved file's id (used to attach it to an activity). */
+    onSaved?: (fileId: string) => void;
   },
 ): Promise<string | null> {
   if (file.size > MAX_STUDENT_FILE_BYTES) return 'tooBig';
@@ -42,6 +44,7 @@ export async function uploadOne(
       shareLevel: opts.shareLevel,
       fileId: opts.fileId,
     });
+    if (result.ok && result.fileId) opts.onSaved?.(result.fileId);
     return result.ok ? null : result.error;
   } catch (error) {
     return error instanceof Error ? error.message : 'Upload failed';

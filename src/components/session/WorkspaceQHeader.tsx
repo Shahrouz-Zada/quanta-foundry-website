@@ -51,7 +51,7 @@ export default function WorkspaceQHeader() {
   const filesHref = params?.offeringId ? `/workspace-q/${params.offeringId}/files` : null;
   const onFiles = filesHref !== null && pathname === filesHref;
   const classHref = params?.offeringId ? `/workspace-q/${params.offeringId}` : null;
-  const onClass = classHref !== null && (pathname === classHref || pathname.startsWith(`${classHref}/materials/`));
+  const onClass = classHref !== null && (pathname === classHref || pathname.startsWith(`${classHref}/materials/`) || pathname.startsWith(`${classHref}/activities/`));
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [reportOpen,  setReportOpen]  = useState(false);

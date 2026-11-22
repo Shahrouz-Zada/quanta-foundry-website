@@ -66,6 +66,8 @@ model User {
   teamMemberships TeamMember[]
   joinAttempts    JoinAttempt[]
   materialUploads ClassMaterialVersion[]
+  activitySubmissions ActivitySubmission[] @relation("ActivitySubmissionOwner")
+  activityVersions    ActivitySubmissionVersion[] @relation("ActivityVersionAuthor")
   studentFiles    StudentFile[]        @relation("StudentFileOwner")
   fileUploads     StudentFileVersion[] @relation("StudentFileUploader")
   pendingUploads  PendingUpload[]
@@ -146,6 +148,7 @@ model Offering {
   classSessions    ClassSession[]
   materials        ClassMaterial[]
   tools            ClassTool[]
+  activities       Activity[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -468,6 +471,7 @@ model Team {
   offering   Offering      @relation(fields: [offeringId], references: [id], onDelete: Cascade)
   members    TeamMember[]
   files      StudentFile[]
+  activitySubmissions ActivitySubmission[]
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
@@ -529,6 +533,7 @@ model StudentFileVersion {
 
   file         StudentFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
   uploadedBy   User        @relation("StudentFileUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+  activityAttachments ActivitySubmissionFile[]
   createdAt    DateTime    @default(now())
 
   @@index([fileId, createdAt])
@@ -626,6 +631,7 @@ model ClassSession {
   offering           Offering         @relation(fields: [offeringId], references: [id], onDelete: Cascade)
   offeringSession    OfferingSession? @relation(fields: [offeringSessionId], references: [id], onDelete: SetNull)
   materials          ClassMaterial[]
+  activities         Activity[]
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
@@ -692,4 +698,112 @@ model ClassTool {
   createdAt  DateTime @default(now())
 
   @@index([offeringId, order])
+}
+
+// =============================================================================
+// Workspace Q: activities, the virtual handouts (spec F6, part A)
+//
+// An Activity belongs to a class (and usually a session). A team or a student
+// fills in ONE ActivitySubmission per activity (ownerKey "team:<id>" or
+// "user:<id>"); `answers` is the current state, and every save is kept as an
+// ActivitySubmissionVersion with its author (consecutive saves by the same
+// person within a couple of minutes update the same version). Files are
+// student files (F10): attaching one points at a StudentFileVersion, which
+// then can't be deleted while it is attached.
+// =============================================================================
+
+enum ActivityKind {
+  SHORT_ANSWER
+  FORM
+  FILE
+  LINK
+}
+
+enum ActivitySubmitter {
+  TEAM
+  INDIVIDUAL
+}
+
+model Activity {
+  id             String            @id @default(cuid())
+  offeringId     String
+  sessionId      String?
+  kind           ActivityKind
+  submitter      ActivitySubmitter @default(TEAM)
+  titleEn        String
+  titleFr        String?
+  instructionsEn String            @default("")
+  instructionsFr String?
+  /// Questions (short answers) or fields (structured form); see lib/workspace-activities.ts
+  config         Json              @default("{}")
+  /// Students see it only once it is published
+  visible        Boolean           @default(false)
+  opensAt        DateTime?
+  dueAt          DateTime?
+  allowLate      Boolean           @default(true)
+  order          Int               @default(0)
+
+  offering       Offering          @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  session        ClassSession?     @relation(fields: [sessionId, offeringId], references: [id, offeringId], onDelete: Restrict)
+  submissions    ActivitySubmission[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([id, offeringId])
+  @@index([offeringId, sessionId, order])
+}
+
+model ActivitySubmission {
+  id            String    @id @default(cuid())
+  activityId    String
+  offeringId    String
+  teamId        String?
+  userId        String?
+  /// "team:<teamId>" or "user:<userId>": one submission per team or student
+  ownerKey      String
+  answers       Json      @default("{}")
+  submittedAt   DateTime?
+  lastSavedAt   DateTime  @default(now())
+  lastSavedById String?
+
+  activity      Activity  @relation(fields: [activityId, offeringId], references: [id, offeringId], onDelete: Cascade)
+  // Restrict: a team or a person with submitted work can't silently disappear.
+  team          Team?     @relation(fields: [teamId, offeringId], references: [id, offeringId], onDelete: Restrict)
+  user          User?     @relation("ActivitySubmissionOwner", fields: [userId], references: [id], onDelete: Restrict)
+  versions      ActivitySubmissionVersion[]
+  files         ActivitySubmissionFile[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([activityId, ownerKey])
+  @@index([offeringId])
+}
+
+model ActivitySubmissionVersion {
+  id           String             @id @default(cuid())
+  submissionId String
+  authorId     String
+  answers      Json
+
+  submission   ActivitySubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  author       User               @relation("ActivityVersionAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([submissionId, createdAt])
+}
+
+/// A student file version attached to a submission. Restrict keeps the file
+/// (and its stored copy) from being deleted while it is attached.
+model ActivitySubmissionFile {
+  id            String             @id @default(cuid())
+  submissionId  String
+  fileVersionId String
+
+  submission    ActivitySubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  fileVersion   StudentFileVersion @relation(fields: [fileVersionId], references: [id], onDelete: Restrict)
+  createdAt     DateTime           @default(now())
+
+  @@unique([submissionId, fileVersionId])
+  @@index([fileVersionId])
 }

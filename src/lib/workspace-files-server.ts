@@ -233,7 +233,7 @@ export async function audit(
     offeringId: string;
     actorId: string;
     action: string;
-    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'Offering' | 'Enrollment' | 'ClassSession' | 'ClassMaterial' | 'ClassTool';
+    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'Offering' | 'Enrollment' | 'ClassSession' | 'ClassMaterial' | 'ClassTool' | 'Activity' | 'ActivitySubmission';
     entityId: string;
     details?: Prisma.InputJsonValue;
   },

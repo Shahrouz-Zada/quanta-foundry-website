@@ -147,12 +147,15 @@ export async function deleteSession(input: { sessionId: string }): Promise<Mater
     const data = z.object({ sessionId: id }).parse(input);
     const session = await db.classSession.findUnique({
       where: { id: data.sessionId },
-      select: { offeringId: true, _count: { select: { materials: true } } },
+      select: { offeringId: true, _count: { select: { materials: true, activities: true } } },
     });
     if (!session) throw new UserError('That session no longer exists. Refresh the page.');
     const { user } = await requireStaff(session.offeringId);
     if (session._count.materials > 0) {
       throw new UserError('This session still has materials. Delete them or move them to another session first.');
+    }
+    if (session._count.activities > 0) {
+      throw new UserError('This session still has activities. Delete them or move them to another session first.');
     }
     await db.classSession.delete({ where: { id: data.sessionId } });
     await audit(db, { offeringId: session.offeringId, actorId: user.id, action: 'session.delete', entity: 'ClassSession', entityId: data.sessionId });
