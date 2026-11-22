@@ -13,7 +13,8 @@ import {
 } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Sun, Moon, ChevronDown, User } from 'lucide-react';
+import { useParams, usePathname } from 'next/navigation';
+import { Sun, Moon, ChevronDown, User, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation, type Lang, type MessageKey } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
@@ -44,6 +45,11 @@ export default function WorkspaceQHeader() {
   const { lang, setLang, t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const { track, sessionLabel, stageLabel } = useBreadcrumb();
+  // Inside a class (/workspace-q/<offeringId>/…), link to that class's Files page.
+  const params = useParams<{ offeringId?: string }>();
+  const pathname = usePathname();
+  const filesHref = params?.offeringId ? `/workspace-q/${params.offeringId}/files` : null;
+  const onFiles = filesHref !== null && pathname === filesHref;
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [reportOpen,  setReportOpen]  = useState(false);
@@ -136,6 +142,25 @@ export default function WorkspaceQHeader() {
           >
             {t('nav.workspaceQ')}
           </Link>
+
+          {filesHref && (
+            <>
+              <span className="text-white/15 text-sm select-none" aria-hidden="true">/</span>
+              <Link
+                href={filesHref}
+                aria-current={onFiles ? 'page' : undefined}
+                aria-label={t('files.nav')}
+                className={cn(
+                  'flex items-center gap-1 text-xs font-semibold transition-colors whitespace-nowrap rounded',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wq-accent)]',
+                  onFiles ? 'text-white' : 'text-white/55 hover:text-white'
+                )}
+              >
+                <FolderOpen size={13} aria-hidden="true" />
+                <span className="hidden sm:inline">{t('files.nav')}</span>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* ── Centre: Breadcrumb ───────────────────────────────────── */}

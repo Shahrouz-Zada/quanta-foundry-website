@@ -11,8 +11,8 @@ import type { ReactNode } from 'react';
 
 // Routes on which the full public website chrome is suppressed
 const SUPPRESS_CHROME_PREFIXES = ['/workspace-q/learning-sessions'];
-// Dynamic offering session routes: /workspace-q/<offeringSlug>/session/<sessionSlug>
-const SUPPRESS_CHROME_PATTERN = /^\/workspace-q\/[^/]+\/session\//;
+// Dynamic offering routes: /workspace-q/<offeringId>/session/<sessionSlug> and /workspace-q/<offeringId>/files
+const SUPPRESS_CHROME_PATTERN = /^\/workspace-q\/[^/]+\/(session\/|files(\/|$))/;
 
 interface Props {
   navbar:    ReactNode;

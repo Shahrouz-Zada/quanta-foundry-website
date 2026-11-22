@@ -63,6 +63,10 @@ model User {
   memberships   ProjectMember[]
   evaluations   Evaluation[]
   audits        PredictionLockAudit[]
+  teamMemberships TeamMember[]
+  studentFiles    StudentFile[]        @relation("StudentFileOwner")
+  fileUploads     StudentFileVersion[] @relation("StudentFileUploader")
+  pendingUploads  PendingUpload[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -129,6 +133,10 @@ model Offering {
   enrollments      Enrollment[]
   offeringSessions OfferingSession[]
   milestones       Milestone[]
+  teams            Team[]
+  studentFiles     StudentFile[]
+  pendingUploads   PendingUpload[]
+  auditLogs        WorkspaceAuditLog[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -422,4 +430,130 @@ model CourseEvent {
 
   @@index([materialId, type])
   @@index([type, createdAt])
+}
+
+// =============================================================================
+// Workspace Q: teams and student files (spec F10 "Files: share work")
+//
+// A class is an Offering. Teams belong to one class; a student is in at most
+// one team per class (enforced by the unique key on TeamMember). Files are
+// stored in a PRIVATE Vercel Blob store (its own token, separate from the
+// public Courses store) and are only ever served through
+// /api/workspace-q/files/<id>/download after a permission check.
+// =============================================================================
+
+// Who can see a file, on top of its owner (or team) and the class staff.
+enum FileShareLevel {
+  STAFF // only the owner and the staff (personal files only)
+  TEAM  // the owner's team (personal files) or the team itself (team files)
+  CLASS // everyone enrolled in the class
+}
+
+model Team {
+  id         String        @id @default(cuid())
+  offeringId String
+  name       String
+  order      Int           @default(0)
+
+  offering   Offering      @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  members    TeamMember[]
+  files      StudentFile[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // Lets members and team files point at (team, class) together, so the
+  // database guarantees they belong to the same class as the team.
+  @@unique([id, offeringId])
+  @@index([offeringId, order])
+}
+
+model TeamMember {
+  id         String   @id @default(cuid())
+  teamId     String
+  // Copied from the team so the database can enforce one team per student per class.
+  offeringId String
+  userId     String
+
+  team       Team     @relation(fields: [teamId, offeringId], references: [id, offeringId], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([offeringId, userId])
+  @@index([teamId])
+}
+
+model StudentFile {
+  id         String               @id @default(cuid())
+  offeringId String
+  // The student who created the file. For a team file, the team owns it and
+  // this is the member who first uploaded it.
+  ownerId    String
+  // Set for a team file (shared space of that team); null for a personal file.
+  teamId     String?
+  title      String
+  shareLevel FileShareLevel       @default(STAFF)
+
+  // Restrict: deleting a class or a person must never silently delete student
+  // work (or leave its stored files behind); remove their files first.
+  offering   Offering             @relation(fields: [offeringId], references: [id], onDelete: Restrict)
+  owner      User                 @relation("StudentFileOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  team       Team?                @relation(fields: [teamId, offeringId], references: [id, offeringId], onDelete: NoAction)
+  // The newest version is the current one; older ones are kept (F10.4).
+  versions   StudentFileVersion[]
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@index([offeringId, shareLevel])
+  @@index([teamId])
+  @@index([ownerId])
+}
+
+model StudentFileVersion {
+  id           String      @id @default(cuid())
+  fileId       String
+  blobPathname String      @unique
+  fileName     String
+  contentType  String?
+  sizeBytes    Int
+  uploadedById String
+
+  file         StudentFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  uploadedBy   User        @relation("StudentFileUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime    @default(now())
+
+  @@index([fileId, createdAt])
+}
+
+// An upload that was granted a token but not saved yet. Saving requires the
+// row (so only the student who started an upload can save it); rows older
+// than an hour are swept, and their stored file deleted, so abandoned
+// uploads don't take up space.
+model PendingUpload {
+  id           String   @id @default(cuid())
+  offeringId   String
+  userId       String
+  blobPathname String   @unique
+
+  offering     Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+// Who did what, when (spec: every change of team or visibility is logged).
+model WorkspaceAuditLog {
+  id         String   @id @default(cuid())
+  offeringId String
+  actorId    String
+  action     String   // e.g. file.upload, file.share, file.delete, team.assign
+  entity     String   // StudentFile | Team | TeamMember
+  entityId   String
+  details    Json?
+
+  offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([offeringId, createdAt])
 }
