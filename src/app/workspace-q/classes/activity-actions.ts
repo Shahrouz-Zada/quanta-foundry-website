@@ -31,6 +31,7 @@ import {
   problemsBeforeSubmit,
   readAnswers,
   readConfig,
+  resultsVisible,
   type ActivityConfig,
   type ActivityKind,
   type Answers,
@@ -91,17 +92,50 @@ async function checkSession(offeringId: string, sessionId: string | null | undef
 }
 
 function starterConfig(kind: ActivityKind): ActivityConfig {
+  const empty = readConfig({});
   if (kind === 'SHORT_ANSWER') {
-    return { questions: [{ id: newItemId(), promptEn: 'Your answer', promptFr: 'Votre réponse', long: true, required: true }], fields: [], maxFiles: 3 };
+    return { ...empty, questions: [{ id: newItemId(), promptEn: 'Your answer', promptFr: 'Votre réponse', long: true, required: true }] };
   }
   if (kind === 'FORM') {
+    return { ...empty, fields: [{ id: newItemId(), labelEn: 'First field', labelFr: undefined, type: 'text', options: [], min: null, max: null, required: true }] };
+  }
+  if (kind === 'QUIZ') {
+    const a = newItemId();
+    const b = newItemId();
     return {
-      questions: [],
-      fields: [{ id: newItemId(), labelEn: 'First field', labelFr: undefined, type: 'text', options: [], min: null, max: null, required: true }],
-      maxFiles: 3,
+      ...empty,
+      quiz: [
+        {
+          id: newItemId(),
+          promptEn: 'First question',
+          promptFr: undefined,
+          options: [
+            { id: a, textEn: 'Right answer', textFr: undefined },
+            { id: b, textEn: 'Wrong answer', textFr: undefined },
+          ],
+          correct: [a],
+          multiple: false,
+          points: 1,
+        },
+      ],
     };
   }
-  return { questions: [], fields: [], maxFiles: 3 };
+  if (kind === 'CARD_SORT') {
+    const c1 = newItemId();
+    const c2 = newItemId();
+    return {
+      ...empty,
+      categories: [
+        { id: c1, labelEn: 'Category 1', labelFr: undefined },
+        { id: c2, labelEn: 'Category 2', labelFr: undefined },
+      ],
+      cards: [
+        { id: newItemId(), textEn: 'First card', textFr: undefined, expected: null },
+        { id: newItemId(), textEn: 'Second card', textFr: undefined, expected: null },
+      ],
+    };
+  }
+  return empty;
 }
 
 /** New activities start hidden ("draft"), so students only see them once you publish. */
@@ -245,6 +279,13 @@ async function requireWorker(activityId: string) {
   return { activity, viewer: check.viewer, user: check.user, ownerKey };
 }
 
+const LOCKED = () => new UserError('Results are shown, so answers can no longer change.', 'activity.err.locked');
+
+/** Quiz and card sort: once a team or student can see the right answers, their answer is final. */
+function keyShownTo(activity: LoadedActivity, submittedAt: Date | null): boolean {
+  return resultsVisible(activity, readConfig(activity.config), submittedAt);
+}
+
 type Tx = Parameters<Parameters<typeof db.$transaction>[0]>[0];
 
 /**
@@ -274,6 +315,7 @@ async function changeSubmission(
         },
       });
     }
+    if (keyShownTo(activity, submission.submittedAt)) throw LOCKED();
     const next = await change(readAnswers(submission.answers), tx, submission.id);
     const now = new Date();
     await tx.activitySubmission.update({
@@ -317,6 +359,7 @@ export async function submitActivity(input: { activityId: string }): Promise<Ans
     const problems = await db.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`activity:${activity.id}:${ownerKey}`}))`;
       const submission = await tx.activitySubmission.findUnique({ where: { activityId_ownerKey: { activityId: activity.id, ownerKey } } });
+      if (submission && keyShownTo(activity, submission.submittedAt)) throw LOCKED();
       const found = problemsBeforeSubmit(activity.kind, readConfig(activity.config), readAnswers(submission?.answers));
       if (!submission || found.length > 0) return found.length > 0 ? found : [{ message: 'empty' }];
       const now = new Date();
@@ -410,6 +453,75 @@ export async function getSubmissionVersion(input: { versionId: string }): Promis
     const mine = check.viewer.role === 'learner' && viewerOwnerKey(version.submission.activity, check.viewer) === version.submission.ownerKey;
     if (check.viewer.role !== 'staff' && !mine) throw new UserError('You don’t have permission to see this.');
     return { ok: true, answers: readAnswers(version.answers) };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Staff: show results now (quiz, card sort) and the model answer (F6.4)
+// -----------------------------------------------------------------------------
+
+/** "Show results now" (or hide them again): students see their score and the right answers; answers then can't change. */
+export async function setResultsShown(input: { activityId: string; shown: boolean }): Promise<ActivityActionResult> {
+  try {
+    const data = z.object({ activityId: id, shown: z.boolean() }).parse(input);
+    const activity = await loadActivity(data.activityId);
+    if (!activity) throw new UserError('This activity no longer exists. Refresh the page.');
+    const { user } = await requireStaff(activity.offeringId);
+    await db.activity.update({ where: { id: activity.id }, data: { resultsRevealedAt: data.shown ? new Date() : null } });
+    await audit(db, {
+      offeringId: activity.offeringId, actorId: user.id, action: data.shown ? 'activity.results.show' : 'activity.results.hide',
+      entity: 'Activity', entityId: activity.id,
+    });
+    refresh(activity.offeringId, activity.id);
+    return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/**
+ * Model answer (F6.4): link a material of the class to the activity and
+ * decide when students get it. It uses the material's own settings, so the
+ * same rules as every material apply (staff-only until shown).
+ *  - "hide": staff only
+ *  - "deadline": for students from the activity's due time
+ *  - "now": for students at once
+ */
+export async function setModelAnswer(input: {
+  activityId: string;
+  materialId: string | null;
+  reveal: 'hide' | 'deadline' | 'now';
+}): Promise<ActivityActionResult> {
+  try {
+    const data = z.object({ activityId: id, materialId: id.nullable(), reveal: z.enum(['hide', 'deadline', 'now']) }).parse(input);
+    const activity = await loadActivity(data.activityId);
+    if (!activity) throw new UserError('This activity no longer exists. Refresh the page.');
+    const { user } = await requireStaff(activity.offeringId);
+    if (data.materialId) {
+      const material = await db.classMaterial.findUnique({ where: { id: data.materialId }, select: { offeringId: true } });
+      if (!material || material.offeringId !== activity.offeringId) throw new UserError('That material is not part of this class.');
+      if (data.reveal === 'deadline' && !activity.dueAt) throw new UserError('Set a due time first, or choose “Show to students now”.');
+      await db.$transaction([
+        db.activity.update({ where: { id: activity.id }, data: { modelMaterialId: data.materialId } }),
+        db.classMaterial.update({
+          where: { id: data.materialId },
+          data:
+            data.reveal === 'hide'
+              ? { audience: 'STAFF' }
+              : { audience: 'STUDENTS', releaseAt: data.reveal === 'deadline' ? activity.dueAt : new Date() },
+        }),
+      ]);
+    } else {
+      await db.activity.update({ where: { id: activity.id }, data: { modelMaterialId: null } });
+    }
+    await audit(db, {
+      offeringId: activity.offeringId, actorId: user.id, action: 'activity.model', entity: 'Activity', entityId: activity.id,
+      details: { materialId: data.materialId, reveal: data.reveal },
+    });
+    refresh(activity.offeringId, activity.id);
+    return { ok: true };
   } catch (error) {
     return fail(error);
   }

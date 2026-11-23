@@ -7,9 +7,11 @@
 import { z } from 'zod';
 import { cleanHttpUrl } from '@/lib/workspace-materials';
 
-export type ActivityKind = 'SHORT_ANSWER' | 'FORM' | 'FILE' | 'LINK';
+export type ActivityKind = 'SHORT_ANSWER' | 'FORM' | 'FILE' | 'LINK' | 'QUIZ' | 'CARD_SORT';
 export type ActivitySubmitter = 'TEAM' | 'INDIVIDUAL';
-export const ACTIVITY_KINDS: readonly ActivityKind[] = ['SHORT_ANSWER', 'FORM', 'FILE', 'LINK'];
+export const ACTIVITY_KINDS: readonly ActivityKind[] = ['SHORT_ANSWER', 'FORM', 'QUIZ', 'CARD_SORT', 'FILE', 'LINK'];
+/** Activities with an answer key: scored, and results can be shown to students. */
+export const SCORED_KINDS: readonly ActivityKind[] = ['QUIZ', 'CARD_SORT'];
 
 export const FIELD_TYPES = ['text', 'longtext', 'number', 'euro', 'percent', 'choice'] as const;
 export type FieldType = (typeof FIELD_TYPES)[number];
@@ -56,27 +58,103 @@ export const fieldSchema = z
   .refine((f) => f.min === null || f.max === null || f.min <= f.max, 'The minimum is above the maximum.');
 export type FormField = z.output<typeof fieldSchema>;
 
+// Quiz (part B): multiple choice, marked automatically.
+const optionText = z.string().trim().min(1, 'Every option needs a text.').max(300, 'An option is too long.');
+export const quizOptionSchema = z.object({ id: itemId, textEn: optionText, textFr: optionalLabel });
+export const quizQuestionSchema = z.object({
+  id: itemId,
+  promptEn: label,
+  promptFr: optionalLabel,
+  options: z.array(quizOptionSchema).min(2, 'A quiz question needs at least two options.').max(12),
+  /** Ids of the right options. Never sent to students before results are shown. */
+  correct: z.array(itemId).max(12).optional().default([]),
+  /** Several right options: students tick boxes instead of choosing one. Derived from `correct` when saved. */
+  multiple: z.boolean().optional().default(false),
+  points: z.number().int().min(0).max(100).optional().default(1),
+});
+export type QuizQuestion = z.output<typeof quizQuestionSchema>;
+
+// Card sort (part B): cards dragged into categories.
+export const categorySchema = z.object({ id: itemId, labelEn: label, labelFr: optionalLabel });
+export const cardSchema = z.object({
+  id: itemId,
+  textEn: label,
+  textFr: optionalLabel,
+  /** Category you expect (optional). Never sent to students before results are shown. */
+  expected: itemId.nullable().optional().default(null),
+});
+export type SortCategory = z.output<typeof categorySchema>;
+export type SortCard = z.output<typeof cardSchema>;
+
+export const REVEAL_MODES = ['submit', 'deadline', 'manual'] as const;
+export type RevealMode = (typeof REVEAL_MODES)[number];
+
 export const configSchema = z.object({
   questions: z.array(questionSchema).max(MAX_ITEMS).optional().default([]),
   fields: z.array(fieldSchema).max(MAX_ITEMS).optional().default([]),
   maxFiles: z.number().int().min(1).max(MAX_FILES).optional().default(3),
+  quiz: z.array(quizQuestionSchema).max(MAX_ITEMS).optional().default([]),
+  categories: z.array(categorySchema).max(12).optional().default([]),
+  cards: z.array(cardSchema).max(MAX_ITEMS).optional().default([]),
+  /** Quiz and card sort: when students see their results and the right answers */
+  reveal: z.enum(REVEAL_MODES).optional().default('deadline'),
 });
 export type ActivityConfig = z.output<typeof configSchema>;
+
+const EMPTY_CONFIG: ActivityConfig = { questions: [], fields: [], maxFiles: 3, quiz: [], categories: [], cards: [], reveal: 'deadline' };
 
 /** Reads a stored config, never throwing: anything unreadable becomes empty. */
 export function readConfig(raw: unknown): ActivityConfig {
   const parsed = configSchema.safeParse(raw ?? {});
-  return parsed.success ? parsed.data : { questions: [], fields: [], maxFiles: 3 };
+  return parsed.success ? parsed.data : { ...EMPTY_CONFIG };
 }
 
 /** Checks a config from the editor; ids must be unique. Throws a ZodError or Error with a readable message. */
 export function checkConfig(kind: ActivityKind, raw: unknown): ActivityConfig {
   const config = configSchema.parse(raw ?? {});
-  const ids = [...config.questions.map((q) => q.id), ...config.fields.map((f) => f.id)];
+  const ids = [
+    ...config.questions.map((q) => q.id),
+    ...config.fields.map((f) => f.id),
+    ...config.quiz.map((q) => q.id),
+    ...config.cards.map((c) => c.id),
+  ];
   if (new Set(ids).size !== ids.length) throw new Error('Two questions have the same id.');
-  if (kind === 'SHORT_ANSWER') return { ...config, fields: [] };
-  if (kind === 'FORM') return { ...config, questions: [] };
-  return { ...config, questions: [], fields: [] };
+  const base = { ...EMPTY_CONFIG, maxFiles: config.maxFiles, reveal: config.reveal };
+  if (kind === 'SHORT_ANSWER') return { ...base, questions: config.questions };
+  if (kind === 'FORM') return { ...base, fields: config.fields };
+  if (kind === 'QUIZ') {
+    if (config.quiz.length === 0) throw new Error('Add at least one quiz question.');
+    const quiz = config.quiz.map((q, i) => {
+      const optionIds = q.options.map((o) => o.id);
+      if (new Set(optionIds).size !== optionIds.length) throw new Error(`Question ${i + 1}: two options have the same id.`);
+      const correct = [...new Set(q.correct)].filter((c) => optionIds.includes(c));
+      if (correct.length === 0) throw new Error(`Question ${i + 1}: tick the right answer.`);
+      return { ...q, correct, multiple: correct.length > 1 };
+    });
+    return { ...base, quiz };
+  }
+  if (kind === 'CARD_SORT') {
+    if (config.categories.length < 2) throw new Error('A card sort needs at least two categories.');
+    if (config.cards.length === 0) throw new Error('Add at least one card.');
+    const catIds = config.categories.map((c) => c.id);
+    if (new Set(catIds).size !== catIds.length) throw new Error('Two categories have the same id.');
+    const cards = config.cards.map((c) => ({ ...c, expected: c.expected && catIds.includes(c.expected) ? c.expected : null }));
+    return { ...base, categories: config.categories, cards };
+  }
+  return base;
+}
+
+/**
+ * What a student's browser may receive: the answer key (right quiz options,
+ * expected categories) is removed unless results are already shown.
+ */
+export function studentConfig(config: ActivityConfig, keyVisible: boolean): ActivityConfig {
+  if (keyVisible) return config;
+  return {
+    ...config,
+    quiz: config.quiz.map((q) => ({ ...q, correct: [] })),
+    cards: config.cards.map((c) => ({ ...c, expected: null })),
+  };
 }
 
 export function newItemId(random: () => number = Math.random): string {
@@ -125,12 +203,29 @@ export interface AnswerChanges {
  * characters, a URL only for link activities. Everything else is dropped.
  */
 export function cleanChanges(kind: ActivityKind, config: ActivityConfig, changes: AnswerChanges): AnswerChanges {
-  const allowed = new Set(kind === 'SHORT_ANSWER' ? config.questions.map((q) => q.id) : kind === 'FORM' ? config.fields.map((f) => f.id) : []);
   const out: AnswerChanges = {};
-  if (changes.values && typeof changes.values === 'object') {
-    for (const [k, v] of Object.entries(changes.values)) {
-      if (allowed.has(k) && typeof v === 'string') (out.values ??= {})[k] = v.slice(0, MAX_TEXT_ANSWER);
+  const values = changes.values && typeof changes.values === 'object' ? changes.values : {};
+  if (kind === 'QUIZ') {
+    // "optA,optB": only real options of that question; one option unless it has several right answers.
+    for (const [k, v] of Object.entries(values)) {
+      const q = config.quiz.find((x) => x.id === k);
+      if (!q || typeof v !== 'string') continue;
+      const picked = [...new Set(v.split(',').map((x) => x.trim()))].filter((x) => q.options.some((o) => o.id === x));
+      (out.values ??= {})[k] = (q.multiple ? picked : picked.slice(0, 1)).join(',');
     }
+    return out;
+  }
+  if (kind === 'CARD_SORT') {
+    // card id → category id ('' = not sorted yet)
+    for (const [k, v] of Object.entries(values)) {
+      if (!config.cards.some((c) => c.id === k) || typeof v !== 'string') continue;
+      (out.values ??= {})[k] = config.categories.some((c) => c.id === v) ? v : '';
+    }
+    return out;
+  }
+  const allowed = new Set(kind === 'SHORT_ANSWER' ? config.questions.map((q) => q.id) : kind === 'FORM' ? config.fields.map((f) => f.id) : []);
+  for (const [k, v] of Object.entries(values)) {
+    if (allowed.has(k) && typeof v === 'string') (out.values ??= {})[k] = v.slice(0, MAX_TEXT_ANSWER);
   }
   if (kind === 'LINK' && typeof changes.url === 'string') out.url = changes.url.trim().slice(0, 2000);
   return out;
@@ -178,6 +273,10 @@ export function problemsBeforeSubmit(kind: ActivityKind, config: ActivityConfig,
         problems.push({ id: f.id, message: 'choice' });
       }
     }
+  } else if (kind === 'QUIZ') {
+    for (const q of config.quiz) if (!val(q.id)) problems.push({ id: q.id, message: 'required' });
+  } else if (kind === 'CARD_SORT') {
+    for (const c of config.cards) if (!config.categories.some((cat) => cat.id === val(c.id))) problems.push({ id: c.id, message: 'sort' });
   } else if (kind === 'LINK') {
     if (!answers.url || !cleanHttpUrl(answers.url)) problems.push({ message: 'url' });
   } else if (kind === 'FILE') {
@@ -225,4 +324,63 @@ export function submissionStatus(
   if (!s) return 'not-started';
   if (s.submittedAt) return dueAt && s.submittedAt > dueAt ? 'late' : 'submitted';
   return hasContent(readAnswers(s.answers)) ? 'in-progress' : 'not-started';
+}
+
+// -----------------------------------------------------------------------------
+// Quiz and card sort: score and when results are shown (part B)
+// -----------------------------------------------------------------------------
+
+export interface Score {
+  score: number;
+  max: number;
+  /** question or card id → right or not (only items that have a key) */
+  items: Record<string, boolean>;
+}
+
+/** null when the activity has no answer key (or is not a quiz or card sort). */
+export function scoreAnswers(kind: ActivityKind, config: ActivityConfig, answers: Answers): Score | null {
+  if (kind === 'QUIZ') {
+    const keyed = config.quiz.filter((q) => q.correct.length > 0);
+    if (keyed.length === 0) return null;
+    const items: Record<string, boolean> = {};
+    let score = 0;
+    let max = 0;
+    for (const q of keyed) {
+      const picked = new Set((answers.values[q.id] ?? '').split(',').filter(Boolean));
+      const right = picked.size === q.correct.length && q.correct.every((c) => picked.has(c));
+      items[q.id] = right;
+      max += q.points;
+      if (right) score += q.points;
+    }
+    return { score, max, items };
+  }
+  if (kind === 'CARD_SORT') {
+    const keyed = config.cards.filter((c) => c.expected);
+    if (keyed.length === 0) return null;
+    const items: Record<string, boolean> = {};
+    for (const c of keyed) items[c.id] = answers.values[c.id] === c.expected;
+    return { score: Object.values(items).filter(Boolean).length, max: keyed.length, items };
+  }
+  return null;
+}
+
+export function hasAnswerKey(kind: ActivityKind, config: ActivityConfig): boolean {
+  return (kind === 'QUIZ' && config.quiz.some((q) => q.correct.length > 0)) || (kind === 'CARD_SORT' && config.cards.some((c) => c.expected));
+}
+
+/**
+ * Whether a student may see their results and the right answers now:
+ * after they submit, after the deadline, or once you click "Show results now".
+ */
+export function resultsVisible(
+  a: { kind: ActivityKind; dueAt: Date | null; resultsRevealedAt: Date | null },
+  config: ActivityConfig,
+  submittedAt: Date | null,
+  now = new Date(),
+): boolean {
+  if (!SCORED_KINDS.includes(a.kind) || !hasAnswerKey(a.kind, config)) return false;
+  if (a.resultsRevealedAt && a.resultsRevealedAt <= now) return true;
+  if (config.reveal === 'submit') return submittedAt !== null;
+  if (config.reveal === 'deadline') return a.dueAt !== null && now > a.dueAt;
+  return false;
 }

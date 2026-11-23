@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Loader2, Paperclip, Upload, X } from 'lucide-react';
+import Link from 'next/link';
+import { Award, BookOpenCheck, CheckCircle2, Loader2, Paperclip, Upload, X } from 'lucide-react';
 import { attachFile, detachFile, getMySubmission, saveAnswers, submitActivity, type AnswerResult } from '@/app/workspace-q/classes/activity-actions';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { canWork, type Answers, type SubmitProblem } from '@/lib/workspace-activities';
+import { SCORED_KINDS, canWork, scoreAnswers, type Answers, type SubmitProblem } from '@/lib/workspace-activities';
 import type { ActivityInfo, AttachableFile, SubmissionView } from '@/lib/workspace-activities-server';
 import { formatClassDate } from '@/lib/workspace-materials';
 import { Button, fieldClass } from '@/components/workspace/files/ui';
@@ -28,16 +29,21 @@ export default function ActivityStudent({
   teamName,
   noTeam,
   attachable,
+  model,
 }: {
   activity: ActivityInfo;
   initial: SubmissionView;
   teamName: string | null;
   noTeam: boolean;
   attachable: AttachableFile[];
+  /** The model answer, once the instructor shares it */
+  model: { id: string; title: string; canOpen: boolean } | null;
 }) {
   const { t, lang } = useTranslation();
   const router = useRouter();
-  const editable = canWork(activity.window) && !noTeam;
+  const scored = SCORED_KINDS.includes(activity.kind);
+  // Once results are shown, the answer is final (the right answers are on screen).
+  const editable = canWork(activity.window) && !noTeam && !activity.resultsShown;
   const [answers, setAnswers] = useState<Answers>(initial.answers);
   const [meta, setMeta] = useState(initial);
   const [saving, setSaving] = useState<'idle' | 'saving' | 'error'>('idle');
@@ -94,7 +100,10 @@ export default function ActivityStudent({
       } else {
         setSaving('error');
         setError(errorText(result));
-        if (result.errorKey === 'activity.err.closed' || result.errorKey === 'activity.err.notAllowed') dirty.current.clear();
+        if (['activity.err.closed', 'activity.err.notAllowed', 'activity.err.locked'].includes(result.errorKey ?? '')) {
+          dirty.current.clear();
+          router.refresh();
+        }
         else timer.current = setTimeout(() => void flush(), 5000);
       }
     })();
@@ -190,6 +199,15 @@ export default function ActivityStudent({
   }
 
   const attachedIds = new Set((answers.files ?? []).map((f) => f.fileId));
+  const score = activity.resultsShown ? scoreAnswers(activity.kind, activity.config, answers) : null;
+  const revealNote =
+    scored && !activity.resultsShown
+      ? activity.config.reveal === 'submit'
+        ? t('activity.result.afterSubmit')
+        : activity.config.reveal === 'deadline' && activity.dueAt
+          ? t('activity.result.afterDeadline')
+          : t('activity.result.manual')
+      : null;
   const files = answers.files ?? [];
 
   return (
@@ -200,6 +218,25 @@ export default function ActivityStudent({
             {activity.submitter === 'TEAM' ? (teamName ? t('activity.team', { team: teamName }) : t('activity.noTeam')) : t('activity.individual')}
           </p>
         </ActivityHeader>
+
+        {score && (
+          <div className="flex items-center gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-emerald-900" data-testid="score">
+            <Award className="h-6 w-6 shrink-0" aria-hidden="true" />
+            <p className="text-lg font-semibold">{t('activity.result.score', { score: score.score, max: score.max })}</p>
+          </div>
+        )}
+        {model && (
+          <Link
+            href={model.canOpen ? `/workspace-q/${activity.offeringId}/materials/${model.id}` : `/api/workspace-q/materials/${model.id}/file?download=1`}
+            className="flex items-center gap-3 rounded-2xl border border-[var(--wq-border)] bg-[var(--wq-card)] p-4 text-sm font-medium text-[var(--wq-text)] hover:border-[var(--wq-accent)]"
+          >
+            <BookOpenCheck className="h-5 w-5 shrink-0 text-[var(--wq-accent)]" aria-hidden="true" />
+            <span>
+              {t('activity.model')} · <span className="text-[var(--wq-accent)]">{t('activity.modelOpen')}</span>
+              <span className="block text-xs font-normal text-[var(--wq-text-muted)]">{model.title}</span>
+            </span>
+          </Link>
+        )}
 
         {noTeam ? (
           <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">{t('activity.noTeam')}</p>
@@ -213,6 +250,7 @@ export default function ActivityStudent({
               problems={problems}
               onChange={onChange}
               onFocusField={(id) => (focused.current = id)}
+              score={score}
             />
 
             {activity.kind === 'FILE' && (
@@ -296,10 +334,15 @@ export default function ActivityStudent({
                 </p>
               )}
               {!editable && <p className="text-xs text-[var(--wq-text-muted)]">{t('activity.readOnly')}</p>}
+              {editable && revealNote && <p className="text-xs text-[var(--wq-text-muted)]">{revealNote}</p>}
             </div>
             {editable && (
               <Button variant="primary" onClick={onSubmit} pending={submitting} className="sm:min-w-32">
-                {meta.submittedAt ? t('activity.resubmit') : t('activity.submit')}
+                {scored && activity.config.reveal === 'submit'
+                  ? t('activity.submitFinal')
+                  : meta.submittedAt
+                    ? t('activity.resubmit')
+                    : t('activity.submit')}
               </Button>
             )}
           </div>

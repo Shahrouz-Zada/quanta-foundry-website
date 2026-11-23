@@ -664,6 +664,7 @@ model ClassMaterial {
   // Composite key: a material can only belong to a session of the same class.
   session      ClassSession?    @relation(fields: [sessionId, offeringId], references: [id, offeringId], onDelete: Restrict)
   versions     ClassMaterialVersion[]
+  modelFor     Activity[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
@@ -717,6 +718,8 @@ enum ActivityKind {
   FORM
   FILE
   LINK
+  QUIZ
+  CARD_SORT
 }
 
 enum ActivitySubmitter {
@@ -742,6 +745,11 @@ model Activity {
   dueAt          DateTime?
   allowLate      Boolean           @default(true)
   order          Int               @default(0)
+  /// Quiz and card sort: when "show results" is set to "when I decide", the moment you did
+  resultsRevealedAt DateTime?
+  /// A material of the class holding the model answer (F6.4); its own audience and release decide who sees it
+  modelMaterialId String?
+  modelMaterial   ClassMaterial?   @relation(fields: [modelMaterialId], references: [id], onDelete: SetNull)
 
   offering       Offering          @relation(fields: [offeringId], references: [id], onDelete: Cascade)
   session        ClassSession?     @relation(fields: [sessionId, offeringId], references: [id, offeringId], onDelete: Restrict)

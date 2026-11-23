@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 import type { ActivityInfo, ReviewRow } from '@/lib/workspace-activities-server';
 import ActivityEditor from './ActivityEditor';
 import ActivityReview from './ActivityReview';
+import { ResultsAndModel, type MaterialChoice } from './ScoredEditors';
+import { SCORED_KINDS } from '@/lib/workspace-activities';
 import { ActivityHeader } from './ActivityHeader';
 
 /** Staff page of an activity: the answers, and the settings. Drafts open on the settings. */
@@ -12,10 +14,12 @@ export default function ActivityStaff({
   activity,
   rows,
   sessionOptions,
+  materials,
 }: {
   activity: ActivityInfo;
   rows: ReviewRow[];
   sessionOptions: { id: string; label: string }[];
+  materials: MaterialChoice[];
 }) {
   const [tab, setTab] = useState<'answers' | 'settings'>(activity.visible ? 'answers' : 'settings');
   const hasAnswers = rows.some((r) => r.submission.id !== null);
@@ -48,7 +52,17 @@ export default function ActivityStaff({
             </button>
           ))}
         </div>
-        {tab === 'answers' ? <ActivityReview activity={activity} rows={rows} /> : <ActivityEditor activity={activity} sessionOptions={sessionOptions} hasAnswers={hasAnswers} />}
+        {tab === 'answers' ? (
+          <>
+            <ActivityReview activity={activity} rows={rows} />
+            <ResultsAndModel activity={activity} materials={materials} scored={SCORED_KINDS.includes(activity.kind)} />
+          </>
+        ) : (
+          <>
+            <ActivityEditor activity={activity} sessionOptions={sessionOptions} hasAnswers={hasAnswers} />
+            <ResultsAndModel activity={activity} materials={materials} scored={SCORED_KINDS.includes(activity.kind)} />
+          </>
+        )}
       </div>
     </div>
   );

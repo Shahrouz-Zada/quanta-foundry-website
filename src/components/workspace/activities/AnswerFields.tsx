@@ -2,7 +2,8 @@
 
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import type { ActivityConfig, ActivityKind, Answers, FormField, SubmitProblem } from '@/lib/workspace-activities';
+import type { ActivityConfig, ActivityKind, Answers, FormField, Score, SubmitProblem } from '@/lib/workspace-activities';
+import { CardSortBoard, QuizFields } from './ScoredFields';
 import { fieldClass } from '@/components/workspace/files/ui';
 
 const unit: Partial<Record<FormField['type'], string>> = { euro: '€', percent: '%' };
@@ -26,6 +27,7 @@ export default function AnswerFields({
   problems,
   onChange,
   onFocusField,
+  score = null,
 }: {
   kind: ActivityKind;
   config: ActivityConfig;
@@ -34,12 +36,21 @@ export default function AnswerFields({
   problems?: SubmitProblem[];
   onChange?: (id: string, value: string) => void;
   onFocusField?: (id: string | null) => void;
+  /** Quiz and card sort: marks right and wrong answers when results are shown */
+  score?: Score | null;
 }) {
   const { t, lang } = useTranslation();
   const problemFor = (id: string) => problems?.find((p) => p.id === id);
   const problemText = (p: SubmitProblem, f?: FormField) =>
     p.message === 'range' && f ? t('activity.problem.range', { range: rangeText(f) }) : t(`activity.problem.${p.message}` as 'activity.problem.required');
   const label = 'block text-sm font-medium text-[var(--wq-text)]';
+
+  if (kind === 'QUIZ') {
+    return <QuizFields config={config} answers={answers} editable={editable} problems={problems} score={score} onChange={onChange} />;
+  }
+  if (kind === 'CARD_SORT') {
+    return <CardSortBoard config={config} answers={answers} editable={editable} problems={problems} score={score} onChange={onChange} />;
+  }
 
   if (kind === 'SHORT_ANSWER') {
     return (

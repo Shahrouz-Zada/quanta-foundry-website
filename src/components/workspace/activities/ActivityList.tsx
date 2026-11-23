@@ -13,7 +13,14 @@ import { formatClassDate, pickTitle } from '@/lib/workspace-materials';
 import { Button, ErrorText, fieldClass, useAction } from '@/components/workspace/files/ui';
 import { StatusPill } from './ActivityHeader';
 
-const kindEn: Record<ActivityKind, string> = { SHORT_ANSWER: 'Short answers', FORM: 'Structured form', FILE: 'File upload', LINK: 'Link' };
+const kindEn: Record<ActivityKind, string> = {
+  SHORT_ANSWER: 'Short answers',
+  FORM: 'Structured form',
+  QUIZ: 'Quiz (marked automatically)',
+  CARD_SORT: 'Card sort',
+  FILE: 'File upload',
+  LINK: 'Link',
+};
 
 /** Activities of one session on the class page (students: their status; staff: counts and drafts). */
 export default function ActivityList({

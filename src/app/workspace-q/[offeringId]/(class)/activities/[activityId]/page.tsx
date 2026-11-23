@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import ActivityStaff from '@/components/workspace/activities/ActivityStaff';
 import ActivityStudent from '@/components/workspace/activities/ActivityStudent';
 import { getClassViewer, offeringIdForSlug } from '@/lib/workspace-files-server';
+import { inlineContentType } from '@/lib/workspace-files';
 import {
   activitiesDb,
   attachableFiles,
@@ -11,7 +12,10 @@ import {
   loadSubmissionView,
   toActivityInfo,
   viewerOwnerKey,
+  type SubmissionView,
 } from '@/lib/workspace-activities-server';
+import { loadMaterial } from '@/lib/workspace-materials-server';
+import { canSeeMaterial, isReleased, effectiveReleaseAt } from '@/lib/workspace-materials';
 
 export const metadata: Metadata = {
   title: 'Activity · Workspace Q',
@@ -19,6 +23,8 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = 'force-dynamic';
+
+const EMPTY: SubmissionView = { id: null, answers: { values: {} }, status: 'not-started', submittedAt: null, lastSavedAt: null, lastSavedBy: null, versions: [] };
 
 export default async function ActivityPage({ params }: { params: Promise<{ offeringId: string; activityId: string }> }) {
   const { offeringId, activityId } = await params;
@@ -37,36 +43,60 @@ export default async function ActivityPage({ params }: { params: Promise<{ offer
   if (!activity || activity.offeringId !== offeringId) notFound();
   const staff = check.viewer.role === 'staff';
   if (!staff && !activity.visible) notFound();
-  const info = toActivityInfo(activity, staff);
 
   if (staff) {
-    const [rows, sessions] = await Promise.all([
+    const [rows, sessions, materials] = await Promise.all([
       loadReview(activity),
       activitiesDb.classSession.findMany({ where: { offeringId }, orderBy: [{ number: 'asc' }, { createdAt: 'asc' }] }),
+      activitiesDb.classMaterial.findMany({
+        where: { offeringId, kind: { not: 'LINK' } },
+        orderBy: [{ sessionId: 'asc' }, { order: 'asc' }],
+        include: { session: { select: { number: true, materialsReleaseAt: true } } },
+      }),
     ]);
+    const now = new Date();
     return (
       <ActivityStaff
-        activity={info}
+        activity={toActivityInfo(activity, true, now)}
         rows={rows}
         sessionOptions={sessions.map((s) => ({ id: s.id, label: `Session ${s.number} · ${s.titleEn}` }))}
+        materials={materials.map((m) => {
+          const release = effectiveReleaseAt(m, m.session);
+          return {
+            id: m.id,
+            label: `${m.session ? `S${m.session.number} · ` : ''}${m.titleEn}`,
+            studentsSee: m.audience === 'STUDENTS' && isReleased(release, now),
+            releaseAt: m.audience === 'STUDENTS' && release && !isReleased(release, now) ? release.toISOString() : null,
+          };
+        })}
       />
     );
   }
 
   // Observers read the instructions only.
-  const ownerKey = check.viewer.role === 'learner' ? viewerOwnerKey(activity, check.viewer) : null;
-  const [submission, attachable, team] = await Promise.all([
-    ownerKey ? loadSubmissionView(activity, ownerKey) : Promise.resolve({ id: null, answers: { values: {} }, status: 'not-started' as const, submittedAt: null, lastSavedAt: null, lastSavedBy: null, versions: [] }),
+  const learner = check.viewer.role === 'learner';
+  const ownerKey = learner ? viewerOwnerKey(activity, check.viewer) : null;
+  const [submission, attachable, team, modelMaterial] = await Promise.all([
+    ownerKey ? loadSubmissionView(activity, ownerKey) : Promise.resolve(EMPTY),
     activity.kind === 'FILE' ? attachableFiles(offeringId, check.viewer, activity.submitter) : Promise.resolve([]),
     check.viewer.teamId ? activitiesDb.team.findUnique({ where: { id: check.viewer.teamId }, select: { name: true } }) : Promise.resolve(null),
+    activity.modelMaterialId ? loadMaterial(activity.modelMaterialId) : Promise.resolve(null),
   ]);
+  // The answer key reaches this page only once this student's (or team's) results are shown.
+  const info = toActivityInfo(activity, false, new Date(), submission.submittedAt ? new Date(submission.submittedAt) : null);
+  const modelVisible = modelMaterial && modelMaterial.versions.length > 0 && canSeeMaterial(check.viewer.role, modelMaterial, modelMaterial.session);
   return (
     <ActivityStudent
-      activity={check.viewer.role === 'learner' ? info : { ...info, window: 'closed' }}
+      activity={learner ? info : { ...info, window: 'closed' }}
       initial={submission}
       teamName={team?.name ?? null}
-      noTeam={check.viewer.role === 'learner' && ownerKey === null}
+      noTeam={learner && ownerKey === null}
       attachable={attachable}
+      model={
+        modelVisible
+          ? { id: modelMaterial.id, title: modelMaterial.titleEn, canOpen: inlineContentType(modelMaterial.versions[0].fileName) !== null }
+          : null
+      }
     />
   );
 }

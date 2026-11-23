@@ -14,12 +14,16 @@ import {
   ownerKeyFor,
   readAnswers,
   readConfig,
+  resultsVisible,
+  scoreAnswers,
+  studentConfig,
   submissionStatus,
   type ActivityConfig,
   type ActivityKind,
   type ActivitySubmitter,
   type ActivityWindow,
   type Answers,
+  type Score,
   type SubmissionStatus,
 } from '@/lib/workspace-activities';
 import { utcToZonedLocal } from '@/lib/workspace-materials';
@@ -47,12 +51,23 @@ export interface ActivityInfo {
   dueAt: string | null;
   allowLate: boolean;
   window: ActivityWindow;
+  /** Quiz and card sort: results (and the right answers) are shown to this viewer */
+  resultsShown: boolean;
+  resultsRevealedAt: string | null;
+  modelMaterialId: string | null;
   // staff editor only
   opensAtLocal: string;
   dueAtLocal: string;
 }
 
-export function toActivityInfo(a: LoadedActivity, staff: boolean, now = new Date()): ActivityInfo {
+/**
+ * What the page receives about an activity. For students, `submittedAt` is
+ * their own submission's: the answer key stays out of the browser until
+ * their results are shown.
+ */
+export function toActivityInfo(a: LoadedActivity, staff: boolean, now = new Date(), submittedAt: Date | null = null): ActivityInfo {
+  const config = readConfig(a.config);
+  const shown = staff || resultsVisible(a, config, submittedAt, now);
   return {
     id: a.id,
     offeringId: a.offeringId,
@@ -63,12 +78,15 @@ export function toActivityInfo(a: LoadedActivity, staff: boolean, now = new Date
     titleFr: a.titleFr,
     instructionsEn: a.instructionsEn,
     instructionsFr: a.instructionsFr,
-    config: readConfig(a.config),
+    config: staff ? config : studentConfig(config, shown),
     visible: a.visible,
     opensAt: a.opensAt?.toISOString() ?? null,
     dueAt: a.dueAt?.toISOString() ?? null,
     allowLate: a.allowLate,
     window: activityWindow(a, now),
+    resultsShown: shown,
+    resultsRevealedAt: a.resultsRevealedAt?.toISOString() ?? null,
+    modelMaterialId: staff ? a.modelMaterialId : null,
     opensAtLocal: staff ? utcToZonedLocal(a.opensAt) : '',
     dueAtLocal: staff ? utcToZonedLocal(a.dueAt) : '',
   };
@@ -221,6 +239,8 @@ export interface ReviewRow {
   label: string;
   members: string[];
   submission: SubmissionView;
+  /** Quiz and card sort with a key: score of the current answer */
+  score: Score | null;
 }
 
 export async function loadReview(activity: LoadedActivity): Promise<ReviewRow[]> {
@@ -259,6 +279,7 @@ export async function loadReview(activity: LoadedActivity): Promise<ReviewRow[]>
       label: t.name,
       members: t.members.map((m) => nameOf(m.user) ?? m.user.email),
       submission: view(`team:${t.id}`),
+      score: null,
     }));
   } else {
     const learners = await activitiesDb.enrollment.findMany({
@@ -271,13 +292,15 @@ export async function loadReview(activity: LoadedActivity): Promise<ReviewRow[]>
         label: nameOf(e.user) ?? e.user.email,
         members: [e.user.email],
         submission: view(`user:${e.user.id}`),
+        score: null,
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }
   // Work from a team or student no longer in the class is still shown.
   const known = new Set(rows.map((r) => r.ownerKey));
   for (const s of subs) {
-    if (!known.has(s.ownerKey)) rows.push({ ownerKey: s.ownerKey, label: 'Former team or student', members: [], submission: view(s.ownerKey) });
+    if (!known.has(s.ownerKey)) rows.push({ ownerKey: s.ownerKey, label: 'Former team or student', members: [], submission: view(s.ownerKey), score: null });
   }
-  return rows;
+  const config = readConfig(activity.config);
+  return rows.map((r) => ({ ...r, score: r.submission.id ? scoreAnswers(activity.kind, config, r.submission.answers) : null }));
 }

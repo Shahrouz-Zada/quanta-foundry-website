@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { FIELD_TYPES, newItemId, type ActivityConfig, type FieldType, type FormField, type Question } from '@/lib/workspace-activities';
 import type { ActivityInfo } from '@/lib/workspace-activities-server';
 import { Button, ErrorText, fieldClass, useAction } from '@/components/workspace/files/ui';
+import { CardSortBuilder, QuizBuilder, RevealSetting } from './ScoredEditors';
 
 const typeLabel: Record<FieldType, string> = {
   text: 'Short text',
@@ -245,6 +246,34 @@ export default function ActivityEditor({
             Add field
           </Button>
         </section>
+      )}
+
+      {activity.kind === 'QUIZ' && (
+        <QuizBuilder
+          config={config}
+          onChange={(quiz) => {
+            setSaved(false);
+            setConfig((c) => ({ ...c, quiz }));
+          }}
+        />
+      )}
+      {activity.kind === 'CARD_SORT' && (
+        <CardSortBuilder
+          config={config}
+          onChange={(next) => {
+            setSaved(false);
+            setConfig((c) => ({ ...c, ...next }));
+          }}
+        />
+      )}
+      {(activity.kind === 'QUIZ' || activity.kind === 'CARD_SORT') && (
+        <RevealSetting
+          value={config.reveal}
+          onChange={(reveal) => {
+            setSaved(false);
+            setConfig((c) => ({ ...c, reveal }));
+          }}
+        />
       )}
 
       {activity.kind === 'FILE' && (
