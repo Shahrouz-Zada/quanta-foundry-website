@@ -9,6 +9,7 @@ import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { SCORED_KINDS, canWork, scoreAnswers, type Answers, type SubmitProblem } from '@/lib/workspace-activities';
 import type { ActivityInfo, AttachableFile, SubmissionView } from '@/lib/workspace-activities-server';
+import NotebookPreviewLink from '@/components/workspace/notebook/NotebookPreviewLink';
 import { formatClassDate } from '@/lib/workspace-materials';
 import { Button, fieldClass } from '@/components/workspace/files/ui';
 import { uploadOne } from '@/components/workspace/files/FileUploader';
@@ -251,6 +252,7 @@ export default function ActivityStudent({
               onChange={onChange}
               onFocusField={(id) => (focused.current = id)}
               score={score}
+              offeringId={activity.offeringId}
             />
 
             {activity.kind === 'FILE' && (
@@ -263,6 +265,7 @@ export default function ActivityStudent({
                         <Paperclip className="h-4 w-4 shrink-0" aria-hidden="true" />
                         <span className="truncate">{f.fileName}</span>
                       </a>
+                      <NotebookPreviewLink offeringId={activity.offeringId} fileId={f.fileId} versionId={f.versionId} fileName={f.fileName} plain />
                       {editable && (
                         <button type="button" onClick={() => onDetach(f.versionId)} aria-label={`${t('activity.remove')}: ${f.fileName}`} className="rounded p-1 text-[var(--wq-text-subtle)] hover:text-red-600">
                           <X className="h-4 w-4" />

@@ -139,6 +139,7 @@ function ReviewItem({ activity, row }: { activity: ActivityInfo; row: ReviewRow 
                 answers={version?.answers ?? s.answers}
                 editable={false}
                 score={scoreAnswers(activity.kind, activity.config, version?.answers ?? s.answers)}
+                offeringId={activity.offeringId}
               />
               {version && <p className="text-xs font-semibold text-amber-800">Showing an earlier version. Click it again to go back to the current answer.</p>}
               {s.versions.length > 0 && (

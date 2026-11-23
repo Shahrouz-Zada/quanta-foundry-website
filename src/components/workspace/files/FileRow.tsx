@@ -8,6 +8,7 @@ import { fileTypeLabel, formatBytes } from '@/lib/course-files';
 import { allowedShareLevels, inlineContentType, type ShareLevel } from '@/lib/workspace-files';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import NotebookPreviewLink from '@/components/workspace/notebook/NotebookPreviewLink';
 import { uploadOne } from './FileUploader';
 import { Button, ErrorText, fieldClass, formatDate, useAction } from './ui';
 import type { FileView } from './types';
@@ -158,6 +159,7 @@ export default function FileRow({
               {t('files.open')}
             </a>
           )}
+          <NotebookPreviewLink offeringId={offeringId} fileId={file.id} fileName={file.current.fileName} />
           <a
             href={href()}
             className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--wq-accent)] px-2.5 py-1.5 text-xs font-medium text-white hover:bg-[var(--wq-accent-hover)]"
@@ -238,6 +240,7 @@ export default function FileRow({
                   <a href={href(v.id)} className="font-medium text-[var(--wq-accent)] hover:underline">
                     {v.fileName}
                   </a>
+                  <NotebookPreviewLink offeringId={offeringId} fileId={file.id} versionId={v.id} fileName={v.fileName} plain />
                   <span>
                     {formatBytes(v.sizeBytes)} · {formatDate(v.uploadedAt, lang)} · {t('files.by', { name: v.uploadedBy ?? t('files.unnamed') })}
                   </span>

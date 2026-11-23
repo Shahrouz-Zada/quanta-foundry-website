@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import type { ActivityConfig, ActivityKind, Answers, FormField, Score, SubmitProblem } from '@/lib/workspace-activities';
 import { CardSortBoard, QuizFields } from './ScoredFields';
 import { fieldClass } from '@/components/workspace/files/ui';
+import NotebookPreviewLink from '@/components/workspace/notebook/NotebookPreviewLink';
 
 const unit: Partial<Record<FormField['type'], string>> = { euro: '€', percent: '%' };
 
@@ -28,6 +29,7 @@ export default function AnswerFields({
   onChange,
   onFocusField,
   score = null,
+  offeringId,
 }: {
   kind: ActivityKind;
   config: ActivityConfig;
@@ -38,6 +40,8 @@ export default function AnswerFields({
   onFocusField?: (id: string | null) => void;
   /** Quiz and card sort: marks right and wrong answers when results are shown */
   score?: Score | null;
+  /** Lets attached notebooks offer a read-only preview. */
+  offeringId?: string;
 }) {
   const { t, lang } = useTranslation();
   const problemFor = (id: string) => problems?.find((p) => p.id === id);
@@ -197,13 +201,14 @@ export default function AnswerFields({
         <li className="text-sm text-[var(--wq-text-muted)]">{t('activity.noFiles')}</li>
       ) : (
         (answers.files ?? []).map((f) => (
-          <li key={f.versionId}>
+          <li key={f.versionId} className="flex flex-wrap items-center gap-x-3">
             <a
               href={`/api/workspace-q/files/${f.fileId}/download?version=${f.versionId}`}
               className="text-sm font-medium text-[var(--wq-accent)] hover:underline"
             >
               {f.fileName}
             </a>
+            {offeringId && <NotebookPreviewLink offeringId={offeringId} fileId={f.fileId} versionId={f.versionId} fileName={f.fileName} plain />}
           </li>
         ))
       )}
