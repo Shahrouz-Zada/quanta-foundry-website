@@ -28,3 +28,10 @@ export interface StorageInfo {
   teamUsed: number;
   quota: number;
 }
+
+/** "auditor audits audited" — staff set these on the Teams screen. */
+export interface AuditPairing {
+  id: string;
+  auditorTeamId: string;
+  auditedTeamId: string;
+}

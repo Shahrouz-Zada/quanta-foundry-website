@@ -69,6 +69,7 @@ model User {
   activitySubmissions ActivitySubmission[] @relation("ActivitySubmissionOwner")
   activityVersions    ActivitySubmissionVersion[] @relation("ActivityVersionAuthor")
   studentFiles    StudentFile[]        @relation("StudentFileOwner")
+  teamAuditsCreated TeamAudit[]        @relation("TeamAuditCreator")
   fileUploads     StudentFileVersion[] @relation("StudentFileUploader")
   pendingUploads  PendingUpload[]
   createdAt     DateTime     @default(now())
@@ -142,6 +143,7 @@ model Offering {
   offeringSessions OfferingSession[]
   milestones       Milestone[]
   teams            Team[]
+  teamAudits       TeamAudit[]
   studentFiles     StudentFile[]
   pendingUploads   PendingUpload[]
   auditLogs        WorkspaceAuditLog[]
@@ -472,6 +474,9 @@ model Team {
   members    TeamMember[]
   files      StudentFile[]
   activitySubmissions ActivitySubmission[]
+  // Audit pairings set by staff: this team may read the other team's team files.
+  auditsGiven    TeamAudit[] @relation("TeamAuditor")
+  auditsReceived TeamAudit[] @relation("TeamAudited")
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
@@ -494,6 +499,30 @@ model TeamMember {
 
   @@unique([offeringId, userId])
   @@index([teamId])
+}
+
+/// Audit pairing, set by staff: members of the auditor team may open the
+/// audited team's team files, read-only (current versions only). It gives no
+/// access to personal files, earlier versions or activity answers. Removing a
+/// pairing, or a student changing team, takes the access away at once.
+model TeamAudit {
+  id            String   @id @default(cuid())
+  offeringId    String
+  auditorTeamId String
+  auditedTeamId String
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  offering  Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  // Both teams point at (team, class), so both must belong to this class.
+  auditor   Team     @relation("TeamAuditor", fields: [auditorTeamId, offeringId], references: [id, offeringId], onDelete: Cascade)
+  audited   Team     @relation("TeamAudited", fields: [auditedTeamId, offeringId], references: [id, offeringId], onDelete: Cascade)
+  createdBy User?    @relation("TeamAuditCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  // The migration also adds a CHECK that a team never audits itself.
+  @@unique([auditorTeamId, auditedTeamId])
+  @@index([auditedTeamId])
+  @@index([offeringId])
 }
 
 model StudentFile {

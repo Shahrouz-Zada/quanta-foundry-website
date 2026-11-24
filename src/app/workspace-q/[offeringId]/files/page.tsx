@@ -47,10 +47,11 @@ export default async function FilesPage({
   const { viewer, offering, user } = check;
   const isStaff = viewer.role === 'staff';
 
-  const [files, teams, roster, personalUsed, teamUsed] = await Promise.all([
+  const [files, teams, roster, personalUsed, teamUsed, pairings] = await Promise.all([
     getVisibleFiles(offeringId, viewer),
     filesDb.team.findMany({
-      where: isStaff ? { offeringId } : { offeringId, id: viewer.teamId ?? '__none__' },
+      // Students: their own team, plus the teams their team audits.
+      where: isStaff ? { offeringId } : { offeringId, id: { in: [viewer.teamId ?? '__none__', ...(viewer.auditTeamIds ?? [])] } },
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
       select: {
         id: true,
@@ -66,22 +67,33 @@ export default async function FilesPage({
       : Promise.resolve([]),
     viewer.role === 'learner' ? storageUsedBytes(offeringId, { kind: 'personal', userId: viewer.userId }) : Promise.resolve(0),
     viewer.role === 'learner' && viewer.teamId ? storageUsedBytes(offeringId, { kind: 'team', teamId: viewer.teamId }) : Promise.resolve(0),
+    // Staff: every pairing. Students: only the pairings that open their own team's files, so they know who can see them.
+    isStaff
+      ? filesDb.teamAudit.findMany({ where: { offeringId }, select: { id: true, auditorTeamId: true, auditedTeamId: true, auditor: { select: { name: true } } } })
+      : viewer.role === 'learner' && viewer.teamId
+        ? filesDb.teamAudit.findMany({ where: { auditedTeamId: viewer.teamId }, select: { id: true, auditorTeamId: true, auditedTeamId: true, auditor: { select: { name: true } } } })
+        : Promise.resolve([]),
   ]);
 
   // Staff see emails in the roster; classmates only ever see names.
   const nameOf = (u: { name: string | null; email: string }) => u.name?.trim() || u.email.split('@')[0];
   const publicName = (u: { name: string | null }) => u.name?.trim() || null;
 
+  const teamInfos = teams.map((t) => ({
+    id: t.id,
+    name: t.name,
+    members: t.members.map((m) => ({ id: m.user.id, name: publicName(m.user) })),
+  }));
+
   return (
     <FilesWorkspace
       offering={offering}
       viewer={{ ...viewer, name: nameOf(user) }}
       files={files}
-      teams={teams.map((t) => ({
-        id: t.id,
-        name: t.name,
-        members: t.members.map((m) => ({ id: m.user.id, name: publicName(m.user) })),
-      }))}
+      teams={teamInfos.filter((t) => isStaff || t.id === viewer.teamId)}
+      audits={isStaff ? pairings.map(({ id, auditorTeamId, auditedTeamId }) => ({ id, auditorTeamId, auditedTeamId })) : []}
+      auditedTeams={isStaff ? [] : teamInfos.filter((t) => t.id !== viewer.teamId && (viewer.auditTeamIds ?? []).includes(t.id))}
+      auditedBy={isStaff ? [] : pairings.map((p) => p.auditor.name).sort((a, b) => a.localeCompare(b))}
       roster={roster
         .map((e) => ({
           userId: e.user.id,

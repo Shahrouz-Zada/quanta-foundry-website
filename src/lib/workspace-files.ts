@@ -27,6 +27,12 @@ export interface FileViewer {
   role: 'staff' | 'learner' | 'observer';
   /** The viewer's team in this class, if any. */
   teamId: string | null;
+  /**
+   * Teams whose team files the viewer's team may read for an audit (pairings
+   * set by staff). Read-only: it never allows editing, deleting or seeing
+   * earlier versions, and never reaches personal files.
+   */
+  auditTeamIds?: string[];
 }
 
 /** What the rules need to know about a file. */
@@ -43,9 +49,14 @@ export function canViewFile(viewer: FileViewer, file: FileAccessFacts): boolean 
   if (viewer.role === 'staff') return true;
   if (file.shareLevel === 'CLASS') return true; // anyone enrolled in this class
   if (viewer.role !== 'learner') return false;
-  if (file.teamId) return viewer.teamId === file.teamId;
+  if (file.teamId) return viewer.teamId === file.teamId || isAuditedTeam(viewer, file.teamId);
   if (file.ownerId === viewer.userId) return true;
   return file.shareLevel === 'TEAM' && viewer.teamId !== null && viewer.teamId === file.ownerTeamId;
+}
+
+/** Whether the viewer reads this team's team files through an audit pairing. */
+export function isAuditedTeam(viewer: FileViewer, teamId: string): boolean {
+  return viewer.role === 'learner' && (viewer.auditTeamIds ?? []).includes(teamId);
 }
 
 /** Rename, change the sharing level, upload a new version. Staff don't edit students' work. */

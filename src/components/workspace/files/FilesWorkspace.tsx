@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, FolderOpen, Search, Settings, Users } from 'lucide-react';
+import { AlertTriangle, Eye, FolderOpen, Search, Settings, Users } from 'lucide-react';
 import { formatBytes as formatBytesOrDash } from '@/lib/course-files';
 
 // Storage figures read better as "0 B" than as a dash.
@@ -13,9 +13,9 @@ import FileRow from './FileRow';
 import FileUploader from './FileUploader';
 import TeamsPanel from './TeamsPanel';
 import { fieldClass } from './ui';
-import type { FileView, RosterEntry, StorageInfo, TeamInfo, ViewerInfo } from './types';
+import type { AuditPairing, FileView, RosterEntry, StorageInfo, TeamInfo, ViewerInfo } from './types';
 
-export type Tab = 'mine' | 'team' | 'class' | 'all' | 'teams';
+export type Tab = 'mine' | 'team' | 'class' | 'audit' | 'all' | 'teams';
 
 export default function FilesWorkspace({
   offering,
@@ -26,6 +26,9 @@ export default function FilesWorkspace({
   storage,
   storageConnected,
   initialTab,
+  audits = [],
+  auditedTeams = [],
+  auditedBy = [],
 }: {
   offering: { id: string; name: string };
   viewer: ViewerInfo;
@@ -35,11 +38,21 @@ export default function FilesWorkspace({
   storage: StorageInfo;
   storageConnected: boolean;
   initialTab?: Tab;
+  /** Staff: the class's audit pairings. */
+  audits?: AuditPairing[];
+  /** Student: the teams whose team files their team audits (read-only). */
+  auditedTeams?: TeamInfo[];
+  /** Student: names of the teams that audit their own team. */
+  auditedBy?: string[];
 }) {
   const { t } = useTranslation();
   const isStaff = viewer.role === 'staff';
   const isLearner = viewer.role === 'learner';
-  const tabs: Tab[] = isStaff ? ['all', 'teams'] : isLearner ? ['mine', 'team', 'class'] : ['class'];
+  const tabs: Tab[] = isStaff
+    ? ['all', 'teams']
+    : isLearner
+      ? ['mine', 'team', 'class', ...(auditedTeams.length > 0 ? (['audit'] as Tab[]) : [])]
+      : ['class'];
   const [tab, setTab] = useState<Tab>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
   const myTeam = teams.find((team) => team.id === viewer.teamId) ?? null;
 
@@ -48,13 +61,15 @@ export default function FilesWorkspace({
     const teamSpace = files.filter((f) => f.teamId !== null && f.teamId === viewer.teamId);
     const fromTeammates = files.filter((f) => !f.teamId && !f.isMine && f.shareLevel === 'TEAM');
     const classShared = files.filter((f) => f.shareLevel === 'CLASS');
-    return { mine, teamSpace, fromTeammates, classShared };
-  }, [files, viewer.teamId]);
+    const audited = files.filter((f) => f.teamId !== null && f.teamId !== viewer.teamId && auditedTeams.some((team) => team.id === f.teamId));
+    return { mine, teamSpace, fromTeammates, classShared, audited };
+  }, [files, viewer.teamId, auditedTeams]);
 
   const tabLabel: Record<Tab, MessageKey> = {
     mine: 'files.tab.mine',
     team: 'files.tab.team',
     class: 'files.tab.class',
+    audit: 'files.tab.audit',
     all: 'files.tab.all',
     teams: 'files.tab.teams',
   };
@@ -62,6 +77,7 @@ export default function FilesWorkspace({
     mine: groups.mine.length,
     team: groups.teamSpace.length + groups.fromTeammates.length,
     class: groups.classShared.length,
+    audit: groups.audited.length,
     all: files.length,
   };
 
@@ -146,6 +162,12 @@ export default function FilesWorkspace({
                     {t('files.storageTeam', { used: formatBytes(storage.teamUsed), quota: formatBytes(storage.quota) })}
                   </span>
                 </div>
+                {auditedBy.length > 0 && (
+                  <p data-testid="audited-by" className="flex items-start gap-2 rounded-lg bg-[var(--wq-canvas-alt)] px-3 py-2 text-xs text-[var(--wq-text-muted)]">
+                    <Eye className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {t('files.audit.seenBy', { teams: auditedBy.join(', ') })}
+                  </p>
+                )}
                 <FileUploader offeringId={offering.id} space="team" hasTeam disabled={!storageConnected} />
                 <section>
                   <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--wq-text-muted)]">
@@ -170,9 +192,31 @@ export default function FilesWorkspace({
             <FileList files={groups.classShared} offeringId={offering.id} showOwner empty={t('files.emptyClass')} />
           )}
 
+          {tab === 'audit' && (
+            <div className="space-y-6">
+              <p className="flex items-start gap-2 rounded-lg bg-[var(--wq-canvas-alt)] px-3 py-2 text-xs text-[var(--wq-text-muted)]">
+                <Eye className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {t('files.audit.note')}
+              </p>
+              {auditedTeams.map((team) => (
+                <section key={team.id} data-testid="audited-team">
+                  <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-[var(--wq-text-muted)]">{team.name}</h2>
+                  {team.members.length > 0 && (
+                    <p className="mb-3 text-xs text-[var(--wq-text-muted)]">{team.members.map((m) => m.name ?? t('files.unnamed')).join(', ')}</p>
+                  )}
+                  <FileList
+                    files={groups.audited.filter((f) => f.teamId === team.id)}
+                    offeringId={offering.id}
+                    empty={t('files.audit.empty', { team: team.name })}
+                  />
+                </section>
+              ))}
+            </div>
+          )}
+
           {tab === 'all' && <AllFiles files={files} offeringId={offering.id} />}
 
-          {tab === 'teams' && <TeamsPanel offeringId={offering.id} teams={teams} roster={roster} />}
+          {tab === 'teams' && <TeamsPanel offeringId={offering.id} teams={teams} roster={roster} audits={audits} />}
         </div>
       </div>
     </div>

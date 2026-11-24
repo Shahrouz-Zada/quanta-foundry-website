@@ -40,7 +40,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
     );
   }
 
-  const [offering, teams, enrolments] = await Promise.all([
+  const [offering, teams, enrolments, audits] = await Promise.all([
     filesDb.offering.findUniqueOrThrow({
       where: { id: offeringId },
       select: { id: true, name: true, joinCode: true, joinCodeExpiresAt: true },
@@ -57,6 +57,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
         user: { select: { id: true, name: true, email: true, teamMemberships: { where: { offeringId }, select: { teamId: true } } } },
       },
     }),
+    filesDb.teamAudit.findMany({ where: { offeringId }, select: { id: true, auditorTeamId: true, auditedTeamId: true } }),
   ]);
 
   const nameOf = (u: { name: string | null; email: string }) => u.name?.trim() || u.email.split('@')[0];
@@ -102,6 +103,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
         <TeamsPanel
           offeringId={offeringId}
           canRemove
+          audits={audits}
           teams={teams.map((t) => ({
             id: t.id,
             name: t.name,

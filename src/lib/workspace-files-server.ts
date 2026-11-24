@@ -58,7 +58,10 @@ export async function getClassViewer(offeringId: string): Promise<ClassViewerChe
         email: true,
         globalRole: true,
         enrollments: { where: { offeringId }, select: { role: true } },
-        teamMemberships: { where: { offeringId }, select: { teamId: true } },
+        teamMemberships: {
+          where: { offeringId },
+          select: { teamId: true, team: { select: { auditsGiven: { select: { auditedTeamId: true } } } } },
+        },
       },
     }),
     filesDb.offering.findUnique({ where: { id: offeringId }, select: { id: true, name: true } }),
@@ -76,7 +79,13 @@ export async function getClassViewer(offeringId: string): Promise<ClassViewerChe
 
   return {
     status: 'ok',
-    viewer: { userId: user.id, role, teamId: user.teamMemberships[0]?.teamId ?? null },
+    viewer: {
+      userId: user.id,
+      role,
+      teamId: user.teamMemberships[0]?.teamId ?? null,
+      // Audit access follows the student's current team and only ever applies to students.
+      auditTeamIds: role === 'learner' ? (user.teamMemberships[0]?.team.auditsGiven.map((a) => a.auditedTeamId) ?? []) : [],
+    },
     user: { id: user.id, name: user.name, email: user.email },
     offering,
   };
@@ -186,6 +195,8 @@ export async function getVisibleFiles(offeringId: string, viewer: FileViewer): P
     const or: Prisma.StudentFileWhereInput[] = [{ ownerId: viewer.userId }, { shareLevel: 'CLASS' }];
     if (viewer.teamId) {
       or.push({ teamId: viewer.teamId });
+      // Team files of the teams this team audits (read-only).
+      if (viewer.auditTeamIds?.length) or.push({ teamId: { in: viewer.auditTeamIds } });
       or.push({
         teamId: null,
         shareLevel: 'TEAM',
@@ -233,7 +244,7 @@ export async function audit(
     offeringId: string;
     actorId: string;
     action: string;
-    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'Offering' | 'Enrollment' | 'ClassSession' | 'ClassMaterial' | 'ClassTool' | 'Activity' | 'ActivitySubmission';
+    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'TeamAudit' | 'Offering' | 'Enrollment' | 'ClassSession' | 'ClassMaterial' | 'ClassTool' | 'Activity' | 'ActivitySubmission';
     entityId: string;
     details?: Prisma.InputJsonValue;
   },

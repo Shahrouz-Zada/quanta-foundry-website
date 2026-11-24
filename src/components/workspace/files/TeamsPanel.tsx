@@ -2,24 +2,27 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { assignTeam, createTeam, deleteTeam, renameTeam } from '@/app/workspace-q/[offeringId]/files/actions';
+import { ArrowRight, Pencil, Plus, Repeat, Trash2, X } from 'lucide-react';
+import { addAuditPairing, addAuditRing, assignTeam, createTeam, deleteTeam, removeAuditPairing, renameTeam } from '@/app/workspace-q/[offeringId]/files/actions';
 import { removeStudent } from '@/app/workspace-q/classes/actions';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { Button, ErrorText, fieldClass, useAction } from './ui';
-import type { RosterEntry, TeamInfo } from './types';
+import type { AuditPairing, RosterEntry, TeamInfo } from './types';
 
 /** Staff only: create teams and put each student in one. */
 export default function TeamsPanel({
   offeringId,
   teams,
   roster,
+  audits = [],
   canRemove = false,
 }: {
   offeringId: string;
   teams: TeamInfo[];
   roster: RosterEntry[];
+  /** Audit pairings of this class. */
+  audits?: AuditPairing[];
   /** Class settings page: show a button to take a student out of the class. */
   canRemove?: boolean;
 }) {
@@ -29,6 +32,7 @@ export default function TeamsPanel({
   const create = useAction();
 
   return (
+    <div className="space-y-8">
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
       <section className="space-y-3" aria-labelledby="teams-title">
         <h2 id="teams-title" className="text-sm font-semibold uppercase tracking-wide text-[var(--wq-text-muted)]">
@@ -84,6 +88,121 @@ export default function TeamsPanel({
         )}
       </section>
     </div>
+    <AuditPairings offeringId={offeringId} teams={teams} audits={audits} />
+    </div>
+  );
+}
+
+/** Staff choose which team audits which: the auditor team gets read-only access to the other team's team files. */
+function AuditPairings({ offeringId, teams, audits }: { offeringId: string; teams: TeamInfo[]; audits: AuditPairing[] }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const [auditor, setAuditor] = useState('');
+  const [audited, setAudited] = useState('');
+  const add = useAction();
+  const ring = useAction();
+  const nameOf = (teamId: string) => teams.find((team) => team.id === teamId)?.name ?? '—';
+  const order = new Map(teams.map((team, i) => [team.id, i]));
+  const sorted = [...audits].sort(
+    (a, b) => (order.get(a.auditorTeamId) ?? 0) - (order.get(b.auditorTeamId) ?? 0) || (order.get(a.auditedTeamId) ?? 0) - (order.get(b.auditedTeamId) ?? 0),
+  );
+
+  return (
+    <section className="space-y-3" aria-labelledby="audits-title" data-testid="audit-pairings">
+      <div>
+        <h2 id="audits-title" className="text-sm font-semibold uppercase tracking-wide text-[var(--wq-text-muted)]">
+          {t('files.audits.title')}
+        </h2>
+        <p className="mt-1 max-w-3xl text-sm text-[var(--wq-text-muted)]">{t('files.audits.help')}</p>
+      </div>
+
+      {teams.length < 2 ? (
+        <p className="rounded-xl bg-[var(--wq-card)] p-4 text-sm text-[var(--wq-text-muted)]">{t('files.audits.needTeams')}</p>
+      ) : (
+        <>
+          <form
+            className="flex flex-col gap-2 rounded-xl border border-[var(--wq-border)] bg-[var(--wq-card)] p-3 sm:flex-row sm:items-center"
+            onSubmit={(e) => {
+              e.preventDefault();
+              add.run(() => addAuditPairing({ offeringId, auditorTeamId: auditor, auditedTeamId: audited }), () => {
+                setAuditor('');
+                setAudited('');
+                router.refresh();
+              });
+            }}
+          >
+            <select className={cn(fieldClass, 'sm:w-48')} value={auditor} onChange={(e) => setAuditor(e.target.value)} aria-label={t('files.audits.auditor')}>
+              <option value="">{t('files.audits.auditor')}…</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name}
+                </option>
+              ))}
+            </select>
+            <span className="px-1 text-sm text-[var(--wq-text-muted)]">{t('files.audits.verb')}</span>
+            <select className={cn(fieldClass, 'sm:w-48')} value={audited} onChange={(e) => setAudited(e.target.value)} aria-label={t('files.audits.audited')}>
+              <option value="">{t('files.audits.audited')}…</option>
+              {teams
+                .filter((team) => team.id !== auditor)
+                .map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+            </select>
+            <Button type="submit" variant="primary" pending={add.pending} disabled={!auditor || !audited || auditor === audited}>
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              {t('files.audits.add')}
+            </Button>
+            <Button
+              className="sm:ml-auto"
+              pending={ring.pending}
+              onClick={() => ring.run(() => addAuditRing({ offeringId }), () => router.refresh())}
+            >
+              <Repeat className="h-4 w-4" aria-hidden="true" />
+              {t('files.audits.ring')}
+            </Button>
+          </form>
+          <ErrorText>{add.error ?? ring.error}</ErrorText>
+          {sorted.length === 0 ? (
+            <p className="text-sm text-[var(--wq-text-muted)]">{t('files.audits.none')}</p>
+          ) : (
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {sorted.map((p) => (
+                <AuditItem key={p.id} pairing={p} auditor={nameOf(p.auditorTeamId)} audited={nameOf(p.auditedTeamId)} />
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+function AuditItem({ pairing, auditor, audited }: { pairing: AuditPairing; auditor: string; audited: string }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const action = useAction();
+  return (
+    <li data-testid="audit-pairing" className="rounded-xl border border-[var(--wq-border)] bg-[var(--wq-card)] px-3 py-2">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="font-semibold text-[var(--wq-text)]">{auditor}</span>
+        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--wq-text-muted)]" aria-hidden="true" />
+        <span className="text-[var(--wq-text-muted)]">{t('files.audits.verb')}</span>
+        <span className="font-semibold text-[var(--wq-text)]">{audited}</span>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="ml-auto"
+          pending={action.pending}
+          onClick={() => action.run(() => removeAuditPairing({ pairingId: pairing.id }), () => router.refresh())}
+          aria-label={`${t('files.audits.remove')}: ${auditor} → ${audited}`}
+        >
+          <X className="h-3.5 w-3.5" aria-hidden="true" />
+        </Button>
+      </div>
+      <ErrorText>{action.error}</ErrorText>
+    </li>
   );
 }
 

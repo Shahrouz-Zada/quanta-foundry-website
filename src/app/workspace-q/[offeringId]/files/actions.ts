@@ -49,6 +49,7 @@ const shareLevel = z.enum(['STAFF', 'TEAM', 'CLASS']);
 
 function refresh(offeringId: string) {
   revalidatePath(`/workspace-q/${offeringId}/files`);
+  revalidatePath(`/workspace-q/${offeringId}/manage`);
 }
 
 async function requireViewer(offeringId: string, roles: FileViewer['role'][]) {
@@ -341,7 +342,10 @@ export async function deleteTeam(input: { teamId: string }): Promise<ActionResul
     const data = z.object({ teamId: id }).parse(input);
     const team = await db.team.findUnique({
       where: { id: data.teamId },
-      include: { _count: { select: { files: true } }, members: { select: { userId: true } } },
+      include: {
+        _count: { select: { files: true, auditsGiven: true, auditsReceived: true } },
+        members: { select: { userId: true } },
+      },
     });
     if (!team) throw new UserError('This team no longer exists. Refresh the page.');
     const { user } = await requireViewer(team.offeringId, ['staff']);
@@ -356,7 +360,13 @@ export async function deleteTeam(input: { teamId: string }): Promise<ActionResul
       db.workspaceAuditLog.create({
         data: {
           offeringId: team.offeringId, actorId: user.id, action: 'team.delete', entity: 'Team',
-          entityId: team.id, details: { name: team.name, removedMembers: team.members.map((m) => m.userId) },
+          entityId: team.id,
+          details: {
+            name: team.name,
+            removedMembers: team.members.map((m) => m.userId),
+            // Its audit pairings go with it.
+            removedAuditPairings: team._count.auditsGiven + team._count.auditsReceived,
+          },
         },
       }),
     ]);
@@ -396,6 +406,102 @@ export async function assignTeam(input: { offeringId: string; userId: string; te
       });
     });
     refresh(data.offeringId);
+    return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Audit pairings (staff only): one team reads another team's team files
+// -----------------------------------------------------------------------------
+
+async function classTeams(offeringId: string, ids: string[]) {
+  const teams = await db.team.findMany({ where: { offeringId, id: { in: ids } }, select: { id: true, name: true } });
+  return new Map(teams.map((t) => [t.id, t.name]));
+}
+
+/** "Team A audits Team B": members of Team A may open Team B's team files, read-only. */
+export async function addAuditPairing(input: { offeringId: string; auditorTeamId: string; auditedTeamId: string }): Promise<ActionResult> {
+  try {
+    const data = z.object({ offeringId: id, auditorTeamId: id, auditedTeamId: id }).parse(input);
+    if (data.auditorTeamId === data.auditedTeamId) throw new UserError('A team can’t audit itself. Pick two different teams.');
+    const { user } = await requireViewer(data.offeringId, ['staff']);
+    const names = await classTeams(data.offeringId, [data.auditorTeamId, data.auditedTeamId]);
+    if (names.size !== 2) throw new UserError('This team no longer exists. Refresh the page.');
+    const existing = await db.teamAudit.findUnique({
+      where: { auditorTeamId_auditedTeamId: { auditorTeamId: data.auditorTeamId, auditedTeamId: data.auditedTeamId } },
+    });
+    if (existing) throw new UserError(`${names.get(data.auditorTeamId)} already audits ${names.get(data.auditedTeamId)}.`);
+    await db.$transaction(async (tx) => {
+      const pairing = await tx.teamAudit.create({
+        data: { offeringId: data.offeringId, auditorTeamId: data.auditorTeamId, auditedTeamId: data.auditedTeamId, createdById: user.id },
+      });
+      await audit(tx, {
+        offeringId: data.offeringId, actorId: user.id, action: 'audit.add', entity: 'TeamAudit', entityId: pairing.id,
+        details: { auditor: names.get(data.auditorTeamId) ?? '', audited: names.get(data.auditedTeamId) ?? '' },
+      });
+    });
+    refresh(data.offeringId);
+    return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/**
+ * Pairs every team with the next one in the list ("each team audits the next
+ * one", the last auditing the first). Pairings that already exist are kept.
+ */
+export async function addAuditRing(input: { offeringId: string }): Promise<ActionResult> {
+  try {
+    const data = z.object({ offeringId: id }).parse(input);
+    const { user } = await requireViewer(data.offeringId, ['staff']);
+    const teams = await db.team.findMany({
+      where: { offeringId: data.offeringId },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true, name: true },
+    });
+    if (teams.length < 2) throw new UserError('Create at least two teams first.');
+    const pairs = teams.map((t, i) => ({ auditor: t, audited: teams[(i + 1) % teams.length] }));
+    await db.$transaction(async (tx) => {
+      const created = await tx.teamAudit.createMany({
+        data: pairs.map((p) => ({
+          offeringId: data.offeringId, auditorTeamId: p.auditor.id, auditedTeamId: p.audited.id, createdById: user.id,
+        })),
+        skipDuplicates: true,
+      });
+      await audit(tx, {
+        offeringId: data.offeringId, actorId: user.id, action: 'audit.ring', entity: 'TeamAudit', entityId: data.offeringId,
+        details: { added: created.count, pairs: pairs.map((p) => `${p.auditor.name} → ${p.audited.name}`) },
+      });
+    });
+    refresh(data.offeringId);
+    return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function removeAuditPairing(input: { pairingId: string }): Promise<ActionResult> {
+  try {
+    const data = z.object({ pairingId: id }).parse(input);
+    const pairing = await db.teamAudit.findUnique({
+      where: { id: data.pairingId },
+      include: { auditor: { select: { name: true } }, audited: { select: { name: true } } },
+    });
+    if (!pairing) throw new UserError('This pairing was already removed. Refresh the page.');
+    const { user } = await requireViewer(pairing.offeringId, ['staff']);
+    await db.$transaction([
+      db.teamAudit.delete({ where: { id: pairing.id } }),
+      db.workspaceAuditLog.create({
+        data: {
+          offeringId: pairing.offeringId, actorId: user.id, action: 'audit.remove', entity: 'TeamAudit', entityId: pairing.id,
+          details: { auditor: pairing.auditor.name, audited: pairing.audited.name },
+        },
+      }),
+    ]);
+    refresh(pairing.offeringId);
     return { ok: true };
   } catch (error) {
     return fail(error);
