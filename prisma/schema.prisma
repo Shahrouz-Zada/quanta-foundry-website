@@ -54,6 +54,8 @@ model User {
   name          String?
   image         String?
   globalRole    GlobalRole   @default(USER)
+  /// Set when the person deleted their account (or their only class was cleared): name and email are erased.
+  deletedAt     DateTime?
   
   accounts      Account[]
   enrollments   Enrollment[]
@@ -139,6 +141,10 @@ model Offering {
   // 8 characters from an alphabet without look-alikes; see lib/workspace-classes.ts.
   joinCode          String?           @unique
   joinCodeExpiresAt DateTime?
+  // Privacy: the day this class's student data is deleted (set by staff), and when it was.
+  // Teaching content (sessions, materials, activities) is kept; see lib/privacy-server.ts.
+  dataDeleteAfter   DateTime?
+  dataDeletedAt     DateTime?
   
   track            Track?            @relation(fields: [trackId], references: [id])
   enrollments      Enrollment[]
@@ -156,6 +162,8 @@ model Offering {
   activities       Activity[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+
+  @@index([dataDeleteAfter])
 }
 
 model Enrollment {

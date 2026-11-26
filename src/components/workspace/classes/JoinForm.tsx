@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -72,6 +73,17 @@ export default function JoinForm({
           placeholder="ABCD-EFGH"
           required
         />
+      </div>
+      <div data-testid="privacy-notice" className="rounded-md border border-slate-700 bg-slate-900/60 px-3 py-2.5 text-xs leading-relaxed text-slate-300">
+        <p className="mb-1 font-semibold text-slate-100">Your data in this class</p>
+        <p>
+          Workspace Q keeps your name, your email, your team, and the files, answers and messages you add. Your instructor
+          sees them; your team sees team work. They are used only for this course and deleted on the date your instructor
+          sets. You can download your work or delete your account at any time from <strong>My data</strong>.{' '}
+          <Link href="/workspace-q/privacy" target="_blank" rel="noopener" className="underline hover:text-slate-100">
+            Details
+          </Link>
+        </p>
       </div>
       {error && (
         <p role="alert" className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">

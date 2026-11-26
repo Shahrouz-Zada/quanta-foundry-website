@@ -14,7 +14,7 @@ const SUPPRESS_CHROME_PREFIXES = ['/workspace-q/learning-sessions'];
 // Dynamic offering routes: /workspace-q/<offeringId>/session/<sessionSlug> and /workspace-q/<offeringId>/files and /manage
 const SUPPRESS_CHROME_PATTERN = /^\/workspace-q\/[^/]+\/(session\/|files(\/|$)|manage(\/|$)|materials\/|activities\/|discussion(\/|$))/;
 // The class home page /workspace-q/<offeringId> (but not the fixed pages next to it)
-const CLASS_HOME_PATTERN = /^\/workspace-q\/(?!join$|signin$|classes$|learning-sessions$|teach$)[^/]+\/?$/;
+const CLASS_HOME_PATTERN = /^\/workspace-q\/(?!join$|signin$|classes$|learning-sessions$|teach$|account$|privacy$)[^/]+\/?$/;
 
 interface Props {
   navbar:    ReactNode;

@@ -2,5 +2,6 @@
   "buildCommand": "prisma migrate deploy && next build",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["fra1"]
+  "regions": ["fra1"],
+  "crons": [{ "path": "/api/cron/workspace-retention", "schedule": "17 3 * * *" }]
 }

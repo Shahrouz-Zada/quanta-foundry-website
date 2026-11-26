@@ -5,6 +5,8 @@ import { getClassViewer, studentFilesToken, offeringIdForSlug } from '@/lib/work
 import { loadClassHome } from '@/lib/workspace-materials-server';
 import { loadActivitySummaries } from '@/lib/workspace-activities-server';
 import NotInClass from './NotInClass';
+import RetentionNotice from '@/components/workspace/privacy/RetentionNotice';
+import { privacyDb } from '@/lib/privacy-server';
 
 export const metadata: Metadata = {
   title: 'Class · Workspace Q',
@@ -30,13 +32,18 @@ export default async function ClassHomePage({ params }: { params: Promise<{ offe
   if (check.status === 'not-enrolled') return <NotInClass email={check.email} />;
 
   const now = new Date();
-  const [data, activities] = await Promise.all([
+  const [data, activities, retention] = await Promise.all([
     loadClassHome(offeringId, check.viewer.role, now),
     loadActivitySummaries(offeringId, check.viewer, now),
+    privacyDb.offering.findUniqueOrThrow({ where: { id: offeringId }, select: { dataDeleteAfter: true, dataDeletedAt: true } }),
   ]);
   const next = data.sessions.find((s) => s.startsAt && new Date(s.startsAt).getTime() + SESSION_LENGTH_MS > now.getTime());
 
   return (
+    <>
+    {!retention.dataDeletedAt && (
+      <RetentionNotice offeringId={offeringId} staff={check.viewer.role === 'staff'} deleteAfter={retention.dataDeleteAfter?.toISOString() ?? null} />
+    )}
     <ClassHome
       offering={check.offering}
       staff={check.viewer.role === 'staff'}
@@ -45,5 +52,6 @@ export default async function ClassHomePage({ params }: { params: Promise<{ offe
       nextSessionId={next?.id ?? null}
       storageConnected={Boolean(studentFilesToken())}
     />
+    </>
   );
 }

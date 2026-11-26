@@ -13,6 +13,7 @@ import { auth, signOut } from '@/auth';
 import { checkCourseAdmin } from '@/lib/courses';
 import { prisma } from '@/lib/prisma';
 import { audit, getClassViewer } from '@/lib/workspace-files-server';
+import { PRIVACY_NOTICE_VERSION } from '@/lib/privacy';
 import {
   cleanFullName,
   generateJoinCode,
@@ -290,7 +291,8 @@ export async function joinClass(input: { fullName: string; code: string }): Prom
         await tx.joinAttempt.create({ data: { userId, success: true } });
         await audit(tx, {
           offeringId: offering.id, actorId: userId, action: 'class.join', entity: 'Enrollment', entityId: userId,
-          details: { fullName },
+          // Which privacy notice was on the join page when they joined.
+          details: { fullName, privacyNotice: PRIVACY_NOTICE_VERSION },
         });
       }
       return { kind: 'ok' as const, offeringId: offering.id };

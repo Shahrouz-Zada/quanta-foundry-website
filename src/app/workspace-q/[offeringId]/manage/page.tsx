@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { BookOpen, FolderOpen } from 'lucide-react';
 import JoinCodeCard from '@/components/workspace/classes/JoinCodeCard';
 import TeamsPanel from '@/components/workspace/files/TeamsPanel';
+import RetentionCard from '@/components/workspace/privacy/RetentionCard';
 import { filesDb, getClassViewer, offeringIdForSlug } from '@/lib/workspace-files-server';
 import { joinCodeStatus } from '@/lib/workspace-classes';
 
@@ -43,7 +44,7 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
   const [offering, teams, enrolments, audits] = await Promise.all([
     filesDb.offering.findUniqueOrThrow({
       where: { id: offeringId },
-      select: { id: true, name: true, joinCode: true, joinCodeExpiresAt: true },
+      select: { id: true, name: true, joinCode: true, joinCodeExpiresAt: true, dataDeleteAfter: true, dataDeletedAt: true },
     }),
     filesDb.team.findMany({
       where: { offeringId },
@@ -118,6 +119,14 @@ export default async function ManageClassPage({ params }: { params: Promise<{ of
               joinedAt: e.createdAt.toISOString(),
             }))
             .sort((a, b) => a.name.localeCompare(b.name))}
+        />
+
+        <RetentionCard
+          offeringId={offeringId}
+          className={offering.name}
+          deleteAfter={offering.dataDeleteAfter?.toISOString() ?? null}
+          deletedAt={offering.dataDeletedAt?.toISOString() ?? null}
+          students={enrolments.length}
         />
       </div>
     </div>

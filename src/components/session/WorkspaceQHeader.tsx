@@ -26,11 +26,12 @@ import ReportProblemModal from './ReportProblemModal';
 // Privacy is active and links to the Quanta Foundry privacy page.
 
 type ProfileMenuItem =
-  | { id: string; labelKey: MessageKey; disabled: false; href: string | undefined; isReport?: boolean }
+  | { id: string; labelKey: MessageKey; disabled: false; href: string | undefined; isReport?: boolean; internal?: boolean }
   | { id: string; labelKey: MessageKey; disabled: true;  href: undefined }
   | { id: string; labelKey: null;       disabled: false; href: undefined };
 
 const PROFILE_MENU_ITEMS: ProfileMenuItem[] = [
+  { id: 'my-data',     labelKey: 'header.myData',       disabled: false, href: '/workspace-q/account', internal: true },
   { id: 'my-profile',  labelKey: 'header.myProfile',    disabled: true,  href: undefined },
   { id: 'my-progress', labelKey: 'header.myProgress',   disabled: true,  href: undefined },
   { id: 'preferences', labelKey: 'header.preferences',  disabled: true,  href: undefined },
@@ -367,8 +368,8 @@ export default function WorkspaceQHeader() {
                       <a
                         key={item.id}
                         href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        target={'internal' in item && item.internal ? undefined : '_blank'}
+                        rel={'internal' in item && item.internal ? undefined : 'noopener noreferrer'}
                         role="menuitem"
                         onClick={() => setProfileOpen(false)}
                         className={cn(

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
@@ -9,10 +10,16 @@ function SignInContent() {
   // Fall back to the dashboard only if there's genuinely nowhere else to send them.
   const callbackUrl = searchParams.get('callbackUrl') || '/workspace-q';
   const joining = searchParams.get('join') === '1';
+  const deleted = searchParams.get('deleted') === '1';
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-slate-950 text-slate-50">
       <div className="w-full max-w-sm space-y-6 text-center">
+        {deleted && (
+          <p role="status" className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200">
+            Your account was deleted.
+          </p>
+        )}
         <h1 className="text-2xl font-semibold">Sign in to Workspace Q</h1>
         <p className="text-sm text-slate-400">
           {joining
@@ -26,6 +33,12 @@ function SignInContent() {
         >
           Continue with Google
         </button>
+        <p className="text-xs text-slate-500">
+          Google only tells Workspace Q your name and email address, to sign you in.{' '}
+          <Link href="/workspace-q/privacy" className="underline hover:text-slate-300">
+            How your data is handled
+          </Link>
+        </p>
       </div>
     </div>
   );
