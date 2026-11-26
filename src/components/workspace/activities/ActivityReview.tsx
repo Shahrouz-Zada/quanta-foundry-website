@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, History } from 'lucide-react';
+import { ChevronDown, History, MessageSquare } from 'lucide-react';
+import CommentsToggle, { NewBadge } from '@/components/workspace/discussion/CommentsToggle';
+import { activityThreadKey } from '@/lib/discussions';
 import { getSubmissionVersion } from '@/app/workspace-q/classes/activity-actions';
 import { cn } from '@/lib/utils';
 import type { Answers } from '@/lib/workspace-activities';
@@ -12,7 +14,7 @@ import AnswerFields from './AnswerFields';
 import { StatusPill } from './ActivityHeader';
 
 /** Staff: every team (or student), its status and answer, and the history of saves. */
-export default function ActivityReview({ activity, rows }: { activity: ActivityInfo; rows: ReviewRow[] }) {
+export default function ActivityReview({ activity, rows, openReview = null }: { activity: ActivityInfo; rows: ReviewRow[]; openReview?: string | null }) {
   const [filter, setFilter] = useState<'all' | 'submitted' | 'missing'>('all');
   const submitted = rows.filter((r) => r.submission.status === 'submitted' || r.submission.status === 'late').length;
   const shown = rows.filter((r) =>
@@ -87,15 +89,15 @@ export default function ActivityReview({ activity, rows }: { activity: ActivityI
       )}
       <ul className="space-y-2">
         {shown.map((row) => (
-          <ReviewItem key={row.ownerKey} activity={activity} row={row} />
+          <ReviewItem key={row.ownerKey} activity={activity} row={row} startOpen={row.ownerKey === openReview} />
         ))}
       </ul>
     </section>
   );
 }
 
-function ReviewItem({ activity, row }: { activity: ActivityInfo; row: ReviewRow }) {
-  const [open, setOpen] = useState(false);
+function ReviewItem({ activity, row, startOpen }: { activity: ActivityInfo; row: ReviewRow; startOpen: boolean }) {
+  const [open, setOpen] = useState(startOpen);
   const [version, setVersion] = useState<{ id: string; answers: Answers } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const s = row.submission;
@@ -118,6 +120,13 @@ function ReviewItem({ activity, row }: { activity: ActivityInfo; row: ReviewRow 
         <div className="flex shrink-0 items-center gap-2 text-xs text-[var(--wq-text-muted)]">
           {row.score && <span className="font-semibold text-[var(--wq-text)]" data-testid="row-score">{row.score.score}/{row.score.max}</span>}
           {s.submittedAt && <span className="hidden sm:inline">{formatClassDate(s.submittedAt, 'en')}</span>}
+          {row.comments && row.comments.total > 0 && (
+            <span className="inline-flex items-center gap-1" title="Comments">
+              <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+              {row.comments.total}
+              <NewBadge n={row.comments.unread} />
+            </span>
+          )}
           <StatusPill status={s.status} />
           <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} aria-hidden="true" />
         </div>
@@ -161,6 +170,15 @@ function ReviewItem({ activity, row }: { activity: ActivityInfo; row: ReviewRow 
               {error && <p className="text-xs text-red-600">{error}</p>}
             </>
           )}
+          <CommentsToggle
+            id={startOpen ? 'discussion' : undefined}
+            threadKey={activityThreadKey(activity.id, row.ownerKey)}
+            total={row.comments?.total}
+            unread={row.comments?.unread}
+            help={activity.submitter === 'TEAM' ? 'Only this team and the class staff can read this.' : 'Only this student and the class staff can read this.'}
+            defaultOpen={startOpen}
+            scrollTo={startOpen}
+          />
         </div>
       )}
     </li>

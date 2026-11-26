@@ -241,6 +241,8 @@ export interface ReviewRow {
   submission: SubmissionView;
   /** Quiz and card sort with a key: score of the current answer */
   score: Score | null;
+  /** Discussion about this answer: message count and how many are new for the viewer (filled in by the page) */
+  comments?: { total: number; unread: number };
 }
 
 export async function loadReview(activity: LoadedActivity): Promise<ReviewRow[]> {

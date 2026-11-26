@@ -16,6 +16,8 @@ import {
 } from '@/lib/workspace-activities-server';
 import { loadMaterial } from '@/lib/workspace-materials-server';
 import { canSeeMaterial, isReleased, effectiveReleaseAt } from '@/lib/workspace-materials';
+import { threadStats } from '@/lib/discussions-server';
+import { activityThreadKey } from '@/lib/discussions';
 
 export const metadata: Metadata = {
   title: 'Activity · Workspace Q',
@@ -26,8 +28,15 @@ export const dynamic = 'force-dynamic';
 
 const EMPTY: SubmissionView = { id: null, answers: { values: {} }, status: 'not-started', submittedAt: null, lastSavedAt: null, lastSavedBy: null, versions: [] };
 
-export default async function ActivityPage({ params }: { params: Promise<{ offeringId: string; activityId: string }> }) {
+export default async function ActivityPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ offeringId: string; activityId: string }>;
+  searchParams: Promise<{ review?: string }>;
+}) {
   const { offeringId, activityId } = await params;
+  const { review } = await searchParams;
   const check = await getClassViewer(offeringId);
   if (check.status === 'signed-out') {
     redirect(`/workspace-q/signin?callbackUrl=${encodeURIComponent(`/workspace-q/${offeringId}/activities/${activityId}`)}`);
@@ -55,10 +64,16 @@ export default async function ActivityPage({ params }: { params: Promise<{ offer
       }),
     ]);
     const now = new Date();
+    const comments = await threadStats(check.user.id, rows.map((r) => activityThreadKey(activity.id, r.ownerKey)));
+    for (const r of rows) {
+      const s = comments.get(activityThreadKey(activity.id, r.ownerKey));
+      if (s) r.comments = s;
+    }
     return (
       <ActivityStaff
         activity={toActivityInfo(activity, true, now)}
         rows={rows}
+        openReview={review ?? null}
         sessionOptions={sessions.map((s) => ({ id: s.id, label: `Session ${s.number} · ${s.titleEn}` }))}
         materials={materials.map((m) => {
           const release = effectiveReleaseAt(m, m.session);
@@ -84,6 +99,8 @@ export default async function ActivityPage({ params }: { params: Promise<{ offer
   ]);
   // The answer key reaches this page only once this student's (or team's) results are shown.
   const info = toActivityInfo(activity, false, new Date(), submission.submittedAt ? new Date(submission.submittedAt) : null);
+  const discussionKey = ownerKey ? activityThreadKey(activity.id, ownerKey) : null;
+  const discussionStats = discussionKey ? (await threadStats(check.user.id, [discussionKey])).get(discussionKey) : undefined;
   const modelVisible = modelMaterial && modelMaterial.versions.length > 0 && canSeeMaterial(check.viewer.role, modelMaterial, modelMaterial.session);
   return (
     <ActivityStudent
@@ -92,6 +109,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ offer
       teamName={team?.name ?? null}
       noTeam={learner && ownerKey === null}
       attachable={attachable}
+      discussion={discussionKey ? { key: discussionKey, total: discussionStats?.total ?? 0, unread: discussionStats?.unread ?? 0 } : null}
       model={
         modelVisible
           ? { id: modelMaterial.id, title: modelMaterial.titleEn, canOpen: inlineContentType(modelMaterial.versions[0].fileName) !== null }

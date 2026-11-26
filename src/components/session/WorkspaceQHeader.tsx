@@ -14,7 +14,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import { Sun, Moon, ChevronDown, User, FolderOpen, BookOpen } from 'lucide-react';
+import { Sun, Moon, ChevronDown, User, FolderOpen, BookOpen, MessagesSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation, type Lang, type MessageKey } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
@@ -50,6 +50,8 @@ export default function WorkspaceQHeader() {
   const pathname = usePathname();
   const filesHref = params?.offeringId ? `/workspace-q/${params.offeringId}/files` : null;
   const onFiles = filesHref !== null && pathname === filesHref;
+  const discussionHref = params?.offeringId ? `/workspace-q/${params.offeringId}/discussion` : null;
+  const onDiscussion = discussionHref !== null && pathname === discussionHref;
   const classHref = params?.offeringId ? `/workspace-q/${params.offeringId}` : null;
   const onClass = classHref !== null && (pathname === classHref || pathname.startsWith(`${classHref}/materials/`) || pathname.startsWith(`${classHref}/activities/`));
 
@@ -179,6 +181,25 @@ export default function WorkspaceQHeader() {
               >
                 <FolderOpen size={13} aria-hidden="true" />
                 <span className="hidden sm:inline">{t('files.nav')}</span>
+              </Link>
+            </>
+          )}
+
+          {discussionHref && (
+            <>
+              <span className="text-white/15 text-sm select-none" aria-hidden="true">/</span>
+              <Link
+                href={discussionHref}
+                aria-current={onDiscussion ? 'page' : undefined}
+                aria-label={t('discussion.nav')}
+                className={cn(
+                  'flex items-center gap-1 text-xs font-semibold transition-colors whitespace-nowrap rounded',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wq-accent)]',
+                  onDiscussion ? 'text-white' : 'text-white/55 hover:text-white'
+                )}
+              >
+                <MessagesSquare size={13} aria-hidden="true" />
+                <span className="hidden sm:inline">{t('discussion.nav')}</span>
               </Link>
             </>
           )}

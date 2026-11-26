@@ -3,6 +3,11 @@ import { notFound, redirect } from 'next/navigation';
 import FilesWorkspace from '@/components/workspace/files/FilesWorkspace';
 import { filesDb, getClassViewer, getVisibleFiles, storageUsedBytes, studentFilesToken, offeringIdForSlug } from '@/lib/workspace-files-server';
 import { storageQuotaBytes } from '@/lib/workspace-files';
+import { threadStats } from '@/lib/discussions-server';
+import { fileThreadKey } from '@/lib/discussions';
+import type { Tab } from '@/components/workspace/files/FilesWorkspace';
+
+const TABS: Tab[] = ['mine', 'team', 'class', 'audit', 'all', 'teams'];
 
 export const metadata: Metadata = {
   title: 'Files · Workspace Q',
@@ -16,10 +21,10 @@ export default async function FilesPage({
   searchParams,
 }: {
   params: Promise<{ offeringId: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; comments?: string }>;
 }) {
   const { offeringId } = await params;
-  const { tab } = await searchParams;
+  const { tab, comments: openComments } = await searchParams;
   const check = await getClassViewer(offeringId);
 
   if (check.status === 'signed-out') {
@@ -79,6 +84,13 @@ export default async function FilesPage({
   const nameOf = (u: { name: string | null; email: string }) => u.name?.trim() || u.email.split('@')[0];
   const publicName = (u: { name: string | null }) => u.name?.trim() || null;
 
+  // Comment counts for the files whose conversation this person can join.
+  const stats = await threadStats(user.id, files.filter((f) => f.canDiscuss).map((f) => fileThreadKey(f.id)));
+  for (const f of files) {
+    const s = stats.get(fileThreadKey(f.id));
+    if (s) f.comments = s;
+  }
+
   const teamInfos = teams.map((t) => ({
     id: t.id,
     name: t.name,
@@ -104,7 +116,8 @@ export default async function FilesPage({
         .sort((a, b) => a.name.localeCompare(b.name))}
       storage={{ personalUsed, teamUsed, quota: storageQuotaBytes() }}
       storageConnected={Boolean(studentFilesToken())}
-      initialTab={tab === 'teams' ? 'teams' : undefined}
+      initialTab={TABS.includes(tab as Tab) ? (tab as Tab) : undefined}
+      openCommentsFor={openComments ?? null}
     />
   );
 }

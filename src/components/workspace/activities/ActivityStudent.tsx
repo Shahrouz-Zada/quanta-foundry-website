@@ -9,6 +9,7 @@ import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { SCORED_KINDS, canWork, scoreAnswers, type Answers, type SubmitProblem } from '@/lib/workspace-activities';
 import type { ActivityInfo, AttachableFile, SubmissionView } from '@/lib/workspace-activities-server';
+import CommentsToggle from '@/components/workspace/discussion/CommentsToggle';
 import NotebookPreviewLink from '@/components/workspace/notebook/NotebookPreviewLink';
 import { formatClassDate } from '@/lib/workspace-materials';
 import { Button, fieldClass } from '@/components/workspace/files/ui';
@@ -31,12 +32,15 @@ export default function ActivityStudent({
   noTeam,
   attachable,
   model,
+  discussion = null,
 }: {
   activity: ActivityInfo;
   initial: SubmissionView;
   teamName: string | null;
   noTeam: boolean;
   attachable: AttachableFile[];
+  /** The conversation about this team's (or student's) answer, with the instructor */
+  discussion?: { key: string; total: number; unread: number } | null;
   /** The model answer, once the instructor shares it */
   model: { id: string; title: string; canOpen: boolean } | null;
 }) {
@@ -354,6 +358,19 @@ export default function ActivityStudent({
           <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
             {error}
           </p>
+        )}
+        {discussion && (
+          <section className="rounded-2xl border border-[var(--wq-border)] bg-[var(--wq-card)] p-4">
+            <CommentsToggle
+              id="discussion"
+              threadKey={discussion.key}
+              total={discussion.total}
+              unread={discussion.unread}
+              label={t('discussion.activityTitle')}
+              help={activity.submitter === 'TEAM' ? t('discussion.activityHelpTeam') : t('discussion.activityHelpUser')}
+              defaultOpen={discussion.total > 0}
+            />
+          </section>
         )}
       </div>
     </div>

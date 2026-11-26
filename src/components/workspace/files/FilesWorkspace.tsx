@@ -29,6 +29,7 @@ export default function FilesWorkspace({
   audits = [],
   auditedTeams = [],
   auditedBy = [],
+  openCommentsFor = null,
 }: {
   offering: { id: string; name: string };
   viewer: ViewerInfo;
@@ -44,6 +45,8 @@ export default function FilesWorkspace({
   auditedTeams?: TeamInfo[];
   /** Student: names of the teams that audit their own team. */
   auditedBy?: string[];
+  /** A file whose comments open straight away (links from the Discussion page). */
+  openCommentsFor?: string | null;
 }) {
   const { t } = useTranslation();
   const isStaff = viewer.role === 'staff';
@@ -147,7 +150,7 @@ export default function FilesWorkspace({
           {tab === 'mine' && (
             <div className="space-y-6">
               <FileUploader offeringId={offering.id} space="personal" hasTeam={Boolean(viewer.teamId)} disabled={!storageConnected} />
-              <FileList files={groups.mine} offeringId={offering.id} empty={t('files.emptyMine')} />
+              <FileList openCommentsFor={openCommentsFor} files={groups.mine} offeringId={offering.id} empty={t('files.emptyMine')} />
             </div>
           )}
 
@@ -173,14 +176,14 @@ export default function FilesWorkspace({
                   <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--wq-text-muted)]">
                     {t('files.teamSpace')}
                   </h2>
-                  <FileList files={groups.teamSpace} offeringId={offering.id} empty={t('files.emptyTeam')} />
+                  <FileList openCommentsFor={openCommentsFor} files={groups.teamSpace} offeringId={offering.id} empty={t('files.emptyTeam')} />
                 </section>
                 {groups.fromTeammates.length > 0 && (
                   <section>
                     <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--wq-text-muted)]">
                       {t('files.sharedByTeammates')}
                     </h2>
-                    <FileList files={groups.fromTeammates} offeringId={offering.id} showOwner empty="" />
+                    <FileList openCommentsFor={openCommentsFor} files={groups.fromTeammates} offeringId={offering.id} showOwner empty="" />
                   </section>
                 )}
               </div>
@@ -189,7 +192,7 @@ export default function FilesWorkspace({
             ))}
 
           {tab === 'class' && (
-            <FileList files={groups.classShared} offeringId={offering.id} showOwner empty={t('files.emptyClass')} />
+            <FileList openCommentsFor={openCommentsFor} files={groups.classShared} offeringId={offering.id} showOwner empty={t('files.emptyClass')} />
           )}
 
           {tab === 'audit' && (
@@ -214,7 +217,7 @@ export default function FilesWorkspace({
             </div>
           )}
 
-          {tab === 'all' && <AllFiles files={files} offeringId={offering.id} />}
+          {tab === 'all' && <AllFiles files={files} offeringId={offering.id} openCommentsFor={openCommentsFor} />}
 
           {tab === 'teams' && <TeamsPanel offeringId={offering.id} teams={teams} roster={roster} audits={audits} />}
         </div>
@@ -228,23 +231,25 @@ function FileList({
   offeringId,
   showOwner,
   empty,
+  openCommentsFor = null,
 }: {
   files: FileView[];
   offeringId: string;
   showOwner?: boolean;
   empty: string;
+  openCommentsFor?: string | null;
 }) {
   if (files.length === 0) return empty ? <Empty text={empty} /> : null;
   return (
     <ul className="space-y-3">
       {files.map((file) => (
-        <FileRow key={file.id} file={file} offeringId={offeringId} showOwner={showOwner} />
+        <FileRow key={file.id} file={file} offeringId={offeringId} showOwner={showOwner} commentsOpen={file.id === openCommentsFor} />
       ))}
     </ul>
   );
 }
 
-function AllFiles({ files, offeringId }: { files: FileView[]; offeringId: string }) {
+function AllFiles({ files, offeringId, openCommentsFor }: { files: FileView[]; offeringId: string; openCommentsFor: string | null }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
@@ -266,7 +271,7 @@ function AllFiles({ files, offeringId }: { files: FileView[]; offeringId: string
           aria-label={t('files.filter')}
         />
       </label>
-      <FileList files={shown} offeringId={offeringId} showOwner empty={t('files.emptyAll')} />
+      <FileList openCommentsFor={openCommentsFor} files={shown} offeringId={offeringId} showOwner empty={t('files.emptyAll')} />
     </div>
   );
 }

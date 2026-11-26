@@ -133,6 +133,10 @@ export interface FileView {
   isMine: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  /** May read and write the file's comments (its owner or team, and staff). */
+  canDiscuss: boolean;
+  /** Filled in by the Files page: number of comments and how many are new for this person. */
+  comments?: { total: number; unread: number };
   current: VersionView;
   /** Older versions, newest first; empty unless the viewer may see them. */
   older: VersionView[];
@@ -177,6 +181,7 @@ export function toFileView(viewer: FileViewer, file: LoadedFile): FileView | nul
     isMine: file.ownerId === viewer.userId,
     canEdit: canEditFile(viewer, facts),
     canDelete: canDeleteFile(viewer, facts),
+    canDiscuss: viewer.role === 'staff' || canEditFile(viewer, facts),
     current: toVersionView(current),
     older: canSeeVersions(viewer, facts) ? older.map(toVersionView) : [],
     updatedAt: file.updatedAt.toISOString(),
@@ -244,7 +249,7 @@ export async function audit(
     offeringId: string;
     actorId: string;
     action: string;
-    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'TeamAudit' | 'Offering' | 'Enrollment' | 'ClassSession' | 'ClassMaterial' | 'ClassTool' | 'Activity' | 'ActivitySubmission';
+    entity: 'StudentFile' | 'Team' | 'TeamMember' | 'TeamAudit' | 'DiscussionMessage' | 'Offering' | 'Enrollment' | 'ClassSession' | 'ClassMaterial' | 'ClassTool' | 'Activity' | 'ActivitySubmission';
     entityId: string;
     details?: Prisma.InputJsonValue;
   },

@@ -355,7 +355,11 @@ export async function deleteTeam(input: { teamId: string }): Promise<ActionResul
     if ((await db.activitySubmission.count({ where: { teamId: team.id } })) > 0) {
       throw new UserError('This team has activity answers, so it can’t be deleted (its work would be lost). Rename it instead.');
     }
+    if ((await db.discussionMessage.count({ where: { deletedAt: null, thread: { teamId: team.id } } })) > 0) {
+      throw new UserError('This team has discussion messages, so it can’t be deleted (they would be lost). Rename it instead.');
+    }
     await db.$transaction([
+      db.discussionThread.deleteMany({ where: { teamId: team.id } }), // only empty or fully deleted threads are left
       db.team.delete({ where: { id: team.id } }), // memberships go with it
       db.workspaceAuditLog.create({
         data: {

@@ -9,6 +9,8 @@ import { allowedShareLevels, inlineContentType, type ShareLevel } from '@/lib/wo
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import NotebookPreviewLink from '@/components/workspace/notebook/NotebookPreviewLink';
+import CommentsToggle from '@/components/workspace/discussion/CommentsToggle';
+import { fileThreadKey } from '@/lib/discussions';
 import { uploadOne } from './FileUploader';
 import { Button, ErrorText, fieldClass, formatDate, useAction } from './ui';
 import type { FileView } from './types';
@@ -23,10 +25,13 @@ export default function FileRow({
   file,
   offeringId,
   showOwner,
+  commentsOpen = false,
 }: {
   file: FileView;
   offeringId: string;
   showOwner?: boolean;
+  /** Open this file's comments straight away. */
+  commentsOpen?: boolean;
 }) {
   const { t, lang } = useTranslation();
   const router = useRouter();
@@ -216,6 +221,20 @@ export default function FileRow({
       <div className="mt-2">
         <ErrorText>{action.error}</ErrorText>
       </div>
+
+      {file.canDiscuss && (
+        <div className="mt-2">
+          <CommentsToggle
+            id={`comments-${file.id}`}
+            threadKey={fileThreadKey(file.id)}
+            total={file.comments?.total}
+            unread={file.comments?.unread}
+            help={t('discussion.fileHelp')}
+            defaultOpen={commentsOpen}
+            scrollTo={commentsOpen}
+          />
+        </div>
+      )}
 
       {file.older.length > 0 && (
         <div className="mt-2">

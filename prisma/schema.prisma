@@ -70,6 +70,8 @@ model User {
   activityVersions    ActivitySubmissionVersion[] @relation("ActivityVersionAuthor")
   studentFiles    StudentFile[]        @relation("StudentFileOwner")
   teamAuditsCreated TeamAudit[]        @relation("TeamAuditCreator")
+  discussionMessages DiscussionMessage[] @relation("DiscussionAuthor")
+  discussionReads    DiscussionRead[]
   fileUploads     StudentFileVersion[] @relation("StudentFileUploader")
   pendingUploads  PendingUpload[]
   createdAt     DateTime     @default(now())
@@ -144,6 +146,7 @@ model Offering {
   milestones       Milestone[]
   teams            Team[]
   teamAudits       TeamAudit[]
+  discussions      DiscussionThread[]
   studentFiles     StudentFile[]
   pendingUploads   PendingUpload[]
   auditLogs        WorkspaceAuditLog[]
@@ -477,6 +480,7 @@ model Team {
   // Audit pairings set by staff: this team may read the other team's team files.
   auditsGiven    TeamAudit[] @relation("TeamAuditor")
   auditsReceived TeamAudit[] @relation("TeamAudited")
+  discussions    DiscussionThread[]
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
@@ -543,6 +547,7 @@ model StudentFile {
   team       Team?                @relation(fields: [teamId, offeringId], references: [id, offeringId], onDelete: NoAction)
   // The newest version is the current one; older ones are kept (F10.4).
   versions   StudentFileVersion[]
+  discussion DiscussionThread[]
   createdAt  DateTime             @default(now())
   updatedAt  DateTime             @updatedAt
 
@@ -783,6 +788,7 @@ model Activity {
   offering       Offering          @relation(fields: [offeringId], references: [id], onDelete: Cascade)
   session        ClassSession?     @relation(fields: [sessionId, offeringId], references: [id, offeringId], onDelete: Restrict)
   submissions    ActivitySubmission[]
+  discussions    DiscussionThread[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
@@ -843,4 +849,81 @@ model ActivitySubmissionFile {
 
   @@unique([submissionId, fileVersionId])
   @@index([fileVersionId])
+}
+
+// =============================================================================
+// Team discussion threads: a team board, comments on a file, comments on an
+// activity answer. Readable only by the people the thing belongs to (the team,
+// or the student) and the class staff. See lib/discussions.ts.
+// =============================================================================
+
+enum DiscussionKind {
+  TEAM
+  FILE
+  ACTIVITY
+}
+
+model DiscussionThread {
+  id            String         @id @default(cuid())
+  offeringId    String
+  kind          DiscussionKind
+  /// "team:<teamId>", "file:<fileId>" or "activity:<activityId>:<ownerKey>": one thread per thing
+  targetKey     String         @unique
+  /// TEAM threads, and ACTIVITY threads of a team answer
+  teamId        String?
+  /// FILE threads
+  fileId        String?
+  /// ACTIVITY threads, with whose answer it is ("team:<id>" or "user:<id>")
+  activityId    String?
+  ownerKey      String?
+  lastMessageAt DateTime?
+  createdAt     DateTime       @default(now())
+
+  offering Offering      @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  // NoAction: a team whose discussion has messages can't be deleted (see deleteTeam).
+  team     Team?         @relation(fields: [teamId, offeringId], references: [id, offeringId], onDelete: NoAction)
+  // Comments go with the file or the activity they are about.
+  file     StudentFile?  @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  activity Activity?     @relation(fields: [activityId, offeringId], references: [id, offeringId], onDelete: Cascade)
+  messages DiscussionMessage[]
+  reads    DiscussionRead[]
+
+  @@index([offeringId, kind])
+  @@index([teamId])
+  @@index([fileId])
+  @@index([activityId])
+}
+
+model DiscussionMessage {
+  id          String    @id @default(cuid())
+  threadId    String
+  authorId    String
+  /// Plain text; emptied when the message is deleted
+  body        String
+  /// Both set by the server's clock (not the database's) so polling can compare them safely
+  createdAt   DateTime
+  updatedAt   DateTime
+  deletedAt   DateTime?
+  deletedById String?
+
+  thread DiscussionThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  // Restrict: a person who wrote messages can't silently disappear.
+  author User             @relation("DiscussionAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([threadId, updatedAt])
+  @@index([threadId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+/// Up to when each person has read a thread (for "new" counts).
+model DiscussionRead {
+  threadId   String
+  userId     String
+  lastReadAt DateTime
+
+  thread DiscussionThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, userId])
+  @@index([userId])
 }

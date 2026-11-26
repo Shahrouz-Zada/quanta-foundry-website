@@ -15,9 +15,12 @@ export default function ActivityStaff({
   rows,
   sessionOptions,
   materials,
+  openReview = null,
 }: {
   activity: ActivityInfo;
   rows: ReviewRow[];
+  /** Answer to open straight away (link from the Discussion page) */
+  openReview?: string | null;
   sessionOptions: { id: string; label: string }[];
   materials: MaterialChoice[];
 }) {
@@ -54,7 +57,7 @@ export default function ActivityStaff({
         </div>
         {tab === 'answers' ? (
           <>
-            <ActivityReview activity={activity} rows={rows} />
+            <ActivityReview activity={activity} rows={rows} openReview={openReview} />
             <ResultsAndModel activity={activity} materials={materials} scored={SCORED_KINDS.includes(activity.kind)} />
           </>
         ) : (
